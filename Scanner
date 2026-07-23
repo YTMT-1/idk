@@ -1,4 +1,5 @@
 --yall this script orignal script by @upio yall, this just modify script for figure old
+--yall this script orignal script by @upio yall, this just modify script for figure old
 local Scanner = game:GetObjects("rbxassetid://88321642597839")[1]
 Scanner.Parent = game.Players.LocalPlayer.Backpack
 
@@ -70,8 +71,6 @@ local function ScannerStaticStart()
 		FieldOfView = 30
 	}):Play()
 
-	Scanner.Handle.Use:Play()
-	Scanner.Handle.Idle:Play()
 end
 
 local function ScannerStaticStop()
@@ -93,8 +92,6 @@ local function ScannerStaticStop()
 		BackgroundColor3 = Color3.fromRGB(3, 6, 2)
 	}):Play()
 
-	Scanner.Handle.Disable:Play()
-	Scanner.Handle.Idle:Stop()
 end
 
 local function ScannerAnimateStatic()
@@ -288,7 +285,6 @@ Scanner.Unequipped:Connect(function()
 		end
 	end
 
-	Scanner.Handle.Disable:Play()
 
 	CleanupScannerView()
 
