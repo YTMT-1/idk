@@ -1,3 +1,4 @@
+--yall this script orignal script by @upio yall, this just modify script for figure old
 local Scanner = game:GetObjects("rbxassetid://88321642597839")[1]
 Scanner.Parent = game.Players.LocalPlayer.Backpack
 
