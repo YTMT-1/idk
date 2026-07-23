@@ -1,5 +1,4 @@
 --yall this script orignal script by @upio yall, this just modify script for figure old
---yall this script orignal script by @upio yall, this just modify script for figure old
 local Scanner = game:GetObjects("rbxassetid://88321642597839")[1]
 Scanner.Parent = game.Players.LocalPlayer.Backpack
 
@@ -245,17 +244,16 @@ Scanner.Equipped:Connect(function()
 						v.CFrame = CFrame.new(v.Position, ScannerCamera.CFrame.Position)
 					end
 				end
-
+				
 				if target_room ~= LastScannedRoom then
-					LastScannedRoom = target_room
-
-					ScannerStaticStart()
-					CleanupScannerView()
-
-					room_instance = workspace.CurrentRooms:FindFirstChild(target_room)
-					if room_instance and ScannerViewportFrame.ViewNormal:FindFirstChild(target_room) == nil then
-						SetupScannerView(room_instance)
-					end
+				    LastScannedRoom = target_room
+				    CleanupScannerView() -- Xóa sạch các mô hình phòng cũ trước
+				    ScannerStaticStart()
+				    
+				    room_instance = workspace.CurrentRooms:FindFirstChild(target_room)
+				    if room_instance and ScannerViewportFrame.ViewNormal:FindFirstChild(target_room) == nil then
+				        SetupScannerView(room_instance)
+				    end
 				end
 			end)
 			
