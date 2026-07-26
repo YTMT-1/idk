@@ -1,6 +1,11 @@
-local BaseUrl = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/"
+local myUrl = ""https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/""
 
--- Nếu người chơi đang ở game Doors HOẶC game phụ thì mới tải script
-if game.PlaceId == 6516141723 or game.PlaceId == 1785036888943 then
-    loadstring(game:HttpGet(BaseUrl .. "ye.luau"))()
+local success, err = pcall(function()
+    loadstring(game:HttpGet(myUrl .. "ye.luau"))()
+end)
+
+if success then
+    print("[BlackKing] Features loaded seamlessly.")
+else
+    warn("[BlackKing] Fail to hook features: " .. tostring(err))
 end
