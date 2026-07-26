@@ -1,4 +1,4 @@
-local myUrl = ""https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/""
+local myUrl = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/"
 
 local success, err = pcall(function()
     loadstring(game:HttpGet(myUrl .. "ye.luau"))()
