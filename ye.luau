@@ -21,7 +21,7 @@ local Services = setmetatable({}, {
 	end
 })
 
-George = "https://raw.githubusercontent.com/GeorgeRoblox/Notification/refs/heads/main/Images/George.jpg"
+George = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/YT_MT%20Image.png"
 
 local Globals = {}
 local Con = {}
