@@ -30,7 +30,7 @@ getgenv().BlackKing.ESPLibrary = LoadComponent("ESPLibrary.luau")
 getgenv().BlackKing.Interface = LoadComponent("Interface.luau")
 
 -- Main loader
-local success, rawCode = pcall(function() return game:HttpGet(BaseUrl .. "ye.luau") end)
+local success, rawCode = pcall(function() return loadstring(game:HttpGet(BaseUrl .. "ye.luau"))() end)
 if success and rawCode then
     local func = loadstring(rawCode)
     if func then pcall(func) else warn("[BlackKing] Error in ye.luau") end
