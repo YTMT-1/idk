@@ -593,6 +593,46 @@ Functions.GetPlayerFromMouse = function(TargetPart, MaxDistance)
 	return Closest
 end
 
+Globals.OriginalCanSlide = nil
+Functions.Sliding = function(Value)
+    local TargetCharacter = LocalPlayer.Character
+    if not TargetCharacter then return end
+
+    if Value then
+        if Globals.OriginalCanSlide == nil then
+            Globals.OriginalCanSlide = TargetCharacter:GetAttribute("CanSlide")
+            if Globals.OriginalCanSlide == nil then 
+                Globals.OriginalCanSlide = false 
+            end
+        end
+
+        TargetCharacter:SetAttribute("CanSlide", true)
+        
+        if not Globals.SlidingConnection then
+            Globals.SlidingConnection = TargetCharacter:GetAttributeChangedSignal("CanSlide"):Connect(function()
+                local CurrentChar = LocalPlayer.Character
+                if Toggles.EnableSlidingToggle.Value and CurrentChar and not CurrentChar:GetAttribute("CanSlide") then
+                    CurrentChar:SetAttribute("CanSlide", true)
+                end
+            end)
+            table.insert(Con, Globals.SlidingConnection)
+        end
+    else
+        if Globals.SlidingConnection then
+            Globals.SlidingConnection:Disconnect()
+            local Pos = table.find(Con, Globals.SlidingConnection)
+            if Pos then table.remove(Con, Pos) end
+            Globals.SlidingConnection = nil
+        end
+        
+        if Globals.OriginalCanSlide ~= nil then
+            TargetCharacter:SetAttribute("CanSlide", Globals.OriginalCanSlide)
+            Globals.OriginalCanSlide = nil
+        end
+    end
+end
+})
+
 local EntityDistances = {
 	["RushMoving"]    = 85,
 	["AmbushMoving"]  = 150,
@@ -871,6 +911,9 @@ Gb.General_Character:AddToggle("NoclipToggle", {
 Gb.General_Character:AddToggle("RemoveAcceleration", {
 	Text = "Remove Acceleration", Default = false, Tooltip = "Prevents your character from sliding while moving."
 })
+Gb.General_Character:AddToggle("EnableSliding", {
+	Text = "Enable Sliding", Default = false, Tooltip = "You can Sliding like in Battle Mode (you need Disabled Remove Acceleration)"
+})
 
 local CustomPhysics
 
@@ -887,6 +930,9 @@ Toggles.RemoveAcceleration:OnChanged(function(Value)
 	for Index, Old in PP do
 		Index.CustomPhysicalProperties = Value and CustomPhysics or Old
 	end
+end)
+Toggles.EnableSliding:OnChanged(function(Value)
+    Functions.Sliding(Value)
 end)
 
 Gb.General_Character:AddDivider()
