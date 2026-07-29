@@ -72,5 +72,5 @@ BlackKing.SettingsTab = LoadComponent("SettingsTab.luau")
 if CurrentGame then
     loadstring(game:HttpGet(BaseUrl .. "ye.luau"))()
 end]]--
-loadstring(game:HttpGet("https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/ye.luau"))()
-print("yall, Madium is Good and Script will run after 2-5 second")
+loadstring(game:HttpGet(BaseUrl .. "ye.luau"))()
+print("yall, Madium is Good and Script will run, Enjoy!")
