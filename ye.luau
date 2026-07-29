@@ -611,8 +611,10 @@ Functions.Sliding = function(Value)
         if not Globals.SlidingConnection then
             Globals.SlidingConnection = TargetCharacter:GetAttributeChangedSignal("CanSlide"):Connect(function()
                 local CurrentChar = LocalPlayer.Character
-                if Toggles.EnableSlidingToggle.Value and CurrentChar and not CurrentChar:GetAttribute("CanSlide") then
-                    CurrentChar:SetAttribute("CanSlide", true)
+                if CurrentChar and Toggles and Toggles.EnableSlidingToggle and Toggles.EnableSlidingToggle.Value then
+                    if not CurrentChar:GetAttribute("CanSlide") then
+                        CurrentChar:SetAttribute("CanSlide", true)
+                    end
                 end
             end)
             table.insert(Con, Globals.SlidingConnection)
@@ -631,7 +633,6 @@ Functions.Sliding = function(Value)
         end
     end
 end
-})
 
 local EntityDistances = {
 	["RushMoving"]    = 85,
