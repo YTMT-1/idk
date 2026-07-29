@@ -12,7 +12,7 @@ local GameList = {
     [93149414018318] = "FigureByMoon",
 }
 
-local BaseUrl = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/"
+local BaseUrl = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main"
 
 BlackKing.Environment = {
     cloneref = type(cloneref) == "function" and cloneref or function(obj) return obj end,
