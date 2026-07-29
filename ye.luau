@@ -1039,8 +1039,7 @@ Gb.Self_Automation:AddToggle("AutoInteractToggle", {
 	Text = "Auto Interact", Default = false, Tooltip = "Automatically triggers nearby prompts."
 })
 Toggles.AutoInteractToggle:AddKeyPicker("AutoInteractKeybind", {
-	Text = "Auto Interact", Default = "R",
-	Mode = Library.IsMobile and "Toggle" or "Hold", SyncToggleState = true
+	Text = "Auto Interact", Default = "R", Mode = "Toggle", SyncToggleState = true
 })
 Gb.Self_Automation:AddDropdown("AutoInteractIgnoreList", {
 	Text = "Ignore List",
