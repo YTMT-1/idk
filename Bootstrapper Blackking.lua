@@ -12,7 +12,7 @@ local GameList = {
     [93149414018318] = "FigureByMoon",
 }
 
-local BaseUrl = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main"
+local BaseUrl = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/"
 
 BlackKing.Environment = {
     cloneref = type(cloneref) == "function" and cloneref or function(obj) return obj end,
@@ -70,7 +70,7 @@ BlackKing.SettingsTab = LoadComponent("SettingsTab.luau")
 
 --[[local CurrentGame = GameList[game.GameId]
 if CurrentGame then
-    loadstring(game:HttpGet(BaseUrl .. "ye.luau"))()
+    loadstring(game:HttpGet(BaseUrl.."ye.luau"))()
 end]]--
-loadstring(game:HttpGet(BaseUrl .. "ye.luau"))()
+loadstring(game:HttpGet(BaseUrl.."ye.luau"))()
 print("yall, Madium is Good and Script will run, Enjoy!")
