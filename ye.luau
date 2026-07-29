@@ -21,7 +21,7 @@ local Services = setmetatable({}, {
 	end
 })
 
-George = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/YT_MT%20Image.png"
+YTMT = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/YT_MT%20Image.png"
 
 local Globals = {}
 local Con = {}
@@ -3752,4 +3752,4 @@ end)
 
 while not Globals.MainUI do task.wait() end
 BlackKing.Interface.ApplySettingsTab(Window)
-Functions.Notify({ Title = "George", Body = "BlackKing Susscesfully loaded.", Image = George})
+Functions.Notify({ Title = "YT_MT", Body = "BlackKing Susscesfully loaded, orignal script by Geroge (Blackking Owner).", Image = YTMT})
