@@ -12,10 +12,8 @@ local GameList = {
     [93149414018318] = "FigureByMoon",
 }
 
--- Định nghĩa đường dẫn GitHub cá nhân lưu trữ các tệp tin trong ảnh của bạn
 local BaseUrl = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/"
 
--- Thiết lập môi trường sUNC giả lập an toàn
 BlackKing.Environment = {
     cloneref = type(cloneref) == "function" and cloneref or function(obj) return obj end,
     writefile = type(writefile) == "function" and writefile or nil,
@@ -53,9 +51,6 @@ if BlackKing.Environment.writefile and BlackKing.Environment.readfile then
     BlackKing.Environment.writefile("BlackKing/UserData.json", Services.HttpService:JSONEncode(Decoded))
 end
 
--- =============================================================================
--- NẠP TUẦN TỰ CÁC THƯ VIỆN COMPONENT THEO DANH SÁCH ẢNH
--- =============================================================================
 local function LoadComponent(fileName)
     local success, result = pcall(function()
         return loadstring(game:HttpGet(BaseUrl .. fileName))()
@@ -66,21 +61,15 @@ local function LoadComponent(fileName)
     return result
 end
 
--- Nạp thư viện hệ thống và ESP xuyên tường từ danh sách của bạn
 BlackKing.Environment = LoadComponent("Environment.luau") or BlackKing.Environment
 BlackKing.ESPLibrary = LoadComponent("ESPLibrary.luau")
 
--- Nạp giao diện chính (Interface) và các tab cài đặt phụ
 BlackKing.Interface = LoadComponent("Interface.luau")
 BlackKing.InfoTab = LoadComponent("InfoTab.luau")
 BlackKing.SettingsTab = LoadComponent("SettingsTab.luau")
 
--- =============================================================================
--- ĐIỀU HƯỚNG SANG FILE TÍNH NĂNG CHÍNH (ye.luau) KHI VÀO GAME DOORS
--- =============================================================================
 --[[local CurrentGame = GameList[game.GameId]
 if CurrentGame then
-    -- Đưa đường dẫn về thẳng thư mục gốc (BaseUrl) chứa file Loader.lua của bạn
     loadstring(game:HttpGet(BaseUrl .. "ye.luau"))()
 end]]--
 loadstring(game:HttpGet("https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/ye.luau"))()
