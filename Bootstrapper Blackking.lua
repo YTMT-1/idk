@@ -1,79 +1,41 @@
-if getgenv().BlackKing then
-    return 
-end
-
-getgenv().BlackKing = {
-    Legit = true
-}
-
-local BlackKing = getgenv().BlackKing
-
-local GameList = {
-    [2440500124] = "Doors",
-    [15722706376] = "FigureOld",
-    [93149414018318] = "FigureByMoon",
-}
+if getgenv().BlackKing then return end
+getgenv().BlackKing = { Legit = true }
 
 local BaseUrl = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/"
 
-BlackKing.Environment = {
+-- Setup environment with error handling
+local env = {
     cloneref = type(cloneref) == "function" and cloneref or function(obj) return obj end,
     writefile = type(writefile) == "function" and writefile or nil,
     readfile = type(readfile) == "function" and readfile or nil,
-    isfile = type(isfile) == "function" and isfile or function() return false end
+    isfile = type(isfile) == "function" and isfile or function() return false end,
+    HttpService = game:GetService("HttpService")
 }
+getgenv().BlackKing.Environment = env
 
-local function CloneReference(Object)
-    if BlackKing and BlackKing.Environment.cloneref then
-        return BlackKing.Environment.cloneref(Object)
-    else
-        return Object
-    end
-end
-
-local Services = setmetatable({}, {
-    __index = function(self, Name)
-        return CloneReference(game:GetService(Name))
-    end
-})
-
--- Hệ thống quản lý UserData ghi nhận số lần chạy script
-if BlackKing.Environment.writefile and BlackKing.Environment.readfile then
-    if not BlackKing.Environment.isfile("BlackKing/UserData.json") then
-        local Data = { TotalExecutions = 0, UILibrary = "Obsidian" }
-        if type(makefolder) == "function" then makefolder("BlackKing") end
-        BlackKing.Environment.writefile("BlackKing/UserData.json", Services.HttpService:JSONEncode(Data))
-    end
-
-    local UserData = BlackKing.Environment.readfile("BlackKing/UserData.json")
-    local Decoded = Services.HttpService:JSONDecode(UserData)
-    if not Decoded then Decoded = { TotalExecutions = 0, UILibrary = "Obsidian" } end
-    Decoded.TotalExecutions = (Decoded.TotalExecutions or 0) + 1
-    BlackKing.TotalExecutions = Decoded.TotalExecutions
-    BlackKing.Environment.writefile("BlackKing/UserData.json", Services.HttpService:JSONEncode(Decoded))
-end
-
+-- Helper to load components safely
 local function LoadComponent(fileName)
     local success, result = pcall(function()
-        return loadstring(game:HttpGet(BaseUrl .. fileName))()
+        local code = game:HttpGet(BaseUrl .. fileName)
+        if not code or code == "" then return nil end
+        local func = loadstring(code)
+        return func and func()
     end)
-    if not success then
-        warn("[BlackKing Bootstrapper] Lỗi khi nạp thành phần " .. fileName .. ": " .. tostring(result))
-    end
+    if not success then warn("[BlackKing] Failed to load " .. fileName) end
     return result
 end
 
-BlackKing.Environment = LoadComponent("Environment.luau") or BlackKing.Environment
-BlackKing.ESPLibrary = LoadComponent("ESPLibrary.luau")
+-- Load modules
+getgenv().BlackKing.ESPLibrary = LoadComponent("ESPLibrary.luau")
+getgenv().BlackKing.Interface = LoadComponent("Interface.luau")
 
-BlackKing.Interface = LoadComponent("Interface.luau")
-BlackKing.InfoTab = LoadComponent("InfoTab.luau")
-BlackKing.SettingsTab = LoadComponent("SettingsTab.luau")
+-- Main loader
+local success, rawCode = pcall(function() return game:HttpGet(BaseUrl .. "ye.luau") end)
+if success and rawCode then
+    local func = loadstring(rawCode)
+    if func then pcall(func) else warn("[BlackKing] Error in ye.luau") end
+else
+    warn("[BlackKing] Failed to fetch ye.luau")
+end
 
---[[local CurrentGame = GameList[game.GameId]
-if CurrentGame then
-    loadstring(game:HttpGet(BaseUrl .. "ye.luau"))()
-end]]--
-loadstring(game:HttpGet(BaseUrl .. "ye.luau"))()
-print("yall, Madium is Good and Script will run, Enjoy!")
---old bootstrapper
+print("Script initialized successfully!")
