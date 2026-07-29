@@ -6,9 +6,6 @@ getgenv().BlackKing = {
     Legit = true
 }
 
--- Sửa lỗi logic gán biến local của script gốc để tránh lỗi index nil
-local BlackKing = getgenv().BlackKing
-
 local GameList = {
     [2440500124] = "Doors",
     [15722706376] = "FigureOld",
