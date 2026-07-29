@@ -6,6 +6,8 @@ getgenv().BlackKing = {
     Legit = true
 }
 
+local BlackKing = getgenv().BlackKing
+
 local GameList = {
     [2440500124] = "Doors",
     [15722706376] = "FigureOld",
@@ -70,7 +72,8 @@ BlackKing.SettingsTab = LoadComponent("SettingsTab.luau")
 
 --[[local CurrentGame = GameList[game.GameId]
 if CurrentGame then
-    loadstring(game:HttpGet(BaseUrl.."ye.luau"))()
+    loadstring(game:HttpGet(BaseUrl .. "ye.luau"))()
 end]]--
-loadstring(game:HttpGet(BaseUrl.."ye.luau"))()
+loadstring(game:HttpGet(BaseUrl .. "ye.luau"))()
 print("yall, Madium is Good and Script will run, Enjoy!")
+--old bootstrapper
