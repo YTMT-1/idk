@@ -86,5 +86,5 @@ if CurrentGame then
     -- Đưa đường dẫn về thẳng thư mục gốc (BaseUrl) chứa file Loader.lua của bạn
     loadstring(game:HttpGet(BaseUrl .. "ye.luau"))()
 end]]--
-loadstring(game:HttpGet(BaseUrl .. "ye.luau"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/ye.luau"))()
 print("yall, Madium is Good and Script will run after 2-5 second")
