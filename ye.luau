@@ -21,7 +21,7 @@ local Services = setmetatable({}, {
 	end
 })
 
-YTMT = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/YT_MT%20Image.png"
+local YTMT = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/YT_MT%20Image.png"
 
 local Globals = {}
 local Con = {}
