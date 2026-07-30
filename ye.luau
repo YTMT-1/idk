@@ -802,11 +802,9 @@ end
 Functions.BlacklistESP = function(Object)
 	table.insert(ESPBlacklist, Object)
 end
--- ==========================================
--- ĐỊNH NGHĨA CÁC HÀM AUTO CLOSET VÀO BẢNG FUNCTIONS
--- ==========================================
-
--- 1. Hàm kiểm tra xem một thực thể có nằm trong danh sách Ignore hay không
+-- ========================================================
+-- [HÀM 1] KIỂM TRA QUÁI VẬT CÓ BỊ BỎ QUA (IGNORE) HAY KHÔNG
+-- ========================================================
 Functions.IsEntityIgnored = function(EntityName)
     local Dropdown = Options.AutoClosetEntityList
     if not Dropdown then return false end
@@ -818,7 +816,9 @@ Functions.IsEntityIgnored = function(EntityName)
     return false
 end
 
--- 2. Hàm quét và tìm thực thể nguy hiểm đang lọt vào tầm nhìn của Camera Player
+-- ========================================================
+-- [HÀM 2] QUÉT TÌM QUÁI VẬT ĐANG HIỂN THỊ TRÊN MÀN HÌNH (CAMERA)
+-- ========================================================
 Functions.GetEntityInView = function()
     if not Camera then return nil end
     
@@ -826,19 +826,20 @@ Functions.GetEntityInView = function()
         if Entity and Entity:IsA("Model") and Entities[Entity.Name] and Entity.PrimaryPart then
             if Entity:GetAttribute("Inactive") ~= true then
                 
+                -- Lấy tên quái vật sạch từ bảng dữ liệu cấu hình Entities của BlackKing
                 local EntityConfig = Entities[Entity.Name]
                 local CleanName = EntityConfig.Name
                 
-                -- Nếu thực thể này đã được chọn trong Ignore List thì bỏ qua
+                -- Nếu quái này nằm trong danh sách Ignore thì bỏ qua
                 if Functions.IsEntityIgnored(CleanName) then
                     continue
                 end
                 
-                -- Kiểm tra xem thực thể có đang hiển thị trên màn hình (Camera) hay không
+                -- Kiểm tra xem vị trí quái vật có đang lọt vào màn hình hay không
                 local ScreenPos, IsOnScreen = Camera:WorldToViewportPoint(Entity.PrimaryPart.Position)
                 
                 if IsOnScreen then
-                    -- Giới hạn khoảng cách nhận diện thực thể dưới 150 studs để tránh lỗi nhận diện quá xa qua tường
+                    -- Chỉ tính nếu quái vật ở khoảng cách dưới 150 studs để tránh lỗi nhìn xuyên tường quá xa
                     local Distance = LocalPlayer:DistanceFromCharacter(Entity.PrimaryPart.Position)
                     if Distance < 150 then
                         return Entity
@@ -850,14 +851,18 @@ Functions.GetEntityInView = function()
     return nil
 end
 
--- 3. Hàm tìm tủ hoặc giường gần vị trí của Player nhất
+-- ========================================================
+-- [HÀM 3] TÌM TỦ HOẶC GIƯỜNG GẦN NGƯỜI CHƠI NHẤT
+-- ========================================================
 Functions.GetNearestHidingSpot = function()
     local Nearest = { Distance = math.huge, Object = nil }
+    
     for _, Object in pairs(Objects.HidingSpots) do
         if Object.PrimaryPart and Object:FindFirstChildWhichIsA("ProximityPrompt", true) then
             local Prompt = Object:FindFirstChildWhichIsA("ProximityPrompt", true)
             local Distance = LocalPlayer:DistanceFromCharacter(Object.PrimaryPart.Position)
             
+            -- So sánh tìm cái tủ/giường gần nhất và nằm trong phạm vi có thể nhấn E
             if Distance < Prompt.MaxActivationDistance and Distance < Nearest.Distance then
                 Nearest.Distance = Distance
                 Nearest.Object = Object
@@ -867,7 +872,9 @@ Functions.GetNearestHidingSpot = function()
     return Nearest.Object
 end
 
--- 4. Hàm kiểm tra xem nhân vật hiện tại đã ở trạng thái trốn (trong tủ/giường) chưa
+-- ========================================================
+-- [HÀM 4] KIỂM TRA NGƯỜI CHƠI ĐÃ TRỐN VÀO TRONG TỦ CHƯA
+-- ========================================================
 Functions.IsPlayerInSpot = function()
     if Character and Character:FindFirstChild("InHidingSpot") then
         return Character.InHidingSpot.Value
@@ -881,57 +888,75 @@ Functions.IsPlayerInSpot = function()
     return false
 end
 
+-- ========================================================
+-- [HÀM XỬ LÝ CHÍNH] CORE LOGIC CỦA AUTO CLOSET
+-- ========================================================
+local IsExitingSpot = false
+local W_KEY_CODE = 0x57
 
--- ==========================================
--- VÒNG LẶP RENDERSTEPPED CHẠY TÍNH NĂNG
--- ==========================================
+Functions.ProcessAutoCloset = function()
+    -- Nếu đang ở tầng Retro thì không chạy tính năng
+    if Floor == "Retro" then return end 
 
-task.spawn(function()
-    local W_KEY = 0x57
-    local IsExiting = false
+    local VisibleEntity = Functions.GetEntityInView()
+    local PlayerHiding = Functions.IsPlayerInSpot()
 
-    Services.RunService.RenderStepped:Connect(function()
-        -- Kiểm tra trạng thái kích hoạt từ Toggle UI hoặc phím tắt Keybind
-        local AutoHideActive = Toggles.AutoHideToggle.Value or Options.AutoHideKeybind:GetState()
-        if not AutoHideActive then return end
-        if Floor == "Retro" then return end 
+    -- [TÌNH HUỐNG A]: NẾU NGƯỜI CHƠI ĐANG TRỐN TRONG TỦ
+    if PlayerHiding then
+        -- Nếu quái vật đã đi qua (Không còn nhìn thấy trên màn hình) -> Ép nhân vật bước ra để né Hide giết
+        if not VisibleEntity then
+            if IsExitingSpot then return end
+            IsExitingSpot = true
+            
+            task.spawn(function()
+                if BlackKing.Environment.keypress then
+                    BlackKing.Environment.keypress(W_KEY_CODE)
+                    task.wait(0.15)
+                    BlackKing.Environment.keyrelease(W_KEY_CODE)
+                end
+                task.wait(0.5)
+                IsExitingSpot = false
+            end)
+        end
+        return
+    end
 
-        -- Gọi các hàm từ bảng Functions để xử lý logic
-        local VisibleEntity = Functions.GetEntityInView()
-        local PlayerHiding = Functions.IsPlayerInSpot()
-
-        -- TRƯỜNG HỢP 1: NẾU ĐANG TRỐN TRONG TỦ
-        if PlayerHiding then
-            -- Nếu quái vật không còn lọt vào tầm nhìn nữa -> Tự động bấm W thoát ra để tránh bị HIDE giết
-            if not VisibleEntity then
-                if IsExiting then return end
-                IsExiting = true
-                task.spawn(function()
-                    if BlackKing.Environment.keypress then
-                        BlackKing.Environment.keypress(W_KEY)
-                        task.wait(0.15)
-                        BlackKing.Environment.keyrelease(W_KEY)
-                    end
-                    task.wait(0.5)
-                    IsExiting = false
+    -- [TÌNH HUỐNG B]: NẾU THẤY QUÁI VẬT MÀ CHƯA TRỐN
+    if VisibleEntity then
+        local HideSpot = Functions.GetNearestHidingSpot()
+        if HideSpot then
+            local Prompt = HideSpot:FindFirstChildWhichIsA("ProximityPrompt", true)
+            if Prompt then
+                pcall(function()
+                    fireproximityprompt(Prompt)
                 end)
             end
-            return
         end
+    end
+end
 
-        -- TRƯỜNG HỢP 2: NẾU THẤY QUÁI VẬT XUẤT HIỆN TRÊN MÀN HÌNH VÀ KHÔNG BỊ IGNORE
-        if VisibleEntity then
-            local HideSpot = Functions.GetNearestHidingSpot()
-            if HideSpot then
-                local Prompt = HideSpot:FindFirstChildWhichIsA("ProximityPrompt", true)
-                if Prompt then
-                    pcall(function()
-                        fireproximityprompt(Prompt)
-                    end)
+-- ========================================================
+-- [SỰ KIỆN] ĐỒNG BỘ BẬT/TẮT VÒNG LẶP THEO TRẠNG THÁI UI TOGGLE
+-- ========================================================
+Toggles.AutoHideToggle:OnChanged(function(Value)
+    if Value then
+        -- Nếu bật Toggle -> Tạo kết nối vòng lặp RenderStepped liên tục quét mỗi khung hình
+        if not Globals.AutoClosetConnection then
+            Globals.AutoClosetConnection = Services.RunService.RenderStepped:Connect(function()
+                -- Kiểm tra xem phím tắt Q hoặc nút gạt Toggle có đang kích hoạt hay không
+                local IsActive = Toggles.AutoHideToggle.Value or Options.AutoHideKeybind:GetState()
+                if IsActive then
+                    Functions.ProcessAutoCloset()
                 end
-            end
+            end)
         end
-    end)
+    else
+        -- Nếu tắt Toggle -> Hủy kết nối vòng lặp ngay lập tức để tiết kiệm tài nguyên
+        if Globals.AutoClosetConnection then
+            Globals.AutoClosetConnection:Disconnect()
+            Globals.AutoClosetConnection = nil
+        end
+    end
 end)
 
 Functions.GetDoorNumber = function(Object)
