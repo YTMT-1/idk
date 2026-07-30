@@ -1144,25 +1144,23 @@ Gb.Self_Automation:AddDropdown("AutoInteractIgnoreList", {
 	Default = { "Glitch Fragments", "Jeff Items", "Dropped Items" },
 	Multi = true, AllowNull = true
 })
-Gb.General_Self:AddDivider()
+Gb.Self_Automation:AddDivider()
 
--- Khởi tạo Toggle với Callback để xử lý logic trực tiếp
-Gb.General_Self:AddToggle("AutoHideToggle", {
+Gb.Self_Automation:AddToggle("AutoHideToggle", {
     Text = "Auto Closet (Khi nhìn thấy)",
     Default = false,
-    Tooltip = "Tự động trốn khi thực thể xuất hiện",
+    Tooltip = "Chỉ tự động trốn vào tủ khi thực thể nguy hiểm xuất hiện trên màn hình (tầm nhìn Camera).",
     Callback = function(Value)
         if Value then
             if not Globals.AutoClosetConnection then
-                -- Kết nối vòng lặp khi bật
                 Globals.AutoClosetConnection = Services.RunService.RenderStepped:Connect(function()
-                    if Toggles.AutoHideToggle.Value or Options.AutoHideKeybind:GetState() then
+                    local IsActive = Toggles.AutoHideToggle.Value or Options.AutoHideKeybind:GetState()
+                    if IsActive then
                         Functions.ProcessAutoCloset()
                     end
                 end)
             end
         else
-            -- Ngắt kết nối khi tắt
             if Globals.AutoClosetConnection then
                 Globals.AutoClosetConnection:Disconnect()
                 Globals.AutoClosetConnection = nil
@@ -1171,7 +1169,6 @@ Gb.General_Self:AddToggle("AutoHideToggle", {
     end
 })
 
--- Thêm Keybind và Dropdown liên quan
 Toggles.AutoHideToggle:AddKeyPicker("AutoHideKeybind", {
     Text = "Auto Closet Bind",
     Default = "Q",
@@ -1179,28 +1176,13 @@ Toggles.AutoHideToggle:AddKeyPicker("AutoHideKeybind", {
     SyncToggleState = true
 })
 
-Gb.General_Self:AddDropdown("AutoClosetEntityList", {
-	Text = "Ignore List",
-	Values = { "Rush", "Ambush", "Blitz", "A-60", "A-120", "AR0xMBUSH", "RNIUSHCG==" },
-	Multi = true, 
+Gb.Self_Automation:AddDropdown("AutoClosetEntityList", {
+    Text = "Ignore List",
+    Values = { "Rush", "Ambush", "Blitz", "A-60", "A-120", "AR0xMBUSH", "RNIUSHCG==" },
+    Multi = true, 
     AllowNull = true,
     Tooltip = "Chọn những quái vật mà bạn KHÔNG muốn tự động trốn khi nhìn thấy chúng."
 })
--- Quản lý sự kiện bật/tắt Auto Closet (Chèn vào khu vực sự kiện)
-Toggles.AutoHideToggle:OnChanged(function(Value)
-    if Value then
-        -- Khởi tạo chức năng nếu chưa có
-        if not Globals.AutoClosetConnection then
-            -- [Bổ sung logic khởi tạo Functions.ProcessAutoCloset tại đây]
-        end
-    else
-        -- Ngắt kết nối để giải phóng tài nguyên
-        if Globals.AutoClosetConnection then
-            Globals.AutoClosetConnection:Disconnect()
-            Globals.AutoClosetConnection = nil
-        end
-    end
-end)
 
 Gb.Self_Misc = Tabs.General:AddRightGroupbox("Mics")
 Gb.Self_Misc:AddButton({
