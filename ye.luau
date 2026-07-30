@@ -834,13 +834,14 @@ Functions.GetEntityInView = function()
                     if SelectedValues[CleanName] then
                         continue
                     end
+                    local MaxDistance = EntityDistances[Entity.Name] or EntityDistances[CleanName] or 100
                     local Distance = LocalPlayer:DistanceFromCharacter(Entity.PrimaryPart.Position)
-                    if Distance < 100 then
-                        if Entity.Name == "AmbushMoving" then
+                    if Distance < MaxDistance then
+                        local ScreenPos, IsOnScreen = Camera:WorldToViewportPoint(Entity.PrimaryPart.Position)
+                        if IsOnScreen then
                             return Entity
                         else
-                            local ScreenPos, IsOnScreen = Camera:WorldToViewportPoint(Entity.PrimaryPart.Position)
-                            if IsOnScreen then
+                            if Entity.Name == "AmbushMoving" or CleanName == "Ambush" or Entity.Name == "GlitchAmbush" then
                                 return Entity
                             end
                         end
@@ -893,19 +894,29 @@ Functions.ProcessAutoCloset = function()
             if IsExitingSpot then return end
             IsExitingSpot = true
             task.spawn(function()
-                local Success = pcall(function()
+                pcall(function()
                     if Vim then
                         Vim:SendKeyEvent(true, W_KEY_CODE, false, game)
                         task.wait(0.2)
                         Vim:SendKeyEvent(false, W_KEY_CODE, false, game)
                     end
                 end)
-                if not Success and keypress and keyrelease then
-                    keypress(W_KEY_CODE)
-                    task.wait(0.2)
-                    keyrelease(W_KEY_CODE)
+                if keypress and keyrelease then
+                    pcall(function()
+                        keypress(W_KEY_CODE)
+                        task.wait(0.2)
+                        keyrelease(W_KEY_CODE)
+                    end)
                 end
-                task.wait(1.5)
+                local Humanoid = Character and Character:FindFirstChildWhichIsA("Humanoid")
+                if Humanoid then
+                    local StartTime = os.clock()
+                    while os.clock() - StartTime < 0.4 do
+                        Humanoid:Move(Vector3.new(0, 0, -1), true)
+                        task.wait()
+                    end
+                end
+                task.wait(1.2)
                 IsExitingSpot = false
             end)
         end
@@ -913,7 +924,9 @@ Functions.ProcessAutoCloset = function()
     end
     if TargetEntity then
         if not IsExitingSpot then
-            if TargetEntity.Name == "AmbushMoving" then
+            local EntityConfig = Entities[TargetEntity.Name]
+            local CleanName = EntityConfig and EntityConfig.Name or ""
+            if TargetEntity.Name == "AmbushMoving" or CleanName == "Ambush" then
                 local HideSpot = Functions.GetNearestHidingSpot()
                 if HideSpot then
                     local Prompt = HideSpot:FindFirstChildWhichIsA("ProximityPrompt", true)
@@ -1078,6 +1091,25 @@ Gb.General_Character:AddDivider()
 Gb.General_Character:AddToggle("EnableCharacterJump", {
 	Text = "Enable Jumping", Default = false, Tooltip = "Allows your character to jump."
 })
+Gb.General_Character:AddSlider("JumpBoostSlider", {
+    Text = "Jump Boost",
+    Default = 5,
+    Min = 0,
+    Max = 50,
+    Rounding = 0,
+    Compact = false,
+    Callback = function(Value)
+        Globals.JumpBoost = Value
+        if Toggles.EnableCharacterJump and Toggles.EnableCharacterJump.Value then
+            local Humanoid = Character and Character:FindFirstChildWhichIsA("Humanoid")
+            if Humanoid then
+                Humanoid.UseJumpPower = true
+                Humanoid.JumpPower = 50 + Value
+            end
+        end
+    end
+})
+Globals.JumpBoost = 5
 
 local OldJump = false
 local OldSlide = false
@@ -1088,9 +1120,18 @@ Toggles.SpeedBoostToggle:OnChanged(function(Value)
 	end
 end)
 Toggles.EnableCharacterJump:OnChanged(function(Value)
-	if Character then
-		Character:SetAttribute("CanJump", Value and true or OldJump)
-	end
+    if Character then
+        Character:SetAttribute("CanJump", Value and true or OldJump)
+        local Humanoid = Character:FindFirstChildWhichIsA("Humanoid")
+        if Humanoid then
+            Humanoid.UseJumpPower = true
+            if Value then
+                Humanoid.JumpPower = 50 + Options.JumpBoostSlider.Value
+            else
+                Humanoid.JumpPower = 50
+            end
+        end
+    end
 end)
 
 Gb.General_Self = Tabs.General:AddLeftGroupbox("Self")
@@ -3112,7 +3153,7 @@ Functions.HandleObject = function(Object)
 			end
 			Object:WaitForChild("Humanoid").Health = 0
 		end
-	elseif Name == "GrumbleRig" then
+	elseif Name == "GrumbleRig" or Name == "Grumbo" then
 		if Toggles.EntityESPToggle.Value and Options.EntityESPOptions.Value["Grumble"] then Functions.AddESP({ Object = Object, Text = "Grumble", Color = Options.EntityESPColor.Value }, true) end
 		table.insert(Objects.Entities, Object)
 	elseif Name == "LiveEntityBramble" then
