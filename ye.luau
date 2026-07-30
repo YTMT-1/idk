@@ -836,12 +836,14 @@ Functions.GetEntityInView = function()
                     end
                     local MaxDistance = EntityDistances[Entity.Name] or EntityDistances[CleanName] or 100
                     local Distance = LocalPlayer:DistanceFromCharacter(Entity.PrimaryPart.Position)
-                    if Distance < MaxDistance then
-                        local ScreenPos, IsOnScreen = Camera:WorldToViewportPoint(Entity.PrimaryPart.Position)
-                        if IsOnScreen then
+                    local ScreenPos, IsOnScreen = Camera:WorldToViewportPoint(Entity.PrimaryPart.Position)
+                    if IsOnScreen then
+                        if Distance < MaxDistance then
                             return Entity
-                        else
-                            if Entity.Name == "AmbushMoving" or CleanName == "Ambush" or Entity.Name == "GlitchAmbush" then
+                        end
+                    else
+                        if Entity.Name == "AmbushMoving" or CleanName == "Ambush" or Entity.Name == "GlitchAmbush" then
+                            if Distance < MaxDistance then
                                 return Entity
                             end
                         end
@@ -1103,8 +1105,8 @@ Gb.General_Character:AddSlider("JumpBoostSlider", {
         if Toggles.EnableCharacterJump and Toggles.EnableCharacterJump.Value then
             local Humanoid = Character and Character:FindFirstChildWhichIsA("Humanoid")
             if Humanoid then
-                Humanoid.UseJumpPower = true
-                Humanoid.JumpPower = 50 + Value
+                Humanoid.UseJumpPower = false
+                Humanoid.JumpHeight = 7.5 + Value
             end
         end
     end
@@ -1124,11 +1126,10 @@ Toggles.EnableCharacterJump:OnChanged(function(Value)
         Character:SetAttribute("CanJump", Value and true or OldJump)
         local Humanoid = Character:FindFirstChildWhichIsA("Humanoid")
         if Humanoid then
-            Humanoid.UseJumpPower = true
             if Value then
-                Humanoid.JumpPower = 50 + Options.JumpBoostSlider.Value
+                Humanoid.JumpHeight = 7.5 + Options.JumpBoostSlider.Value
             else
-                Humanoid.JumpPower = 50
+                Humanoid.JumpHeight = 7.5
             end
         end
     end
