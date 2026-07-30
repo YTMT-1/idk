@@ -893,10 +893,17 @@ Functions.ProcessAutoCloset = function()
             if IsExitingSpot then return end
             IsExitingSpot = true
             task.spawn(function()
-                if Vim then
-                    Vim:SendKeyEvent(true, W_KEY_CODE, false, game)
+                local Success = pcall(function()
+                    if Vim then
+                        Vim:SendKeyEvent(true, W_KEY_CODE, false, game)
+                        task.wait(0.2)
+                        Vim:SendKeyEvent(false, W_KEY_CODE, false, game)
+                    end
+                end)
+                if not Success and keypress and keyrelease then
+                    keypress(W_KEY_CODE)
                     task.wait(0.2)
-                    Vim:SendKeyEvent(false, W_KEY_CODE, false, game)
+                    keyrelease(W_KEY_CODE)
                 end
                 task.wait(1.5)
                 IsExitingSpot = false
