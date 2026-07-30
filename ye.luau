@@ -882,7 +882,7 @@ end
 
 local IsExitingSpot = false
 local W_KEY_CODE = 0x57
-local Vim = game:GetService("VirtualInputMachine")
+local Vim = game:GetService("VirtualInputManager")
 
 Functions.ProcessAutoCloset = function()
     if Floor == "Retro" then return end 
