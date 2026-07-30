@@ -802,6 +802,137 @@ end
 Functions.BlacklistESP = function(Object)
 	table.insert(ESPBlacklist, Object)
 end
+-- ==========================================
+-- ĐỊNH NGHĨA CÁC HÀM AUTO CLOSET VÀO BẢNG FUNCTIONS
+-- ==========================================
+
+-- 1. Hàm kiểm tra xem một thực thể có nằm trong danh sách Ignore hay không
+Functions.IsEntityIgnored = function(EntityName)
+    local Dropdown = Options.AutoClosetEntityList
+    if not Dropdown then return false end
+    
+    local SelectedValues = Dropdown.Value
+    if typeof(SelectedValues) == "table" and SelectedValues[EntityName] then
+        return true
+    end
+    return false
+end
+
+-- 2. Hàm quét và tìm thực thể nguy hiểm đang lọt vào tầm nhìn của Camera Player
+Functions.GetEntityInView = function()
+    if not Camera then return nil end
+    
+    for _, Entity in pairs(Services.Workspace:GetChildren()) do
+        if Entity and Entity:IsA("Model") and Entities[Entity.Name] and Entity.PrimaryPart then
+            if Entity:GetAttribute("Inactive") ~= true then
+                
+                local EntityConfig = Entities[Entity.Name]
+                local CleanName = EntityConfig.Name
+                
+                -- Nếu thực thể này đã được chọn trong Ignore List thì bỏ qua
+                if Functions.IsEntityIgnored(CleanName) then
+                    continue
+                end
+                
+                -- Kiểm tra xem thực thể có đang hiển thị trên màn hình (Camera) hay không
+                local ScreenPos, IsOnScreen = Camera:WorldToViewportPoint(Entity.PrimaryPart.Position)
+                
+                if IsOnScreen then
+                    -- Giới hạn khoảng cách nhận diện thực thể dưới 150 studs để tránh lỗi nhận diện quá xa qua tường
+                    local Distance = LocalPlayer:DistanceFromCharacter(Entity.PrimaryPart.Position)
+                    if Distance < 150 then
+                        return Entity
+                    end
+                end
+            end
+        end
+    end
+    return nil
+end
+
+-- 3. Hàm tìm tủ hoặc giường gần vị trí của Player nhất
+Functions.GetNearestHidingSpot = function()
+    local Nearest = { Distance = math.huge, Object = nil }
+    for _, Object in pairs(Objects.HidingSpots) do
+        if Object.PrimaryPart and Object:FindFirstChildWhichIsA("ProximityPrompt", true) then
+            local Prompt = Object:FindFirstChildWhichIsA("ProximityPrompt", true)
+            local Distance = LocalPlayer:DistanceFromCharacter(Object.PrimaryPart.Position)
+            
+            if Distance < Prompt.MaxActivationDistance and Distance < Nearest.Distance then
+                Nearest.Distance = Distance
+                Nearest.Object = Object
+            end
+        end
+    end
+    return Nearest.Object
+end
+
+-- 4. Hàm kiểm tra xem nhân vật hiện tại đã ở trạng thái trốn (trong tủ/giường) chưa
+Functions.IsPlayerInSpot = function()
+    if Character and Character:FindFirstChild("InHidingSpot") then
+        return Character.InHidingSpot.Value
+    end
+    for _, Spot in pairs(Objects.HidingSpots) do
+        local Hidden = Spot:FindFirstChild("HiddenPlayer", true)
+        if Hidden and Hidden.Value == Character then
+            return true
+        end
+    end
+    return false
+end
+
+
+-- ==========================================
+-- VÒNG LẶP RENDERSTEPPED CHẠY TÍNH NĂNG
+-- ==========================================
+
+task.spawn(function()
+    local W_KEY = 0x57
+    local IsExiting = false
+
+    Services.RunService.RenderStepped:Connect(function()
+        -- Kiểm tra trạng thái kích hoạt từ Toggle UI hoặc phím tắt Keybind
+        local AutoHideActive = Toggles.AutoHideToggle.Value or Options.AutoHideKeybind:GetState()
+        if not AutoHideActive then return end
+        if Floor == "Retro" then return end 
+
+        -- Gọi các hàm từ bảng Functions để xử lý logic
+        local VisibleEntity = Functions.GetEntityInView()
+        local PlayerHiding = Functions.IsPlayerInSpot()
+
+        -- TRƯỜNG HỢP 1: NẾU ĐANG TRỐN TRONG TỦ
+        if PlayerHiding then
+            -- Nếu quái vật không còn lọt vào tầm nhìn nữa -> Tự động bấm W thoát ra để tránh bị HIDE giết
+            if not VisibleEntity then
+                if IsExiting then return end
+                IsExiting = true
+                task.spawn(function()
+                    if BlackKing.Environment.keypress then
+                        BlackKing.Environment.keypress(W_KEY)
+                        task.wait(0.15)
+                        BlackKing.Environment.keyrelease(W_KEY)
+                    end
+                    task.wait(0.5)
+                    IsExiting = false
+                end)
+            end
+            return
+        end
+
+        -- TRƯỜNG HỢP 2: NẾU THẤY QUÁI VẬT XUẤT HIỆN TRÊN MÀN HÌNH VÀ KHÔNG BỊ IGNORE
+        if VisibleEntity then
+            local HideSpot = Functions.GetNearestHidingSpot()
+            if HideSpot then
+                local Prompt = HideSpot:FindFirstChildWhichIsA("ProximityPrompt", true)
+                if Prompt then
+                    pcall(function()
+                        fireproximityprompt(Prompt)
+                    end)
+                end
+            end
+        end
+    end)
+end)
 
 Functions.GetDoorNumber = function(Object)
 	local DoorNumber = tonumber(Object.Parent.Name) or tonumber(Object.Parent.Parent.Name)
@@ -1048,12 +1179,43 @@ Gb.Self_Automation:AddDropdown("AutoInteractIgnoreList", {
 	Default = { "Glitch Fragments", "Jeff Items", "Dropped Items" },
 	Multi = true, AllowNull = true
 })
-Gb.Self_Automation:AddDivider()
-Gb.Self_Automation:AddDropdown("AutoClosetEntityList", {
+Gb.General_Self:AddDivider()
+
+Gb.General_Self:AddToggle("AutoHideToggle", {
+    Text = "Auto Closet (Khi nhìn thấy)",
+    Default = false,
+    Tooltip = "Chỉ tự động trốn vào tủ khi thực thể nguy hiểm xuất hiện trên màn hình (tầm nhìn Camera)."
+})
+
+Toggles.AutoHideToggle:AddKeyPicker("AutoHideKeybind", {
+    Text = "Auto Closet Bind",
+    Default = "Q",
+    Mode = "Toggle",
+    SyncToggleState = true
+})
+
+Gb.General_Self:AddDropdown("AutoClosetEntityList", {
 	Text = "Ignore List",
 	Values = { "Rush", "Ambush", "Blitz", "A-60", "A-120", "AR0xMBUSH", "RNIUSHCG==" },
-	Multi = true, AllowNull = true
+	Multi = true, 
+    AllowNull = true,
+    Tooltip = "Chọn những quái vật mà bạn KHÔNG muốn tự động trốn khi nhìn thấy chúng."
 })
+-- Quản lý sự kiện bật/tắt Auto Closet (Chèn vào khu vực sự kiện)
+Toggles.AutoHideToggle:OnChanged(function(Value)
+    if Value then
+        -- Khởi tạo chức năng nếu chưa có
+        if not Globals.AutoClosetConnection then
+            -- [Bổ sung logic khởi tạo Functions.ProcessAutoCloset tại đây]
+        end
+    else
+        -- Ngắt kết nối để giải phóng tài nguyên
+        if Globals.AutoClosetConnection then
+            Globals.AutoClosetConnection:Disconnect()
+            Globals.AutoClosetConnection = nil
+        end
+    end
+end)
 
 Gb.Self_Misc = Tabs.General:AddRightGroupbox("Mics")
 Gb.Self_Misc:AddButton({
