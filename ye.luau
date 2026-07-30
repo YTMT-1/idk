@@ -835,8 +835,15 @@ Functions.GetEntityInView = function()
                         continue
                     end
                     local Distance = LocalPlayer:DistanceFromCharacter(Entity.PrimaryPart.Position)
-                    if Distance < 150 then
-                        return Entity
+                    if Distance < 100 then
+                        if Entity.Name == "AmbushMoving" then
+                            return Entity
+                        else
+                            local ScreenPos, IsOnScreen = Camera:WorldToViewportPoint(Entity.PrimaryPart.Position)
+                            if IsOnScreen then
+                                return Entity
+                            end
+                        end
                     end
                 end
             end
@@ -875,6 +882,7 @@ end
 
 local IsExitingSpot = false
 local W_KEY_CODE = 0x57
+local Vim = game:GetService("VirtualInputMachine")
 
 Functions.ProcessAutoCloset = function()
     if Floor == "Retro" then return end 
@@ -885,10 +893,10 @@ Functions.ProcessAutoCloset = function()
             if IsExitingSpot then return end
             IsExitingSpot = true
             task.spawn(function()
-                if BlackKing.Environment.keypress then
-                    BlackKing.Environment.keypress(W_KEY_CODE)
+                if Vim then
+                    Vim:SendKeyEvent(true, W_KEY_CODE, false, game)
                     task.wait(0.2)
-                    BlackKing.Environment.keyrelease(W_KEY_CODE)
+                    Vim:SendKeyEvent(false, W_KEY_CODE, false, game)
                 end
                 task.wait(1.5)
                 IsExitingSpot = false
@@ -898,8 +906,7 @@ Functions.ProcessAutoCloset = function()
     end
     if TargetEntity then
         if not IsExitingSpot then
-            local ScreenPos, IsOnScreen = Camera:WorldToViewportPoint(TargetEntity.PrimaryPart.Position)
-            if IsOnScreen then
+            if TargetEntity.Name == "AmbushMoving" then
                 local HideSpot = Functions.GetNearestHidingSpot()
                 if HideSpot then
                     local Prompt = HideSpot:FindFirstChildWhichIsA("ProximityPrompt", true)
@@ -907,6 +914,19 @@ Functions.ProcessAutoCloset = function()
                         pcall(function()
                             fireproximityprompt(Prompt)
                         end)
+                    end
+                end
+            else
+                local ScreenPos, IsOnScreen = Camera:WorldToViewportPoint(TargetEntity.PrimaryPart.Position)
+                if IsOnScreen then
+                    local HideSpot = Functions.GetNearestHidingSpot()
+                    if HideSpot then
+                        local Prompt = HideSpot:FindFirstChildWhichIsA("ProximityPrompt", true)
+                        if Prompt then
+                            pcall(function()
+                                fireproximityprompt(Prompt)
+                            end)
+                        end
                     end
                 end
             end
