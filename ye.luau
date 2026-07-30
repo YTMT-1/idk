@@ -1170,7 +1170,7 @@ Gb.Self_Automation:AddToggle("AutoHideToggle", {
 })
 
 Toggles.AutoHideToggle:AddKeyPicker("AutoHideKeybind", {
-    Text = "Auto Closet Bind",
+    Text = "Auto Closet",
     Default = "Q",
     Mode = "Toggle",
     SyncToggleState = true
