@@ -814,19 +814,32 @@ end
 
 Functions.GetEntityInView = function()
     if not Camera then return nil end
+    local Dropdown = Options.AutoClosetEntityList
+    if not Dropdown then return nil end
+    local SelectedValues = Dropdown.Value
+    if typeof(SelectedValues) ~= "table" then return nil end
     for _, Entity in pairs(Services.Workspace:GetChildren()) do
         if Entity and Entity:IsA("Model") and Entities[Entity.Name] and Entity.PrimaryPart then
             if Entity:GetAttribute("Inactive") ~= true then
                 local EntityConfig = Entities[Entity.Name]
                 local CleanName = EntityConfig.Name
-                if Functions.IsEntityIgnored(CleanName) then
-                    continue
+                local IsInDropdownList = false
+                for _, Value in pairs(Dropdown.Values) do
+                    if Value == CleanName then
+                        IsInDropdownList = true
+                        break
+                    end
                 end
-                local ScreenPos, IsOnScreen = Camera:WorldToViewportPoint(Entity.PrimaryPart.Position)
-                if IsOnScreen then
-                    local Distance = LocalPlayer:DistanceFromCharacter(Entity.PrimaryPart.Position)
-                    if Distance < 150 then
-                        return Entity
+                if IsInDropdownList then
+                    if SelectedValues[CleanName] then
+                        continue
+                    end
+                    local ScreenPos, IsOnScreen = Camera:WorldToViewportPoint(Entity.PrimaryPart.Position)
+                    if IsOnScreen then
+                        local Distance = LocalPlayer:DistanceFromCharacter(Entity.PrimaryPart.Position)
+                        if Distance < 150 then
+                            return Entity
+                        end
                     end
                 end
             end
@@ -1147,7 +1160,7 @@ Gb.Self_Automation:AddDropdown("AutoInteractIgnoreList", {
 Gb.Self_Automation:AddDivider()
 
 Gb.Self_Automation:AddToggle("AutoHideToggle", {
-    Text = "Auto Closet (Khi nhìn thấy)",
+    Text = "Auto Closet",
     Default = false,
     Tooltip = "Chỉ tự động trốn vào tủ khi thực thể nguy hiểm xuất hiện trên màn hình (tầm nhìn Camera).",
     Callback = function(Value)
