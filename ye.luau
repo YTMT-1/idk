@@ -834,12 +834,9 @@ Functions.GetEntityInView = function()
                     if SelectedValues[CleanName] then
                         continue
                     end
-                    local ScreenPos, IsOnScreen = Camera:WorldToViewportPoint(Entity.PrimaryPart.Position)
-                    if IsOnScreen then
-                        local Distance = LocalPlayer:DistanceFromCharacter(Entity.PrimaryPart.Position)
-                        if Distance < 150 then
-                            return Entity
-                        end
+                    local Distance = LocalPlayer:DistanceFromCharacter(Entity.PrimaryPart.Position)
+                    if Distance < 150 then
+                        return Entity
                     end
                 end
             end
@@ -881,32 +878,37 @@ local W_KEY_CODE = 0x57
 
 Functions.ProcessAutoCloset = function()
     if Floor == "Retro" then return end 
-    local VisibleEntity = Functions.GetEntityInView()
+    local TargetEntity = Functions.GetEntityInView()
     local PlayerHiding = Functions.IsPlayerInSpot()
     if PlayerHiding then
-        if not VisibleEntity then
+        if not TargetEntity then
             if IsExitingSpot then return end
             IsExitingSpot = true
             task.spawn(function()
                 if BlackKing.Environment.keypress then
                     BlackKing.Environment.keypress(W_KEY_CODE)
-                    task.wait(0.15)
+                    task.wait(0.2)
                     BlackKing.Environment.keyrelease(W_KEY_CODE)
                 end
-                task.wait(0.5)
+                task.wait(1.5)
                 IsExitingSpot = false
             end)
         end
         return
     end
-    if VisibleEntity then
-        local HideSpot = Functions.GetNearestHidingSpot()
-        if HideSpot then
-            local Prompt = HideSpot:FindFirstChildWhichIsA("ProximityPrompt", true)
-            if Prompt then
-                pcall(function()
-                    fireproximityprompt(Prompt)
-                end)
+    if TargetEntity then
+        if not IsExitingSpot then
+            local ScreenPos, IsOnScreen = Camera:WorldToViewportPoint(TargetEntity.PrimaryPart.Position)
+            if IsOnScreen then
+                local HideSpot = Functions.GetNearestHidingSpot()
+                if HideSpot then
+                    local Prompt = HideSpot:FindFirstChildWhichIsA("ProximityPrompt", true)
+                    if Prompt then
+                        pcall(function()
+                            fireproximityprompt(Prompt)
+                        end)
+                    end
+                end
             end
         end
     end
