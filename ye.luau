@@ -635,14 +635,14 @@ Functions.Sliding = function(Value)
 end
 
 local EntityDistances = {
-	["RushMoving"]    = 85,
+	["RushMoving"]    = 100,
 	["AmbushMoving"]  = 150,
 	["A60"]           = 125,
-	["A120"]          = 85,
-	["GlitchRush"]    = 90,
+	["A120"]          = 100,
+	["GlitchRush"]    = 100,
 	["GlitchAmbush"]  = 175,
 	["BackdoorRush"]  = 85,
-	["CustomEntity"]  = 85,
+	["CustomEntity"]  = 100,
 }
 
 Functions.GetNearestEntity = function(CheckDisabled, List, UseRaycasting)
@@ -1105,7 +1105,6 @@ Gb.General_Character:AddSlider("JumpBoostSlider", {
         if Toggles.EnableCharacterJump and Toggles.EnableCharacterJump.Value then
             local Humanoid = Character and Character:FindFirstChildWhichIsA("Humanoid")
             if Humanoid then
-                Humanoid.UseJumpPower = false
                 Humanoid.JumpHeight = 7.5 + Value
             end
         end
@@ -1233,7 +1232,7 @@ Gb.Self_Automation:AddDivider()
 Gb.Self_Automation:AddToggle("AutoHideToggle", {
     Text = "Auto Closet",
     Default = false,
-    Tooltip = "Chỉ tự động trốn vào tủ khi thực thể nguy hiểm xuất hiện trên màn hình (tầm nhìn Camera).",
+    Tooltip = "Auto Hide in Some Entity",
     Callback = function(Value)
         if Value then
             if not Globals.AutoClosetConnection then
