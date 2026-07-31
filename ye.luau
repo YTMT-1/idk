@@ -635,7 +635,7 @@ Functions.Sliding = function(Value)
 end
 
 local EntityDistances = {
-	["RushMoving"]    = 90,
+	["RushMoving"]    = 95,
 	["AmbushMoving"]  = 150,
 	["A60"]           = 125,
 	["A120"]          = 100,
