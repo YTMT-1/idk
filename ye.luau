@@ -839,13 +839,11 @@ Functions.GetEntityInView = function()
                     local ScreenPos, IsOnScreen = Camera:WorldToViewportPoint(Entity.PrimaryPart.Position)
                     if IsOnScreen then
                         if Distance < MaxDistance then
-                            print(string.format("[Debug-Closet] Phat hien %s trong Goc nhin (Khoang cach: %.1f/%d studs)", Entity.Name, Distance, MaxDistance))
                             return Entity
                         end
                     else
                         if Entity.Name == "AmbushMoving" or CleanName == "Ambush" or Entity.Name == "GlitchAmbush" then
                             if Distance < MaxDistance then
-                                print(string.format("[Debug-Closet] Du phong Khoang cach: %s khuat camera nhung dang o gan (Khoang cach: %.1f/%d studs)", Entity.Name, Distance, MaxDistance))
                                 return Entity
                             end
                         end
@@ -889,38 +887,14 @@ local IsExitingSpot = false
 local W_KEY_CODE = 0x57
 local Vim = game:GetService("VirtualInputManager")
 
-local IsExitingSpot = false
-local W_KEY_CODE = 0x57
-local Vim = game:GetService("VirtualInputManager")
-
 Functions.ProcessAutoCloset = function()
     if Floor == "Retro" then return end 
     local TargetEntity = Functions.GetEntityInView()
     local PlayerHiding = Functions.IsPlayerInSpot()
     if PlayerHiding then
-        local ShouldExit = false
-        local Reason = "No Entity"
         if not TargetEntity then
-            ShouldExit = true
-            Reason = "Khong tim thay thuc the nao trong vung nguy hiem"
-        else
-            if TargetEntity.PrimaryPart then
-                local ScreenPos, IsOnScreen = Camera:WorldToViewportPoint(TargetEntity.PrimaryPart.Position)
-                local MaxDistance = EntityDistances[TargetEntity.Name] or 100
-                local Distance = LocalPlayer:DistanceFromCharacter(TargetEntity.PrimaryPart.Position)
-                if not IsOnScreen then
-                    ShouldExit = true
-                    Reason = "camera bth"
-                elseif Distance > MaxDistance then
-                    ShouldExit = true
-                    Reason = "camera hong"
-                end
-            end
-        end
-        if ShouldExit then
             if IsExitingSpot then return end
             IsExitingSpot = true
-            print("[Debug-Closet] Tien hanh THOAT TU. Ly do: " .. Reason)
             task.spawn(function()
                 pcall(function()
                     if Vim then
@@ -946,7 +920,6 @@ Functions.ProcessAutoCloset = function()
                 end
                 task.wait(1.2)
                 IsExitingSpot = false
-                print("[Debug-Closet] Da reset trang thai Cho thoat tu.")
             end)
         end
         return
@@ -955,8 +928,7 @@ Functions.ProcessAutoCloset = function()
         if not IsExitingSpot then
             local EntityConfig = Entities[TargetEntity.Name]
             local CleanName = EntityConfig and EntityConfig.Name or ""
-            print(string.format("[Debug-Closet] Tien hanh CHUI VAO TU vi phat hien: %s", TargetEntity.Name))
-            if TargetEntity.Name == "AmbushMoving" or CleanName == "Ambush" or TargetEntity.Name == "GlitchAmbush" then
+            if TargetEntity.Name == "AmbushMoving" or CleanName == "Ambush" then
                 local HideSpot = Functions.GetNearestHidingSpot()
                 if HideSpot then
                     local Prompt = HideSpot:FindFirstChildWhichIsA("ProximityPrompt", true)
