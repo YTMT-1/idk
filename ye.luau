@@ -2188,7 +2188,7 @@ Gb.Floors_Bypass:AddToggle("RemoveSeekTrigger", {
 })
 Gb.Floors_Bypass:AddToggle("RemoveFigure", {
 	Text = "Delete Figure", Default = false, Tooltip = "Completely removes the entity 'Figure' (doesn't always work).",
-	Risky = not (Floor == "Fools" or Floor == "OldHotel" or Floor == "Mines"),
+	Risky = not (Floor == "Fools" or Floor == "OldHotel" or Floor == "Mines" or game.Placeid == 15722706376),
 	Disabled = not Functions.CheckCompatability({"isnetworkowner"}), DisabledTooltip = Globals.IncompatibleMessage
 })
 Gb.Floors_Bypass:AddToggle("AutoRevive", {
@@ -2288,6 +2288,7 @@ Functions.HandleCharacter = function(NewCharacter)
 	OldSlide = NewCharacter:GetAttribute("CanSlide")
 
 	if Toggles.EnableCharacterJump.Value  then Character:SetAttribute("CanJump",  true) end
+	if Toggles.EnableSliding.Value  then Character:SetAttribute("CanSlide",  true) end
 
 
 	if Functions.CheckCompatability({"require"}) then
