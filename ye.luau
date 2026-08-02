@@ -2186,9 +2186,10 @@ Gb.Floors_Bypass:AddToggle("RemoveSeekTrigger", {
 	Risky = not (Floor == "Fools" or Floor == "OldHotel"),
 	Disabled = not Functions.CheckCompatability({"firetouchinterest"}), DisabledTooltip = Globals.IncompatibleMessage
 })
+local gameid = game.PlaceId
 Gb.Floors_Bypass:AddToggle("RemoveFigure", {
 	Text = "Delete Figure", Default = false, Tooltip = "Completely removes the entity 'Figure' (doesn't always work).",
-	Risky = not (Floor == "Fools" or Floor == "OldHotel" or Floor == "Mines" or game.PlaceId == 15722706376),
+	Risky = not (Floor == "Fools" or Floor == "OldHotel" or Floor == "Mines" or gameid == 15722706376),
 	Disabled = not Functions.CheckCompatability({"isnetworkowner"}), DisabledTooltip = Globals.IncompatibleMessage
 })
 Gb.Floors_Bypass:AddToggle("AutoRevive", {
