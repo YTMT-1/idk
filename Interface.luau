@@ -8,8 +8,8 @@ local Interface = {
   SaveManager = loadstring(game:HttpGet(BaseUrl .. "addons/SaveManager.lua"))(),
   ThemeManager = loadstring(game:HttpGet(BaseUrl .. "addons/ThemeManager.lua"))(),
 
-  ApplyInfoTab = loadstring(game:HttpGet(BlackKingUrl .. "Components/InfoTab.luau"))(),
-  ApplySettingsTab = loadstring(game:HttpGet(BlackKingUrl .. "Components/SettingsTab.luau"))()
+  ApplyInfoTab = loadstring(game:HttpGet(BlackKingUrl .. "InfoTab.luau"))(),
+  ApplySettingsTab = loadstring(game:HttpGet(BlackKingUrl .. "SettingsTab.luau"))()
 }
 
 Interface.ThemeManager.BuiltInThemes = {
