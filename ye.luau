@@ -25,6 +25,7 @@ YTMT = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/YT_MT%20Ima
 
 local Globals = {}
 local Con = {}
+local Connections = {}
 local ESPCon = {}
 local Gb = {}
 local FakePrompts = {}
@@ -56,6 +57,15 @@ local Objects = {
 Globals.IncompatibleMessage = "Your executor doesn't support this feature."
 
 Functions.CheckCompatability = function(Array)
+	for _, Name in Array do
+		if not BlackKing.Environment[Name] then
+			return false
+		end
+	end
+	return true
+end
+
+Functions.CC = function(Array)
 	for _, Name in Array do
 		if not BlackKing.Environment[Name] then
 			return false
@@ -519,6 +529,18 @@ Functions.SendChat = function(Message)
 	Channel:SendAsync(Message)
 end
 
+Functions.IsCrouching = function()
+    if Toggles.AntiFH.Value or Toggles.PositionSpoof.Value then
+        return true
+    end
+
+    if Floor == "Fools" or Floor == "OldHotel" then
+        return Character:GetAttribute("Crouching")
+    end
+
+    return CollisionPart.CollisionGroup == "PlayerCrouching"
+end
+
 Functions.GetInjuriesSpeed = function()
 	return 0.075 * (Humanoid.MaxHealth - Humanoid.Health)
 end
@@ -635,7 +657,7 @@ Functions.Sliding = function(Value)
 end
 
 local EntityDistances = {
-	["RushMoving"]    = 95,
+	["RushMoving"]    = 100,
 	["AmbushMoving"]  = 150,
 	["A60"]           = 125,
 	["A120"]          = 100,
@@ -643,6 +665,8 @@ local EntityDistances = {
 	["GlitchAmbush"]  = 175,
 	["BackdoorRush"]  = 85,
 	["CustomEntity"]  = 100,
+	["FigureRig"] = 50,
+	["FigureRagdoll"] = 50,
 }
 
 Functions.GetNearestEntity = function(CheckDisabled, List, UseRaycasting)
@@ -694,6 +718,34 @@ Functions.GetNearestHidingSpot = function()
 					Nearest.Distance = Distance
 					Nearest.Object = Object
 				end
+			end
+		end
+	end
+	return Nearest.Object
+end
+
+Functions.GetNearestTurnNode = function()
+	local Nearest = { Distance = math.huge, Object = nil }
+
+	for _, Node in Objects.SeekNodes do
+		local Distance = LocalPlayer:DistanceFromCharacter(Node.Position)
+		if Distance < 35 and Distance < Nearest.Distance then
+			Nearest.Distance = Distance
+			Nearest.Object = Node
+		end
+	end
+	return Nearest.Object
+end
+
+Functions.GetNearestDuckBoard = function()
+	local Nearest = { Distance = math.huge, Object = nil }
+
+	for _, Board in Objects.SeekDuckBoards do
+		if Board.PrimaryPart then
+			local Distance = LocalPlayer:DistanceFromCharacter(Board.PrimaryPart.Position)
+			if Distance < 25 and Distance < Nearest.Distance then 
+				Nearest.Distance = Distance
+				Nearest.Object = Board
 			end
 		end
 	end
@@ -1022,7 +1074,7 @@ end
 
 local Window = Library:CreateWindow({
 	Title = "BlackKing",
-	Footer = "dsc.gg/BlackKing",
+	Footer = "Modify by YT_MT(manhtien_yt.) in Discord, Orignal Script By Geroge Join Blackking Discord dsc.gg/BlackKing",
 	NotifySide = "Right",
 	ShowCustomCursor = false,
 	AutoShow = true,
@@ -1066,14 +1118,14 @@ Gb.General_Character:AddToggle("RemoveAcceleration", {
 	Text = "Remove Acceleration", Default = false, Tooltip = "Prevents your character from sliding while moving."
 })
 Gb.General_Character:AddToggle("EnableSliding", {
-	Text = "Enable Sliding", Default = false, Tooltip = "You can Sliding like in Battle Mode (you need Disabled Remove Acceleration)"
+	Text = "Enable Sliding", Default = false, Tooltip = "You can Sliding like in Battle Mode (you must Disabled Remove Acceleration for Smooth Speed)"
 })
 
 local CustomPhysics
 
 Options.SpeedBoostSlider:OnChanged(function(Value)
 	if RemotesFolder:FindFirstChild("Crouch") then
-		RemotesFolder.Crouch:FireServer(Value, true)
+		RemotesFolder.Crouch:FireServer(Value and true or Functions.IsCrouching(), true)
 	end
 end)
 
@@ -1183,6 +1235,7 @@ Toggles.PromptClip:OnChanged(function(Value)
 end)
 
 Gb.Self_Automation = Tabs.General:AddRightGroupbox("Automation")
+
 Gb.Self_Automation:AddToggle("AutoBreakerBox", {
 	Text = "Auto Breaker Box", Default = false, Tooltip = "Automatically solves the breaker box."
 })
@@ -1219,8 +1272,9 @@ Gb.Self_Automation:AddToggle("AutoInteractToggle", {
 })
 Toggles.AutoInteractToggle:AddKeyPicker("AutoInteractKeybind", {
 	Text = "Auto Interact", Default = "R",
-	Mode = Library.IsMobile and "Toggle" or "Hold", SyncToggleState = true
+	Mode = "Toggle", SyncToggleState = true
 })
+
 Gb.Self_Automation:AddDropdown("AutoInteractIgnoreList", {
 	Text = "Ignore List",
 	Values = { "Glitch Fragments", "Jeff Items", "Dropped Items", "Currency", "Minecarts", "Locks" },
@@ -1261,10 +1315,10 @@ Toggles.AutoHideToggle:AddKeyPicker("AutoHideKeybind", {
 
 Gb.Self_Automation:AddDropdown("AutoClosetEntityList", {
     Text = "Ignore List",
-    Values = { "Rush", "Ambush", "Blitz", "A-60", "A-120", "AR0xMBUSH", "RNIUSHCG==" },
+    Values = { "Rush", "Ambush", "Blitz", "A-60", "A-120", "AR0xMBUSH", "RNIUSHCG==","Figure" },
     Multi = true, 
     AllowNull = true,
-    Tooltip = "Chọn những quái vật mà bạn KHÔNG muốn tự động trốn khi nhìn thấy chúng."
+    Tooltip = "Choose the monsters that you DO NOT want to automatically hide when you see them."
 })
 
 Gb.Self_Misc = Tabs.General:AddRightGroupbox("Mics")
@@ -1313,6 +1367,34 @@ Gb.Exploits_Bypass:AddToggle("BypassSeekingWall",    { Text = "Bypass Seeking Wa
 Gb.Exploits_Bypass:AddToggle("BypassSnare",          { Text = "Bypass Snare",            Default = false, Tooltip = "Prevents 'Snare' from trapping you." })
 Gb.Exploits_Bypass:AddToggle("BypassBanana",         { Text = "Bypass Banana",           Default = false, Tooltip = "Prevents 'Banana Peel' from slipping you up (sometimes doesn't work)." })
 Gb.Exploits_Bypass:AddToggle("BypassJeff",           { Text = "Bypass Jeff",             Default = false, Tooltip = "Prevents 'Jeff the Killer' from stabbing you (sometimes doesn't work)." })
+Gb.Exploits_Bypass:AddToggle("BypassMandrake", {
+    Text = "Anti Mandrake (FE)",
+    Default = false,
+    Tooltip = "Prevents 'Mandrake' from attacking you."
+})
+
+Toggles.BypassMandrake:OnChanged(function(Value)
+    for _, Object in Objects.Entities do
+        if Object.Name == "Root" and Object:IsA("BasePart") then
+
+            local BF = Object:FindFirstChild("AntiMandrakeForce")
+
+            if Value then
+                if not BF then
+                    BF = Instance.new("BodyForce")
+                    BF.Name = "AntiMandrakeForce"
+                    BF.Parent = Object
+                end
+
+                BF.Force = Vector3.new(100000, -99999999, 100000)
+            else
+                if BF then
+                    BF:Destroy()
+                end
+            end
+        end
+    end
+end)
 
 Toggles.BypassGiggle:OnChanged(function(Value)
 	for _, Object in Objects.Entities do
@@ -1424,6 +1506,11 @@ Toggles.BypassJeff:OnChanged(function(Value)
 end)
 
 Gb.Exploits_BypassRight = Tabs.Exploits:AddRightGroupbox("Bypass")
+Gb.Exploits_BypassRight:AddToggle("TwerkDance", { 
+    Text = "Twerk", 
+    Default = false, 
+    Tooltip = "just Twerk." 
+})
 Gb.Exploits_BypassRight:AddToggle("DisableAnticheat", {
 	Text = "Anticheat Bypass", Default = false,
 	Tooltip = "Completely disables the anticheat, after interacting with a ladder."
@@ -1472,6 +1559,24 @@ Gb.Exploits_BypassRight:AddToggle("AntiFH", {
     Default = false,
     Disabled = not RemotesFolder:FindFirstChild("Crouch")
 })
+
+Toggles.TwerkDance:OnChanged(function(Value)
+    if Value then
+
+        local anim = Instance.new("Animation")
+        anim.AnimationId = "rbxassetid://12874447851"
+
+		local hum = Character:FindFirstChildOfClass("Humanoid")
+        track = hum:LoadAnimation(anim)
+        track.Looped = true
+        track:Play()
+
+    else
+        if track then
+            track:Stop()
+        end
+    end
+end)
 
 Con.AntiFHLoop = nil
 
@@ -1840,7 +1945,7 @@ Gb.Visuals_ESP_Toggles:AddToggle("LadderESPToggle",     { Text = "Ladders",     
 Gb.Visuals_ESP_Toggles:AddDivider()
 Gb.Visuals_ESP_Toggles:AddDropdown("EntityESPOptions",     { 
 	Text = "Entity List",
-	Values = { "Rush","Ambush","Eyes","Dupe","Figure","Blitz","Lookman","Snare","Giggle","Gloombat Eggs","Grumble","A-60","A-120","Sally","Jeff the Killer","Groundskeeper","Mandrake Hole","Monument","Bramble","AR0xMBUSH","RNIUSHCG==","A-60","A-120" },
+	Values = { "Rush","Ambush","Eyes","Dupe","Figure","Blitz","Lookman","Snare","Giggle","Gloombat Eggs","Grumble","A-60","A-120","Sally","Jeff the Killer","Groundskeeper","Mandrake Hole","Monument","Bramble","AR0xMBUSH","RNIUSHCG=="},
 	Multi = true,
 	AllowNull = true
 })
@@ -2082,8 +2187,107 @@ Tabs.Floors:UpdateWarningBox({
 	Title = "Compatability Warning",
 	Text = "Features highlighted in red do not work in the current floor.",
 })
+Gb.Floors_Automation = Tabs.Floors:AddRightGroupbox("Automation")
+Gb.Floors_Automation:AddToggle("AutoSteerMinecart", {
+	Text = "Auto Minecart", Default = false, Tooltip = "Automatically completes the minecart chase.",
+	Disabled = not Functions.CC({"require"}), DisabledTooltip = Globals.IncompatibleMessage
+})
 
 Gb.Floors_Completion = Tabs.Floors:AddRightGroupbox("Completion")
+Gb.Floors_Completion:AddButton({
+    Text = "Auto Complete Nest",
+    Tooltip = "Automatically teleports to and interacts with each anochor.",
+    Func = function()
+        if LatestRoom.Value < 50 or Floor ~= "Mines" then
+			Functions.Notify({ Title = "BlackKing", Body = "You must be in Room 150 to do this", Image = George})
+            return
+        end
+
+        if Globals.AnticheatDisabled ~= true then
+			Functions.Notify({ Title = "BlackKing", Body = "Please Climb on the ladder to disable the anticheat", Image = George})
+            return
+        end
+
+        local Players = game:GetService("Players")
+        local LocalPlayer = Players.LocalPlayer
+        local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+        local AnchorFrame = LocalPlayer.PlayerGui.MainUI.AnchorHintFrame
+        local AnchorText = AnchorFrame.AnchorCode
+        local AnchorPath = workspace.CurrentRooms["50"]._NestHandler
+
+        local Running = true
+
+        local function CreateTeleportPart(cf)
+            local old = workspace:FindFirstChild("BlackKingTeleportPart")
+            if old then
+                old:Destroy()
+            end
+
+            local part = Instance.new("Part")
+            part.Name = "BlackKingTeleportPart"
+            part.Size = Vector3.new(2, 2, 2)
+            part.Anchored = true
+            part.CanCollide = false
+            part.Transparency = 1
+            part.CFrame = cf
+            part.Parent = workspace
+
+            Character:PivotTo(part.CFrame)
+        end
+
+        task.spawn(function()
+            while Running do
+                Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+                local HRP = Character:FindFirstChild("HumanoidRootPart")
+
+                if not HRP then
+                    task.wait(0.1)
+                    continue
+                end
+                if not AnchorFrame.Visible then
+                    local button = AnchorPath.Console:FindFirstChild("Button")
+
+                    if button then
+                        CreateTeleportPart(button.CFrame)
+
+                        repeat
+                            task.wait(0.1)
+                            HRP = Character:FindFirstChild("HumanoidRootPart")
+                        until HRP and (HRP.Position - button.Position).Magnitude <= 5
+
+                        Running = false
+
+						Functions.Notify({ Title = "BlackKing", Body = "Successfully completed the nest, please interact with the button to proceed.", Image = George})
+                    end
+
+                    break
+                end
+
+                local code = tostring(AnchorText.Text)
+
+                for _, anchor in ipairs(AnchorPath:GetChildren()) do
+                    if anchor.Name == "MinesAnchor" then
+                        local sign = anchor:FindFirstChild("Sign")
+                        local lever = anchor:FindFirstChild("Lever")
+
+                        if sign and lever then
+                            local label = sign:FindFirstChild("TextLabel")
+
+                            if label and label.Text == code then
+                                CreateTeleportPart(lever.CFrame)
+                                break
+                            end
+                        end
+                    end
+                end
+
+                task.wait(0.2)
+            end
+        end)
+    end
+})
+
 Gb.Floors_Completion:AddButton({
     Text = "Auto Complete Dam Seek",
     Tooltip = "Automatically teleports to and interacts with each water pump.",
@@ -2159,6 +2363,84 @@ Gb.Floors_Completion:AddButton({
         end
     end
 })
+Gb.Floors_Completion:AddButton({ 
+    Text = "Auto Complete maze (Outdoors)", 
+    Tooltip = "Instantly completes the maze.", 
+    Func = function() 
+        if LatestRoom.Value < 35 or Floor ~= "Garden" then 
+            Functions.Notify({ Title = "BlackKing", Body = "You must be in Room 35 to do this (Outdoors)"}) 
+            return 
+        end 
+        
+        local Maze = CurrentRooms:FindFirstChild("MazeContents", true) 
+        if not Maze then return end 
+        
+        local GiantVines = Maze:FindFirstChild("GiantVines") 
+        if not GiantVines then return end 
+        
+        local function ActivateLever(lever) 
+            local prompt = lever:FindFirstChild("ActivateEventPrompt") 
+            if not prompt then return end 
+            
+            while true do 
+                local success, shouldBreak = pcall(function()
+                    if lever:GetAttribute("Activated") == true then 
+                        return true 
+                    end 
+                    if not prompt.Enabled then 
+                        return true 
+                    end 
+                    
+                    Character:PivotTo(lever:GetPivot()) 
+                    
+                    pcall(function()
+                        fireproximityprompt(prompt) 
+                    end)
+                    
+                    return false
+                end)
+                
+                if not success or shouldBreak then 
+                    break 
+                end
+                
+                task.wait(0.2) 
+            end 
+        end 
+        
+        for _, vineSet in GiantVines:GetDescendants() do 
+            if vineSet.Name == "VineGuillotine" then 
+                local FirstLever = vineSet:FindFirstChild("Lever") 
+                if FirstLever then 
+                    ActivateLever(FirstLever) 
+                end 
+                
+                for _, obj in vineSet:GetDescendants() do 
+                    if obj.Name == "Lever" then 
+                        if obj:GetAttribute("Activated") == true then continue end 
+                        local prompt = obj:FindFirstChild("ActivateEventPrompt") 
+                        if not (prompt and prompt.Enabled) then continue end 
+                        ActivateLever(obj) 
+                    end 
+                end 
+            end 
+        end 
+        
+        local allActivated = true 
+        for _, obj in GiantVines:GetDescendants() do 
+            if obj.Name == "Lever" then 
+                if obj:GetAttribute("Activated") ~= true then 
+                    allActivated = false 
+                    break 
+                end 
+            end 
+        end 
+        
+        if allActivated then 
+            Functions.Notify({ Title = "Successfully Completed The Maze Room", Body = "Now you can go to the end" }) 
+        end 
+    end 
+})
 
 Gb.Floors_Visuals = Tabs.Floors:AddLeftGroupbox("Visuals")
 Gb.Floors_Visuals:AddToggle("ShowSeekPathToggle", {
@@ -2186,10 +2468,9 @@ Gb.Floors_Bypass:AddToggle("RemoveSeekTrigger", {
 	Risky = not (Floor == "Fools" or Floor == "OldHotel"),
 	Disabled = not Functions.CheckCompatability({"firetouchinterest"}), DisabledTooltip = Globals.IncompatibleMessage
 })
-local gameid = game.PlaceId
 Gb.Floors_Bypass:AddToggle("RemoveFigure", {
 	Text = "Delete Figure", Default = false, Tooltip = "Completely removes the entity 'Figure' (doesn't always work).",
-	Risky = not (Floor == "Fools" or Floor == "OldHotel" or Floor == "Mines" or gameid == 15722706376),
+	Risky = not (Floor == "Fools" or Floor == "OldHotel" or Floor == "Mines"),
 	Disabled = not Functions.CheckCompatability({"isnetworkowner"}), DisabledTooltip = Globals.IncompatibleMessage
 })
 Gb.Floors_Bypass:AddToggle("AutoRevive", {
@@ -2201,6 +2482,244 @@ Gb.Floors_Bypass:AddToggle("RemoveBasementGate",  { Text = "Remove Basement Gate
 Gb.Floors_Bypass:AddToggle("RemovePaintingsDoor", { Text = "Remove Paintings Door",  Default = false, Tooltip = "Removes the fireplace doors from painting rooms.", Risky = not (Floor == "Fools" or Floor == "OldHotel") })
 Gb.Floors_Bypass:AddToggle("RemoveSkeletonDoor",  { Text = "Remove Skeleton Door",   Default = false, Tooltip = "Removes the skeleton door from the infirmary.",    Risky = Floor ~= "Fools" })
 
+Gb.Floors_FigureOld = Tabs.Floors:AddRightGroupbox("Figure Old Configuration")
+Gb.Floors_FigureOld:AddButton({ 
+    Name = "TPFigureOld",
+    Text = "Teleport to Figure Old!", 
+    Tooltip = "This tab only works for Figure Old. Click to teleport to the support game instantly.",
+    Func = function()
+        local TeleportService = game:GetService("TeleportService")
+        local LocalPlayer = game.Players.LocalPlayer
+        
+        pcall(function()
+            TeleportService:Teleport(15722706376, LocalPlayer)
+        end)
+    end
+})
+
+Gb.Floors_FigureOld:AddDivider()
+
+Gb.Floors_FigureOld:AddToggle("AntiRagdoll", {
+    Text = "Anti-Ragdoll",
+    Default = false,
+    Tooltip = "Prevents your character from collapsing or ragdolling when stunned.",
+    Risky = game.PlaceId ~= 15722706376
+})
+
+Gb.Floors_FigureOld:AddToggle("RemoveToolCountdown", {
+    Text = "Remove Tool Countdown",
+    Default = false,
+    Tooltip = "Instantly resets tool cooldowns by dropping, re-picking, and auto-equipping them.",
+    Risky = game.PlaceId ~= 15722706376
+})
+
+Gb.Floors_FigureOld:AddDropdown("IgnoreCountdownList", {
+    Title = "Ignore Countdown List",
+    Values = {"Ball", "Pillow", "Axe"},
+    Multi = true,
+    Default = {},
+    Risky = game.PlaceId ~= 15722706376
+})
+
+Gb.Floors_FigureOld:AddButton({ 
+    Name = "AutoGrabBook",
+    Text = "Auto Grab Books", 
+    Tooltip = "Teleports and collects all books while dodging Figure safely.",
+    Risky = game.PlaceId ~= 15722706376,
+    Func = function()
+        local Players = game:GetService("Players")
+        local LocalPlayer = Players.LocalPlayer
+        local character = LocalPlayer.Character
+        local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+        
+        if not rootPart then return end
+        
+        local originalCFrame = rootPart.CFrame
+        local targetBooks = {}
+        
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj.Name == "LiveHintBook" and obj:IsA("Model") then
+                local partsCount = 0
+                local transparentParts = 0
+                
+                for _, child in ipairs(obj:GetDescendants()) do
+                    if child:IsA("MeshPart") or child:IsA("BasePart") then
+                        partsCount = partsCount + 1
+                        if child.Transparency >= 0.9 then
+                            transparentParts = transparentParts + 1
+                        end
+                    end
+                end
+                
+                if partsCount == 0 or (transparentParts / partsCount) < 0.8 then
+                    table.insert(targetBooks, obj)
+                end
+            end
+        end
+        
+        if #targetBooks == 0 then
+            pcall(function()
+                Functions.Notify({ Title = "Auto Grab Book", Body = "All Books Grabed, Now You Can Continue" })
+            end)
+            return
+        end
+        
+        task.spawn(function()
+            for _, bookModel in ipairs(targetBooks) do
+                if bookModel and bookModel.Parent then
+                    local bookPosition = bookModel:GetPivot().Position
+                    local targetPrompt = bookModel:FindFirstChild("ModulePrompt") or bookModel:FindFirstChildOfClass("ProximityPrompt") or bookModel:FindFirstChild("Prompt", true)
+                    
+                    if targetPrompt then
+                        local isSafe = false
+                        while not isSafe do
+                            isSafe = true
+                            local figure = workspace:FindFirstChild("FigureRagdoll") or workspace:FindFirstChild("Figure")
+                            if figure and figure:FindFirstChild("HumanoidRootPart") then
+                                local distanceToFigure = (bookPosition - figure.HumanoidRootPart.Position).Magnitude
+                                if distanceToFigure <= 22 then
+                                    isSafe = false
+                                    task.wait(0.5)
+                                end
+                            end
+                            if isSafe then break end
+                        end
+                        
+                        rootPart.CFrame = bookModel:GetPivot() + Vector3.new(0, 2, 0)
+                        task.wait(0.1)
+                        
+                        local isCollected = false
+                        local timeout = 0
+                        
+                        while not isCollected and timeout < 3 and bookModel and bookModel.Parent and targetPrompt.Parent do
+                            pcall(function()
+                                Functions.FirePrompt(targetPrompt)
+                            end)
+                            
+                            task.wait(0.1)
+                            timeout = timeout + 0.1
+                            
+                            local partsCount = 0
+                            local transparentParts = 0
+                            for _, child in ipairs(bookModel:GetDescendants()) do
+                                if child:IsA("MeshPart") or child:IsA("BasePart") then
+                                    partsCount = partsCount + 1
+                                    if child.Transparency >= 0.9 then
+                                        transparentParts = transparentParts + 1
+                                    end
+                                end
+                            end
+                            
+                            if partsCount > 0 and (transparentParts / partsCount) >= 0.8 then
+                                isCollected = true
+                            end
+                        end
+                    end
+                end
+                task.wait(0.1)
+            end
+            
+            rootPart.CFrame = originalCFrame
+        end)
+    end
+})
+
+local RagdollConnection
+local ActivatedConnection
+
+local function ManageCharacterState(character)
+    if RagdollConnection then RagdollConnection:Disconnect() RagdollConnection = nil end
+    
+    RagdollConnection = game:GetService("RunService").Heartbeat:Connect(function()
+        if not Toggles.AntiRagdoll.Value then return end
+        if not (character and character.Parent) then return end
+
+        pcall(function()
+            if character:GetAttribute("Stunned") == true then
+                character:SetAttribute("Stunned", false)
+            end
+
+            for _, instance in ipairs(character:GetDescendants()) do
+                if instance:IsA("Motor6D") then
+                    instance.Enabled = true
+                end
+            end
+        end)
+    end)
+end
+
+local function MonitorToolActivation(character)
+    if ActivatedConnection then ActivatedConnection:Disconnect() ActivatedConnection = nil end
+
+    local humanoid = character:WaitForChild("Humanoid")
+
+    ActivatedConnection = character.ChildAdded:Connect(function(child)
+        if child:IsA("Tool") then
+            child.Activated:Connect(function()
+                if not Toggles.RemoveToolCountdown.Value then return end
+                
+                local allowedTools = { ["Ball"] = true, ["Pillow"] = true, ["Axe"] = true }
+                if not allowedTools[child.Name] then return end
+                
+                local ignoreOptions = Options.IgnoreCountdownList.Value
+                if ignoreOptions[child.Name] then return end
+
+                local targetToolName = child.Name
+                task.wait(0.3)
+
+                if child.Parent == character then
+                    local currentDropFolder = workspace:FindFirstChild("Drops") or workspace:FindFirstChild("DroppedItems")
+                    if currentDropFolder then
+                        local dropSignal
+                        dropSignal = currentDropFolder.ChildAdded:Connect(function(newDrop)
+                            dropSignal:Disconnect()
+                            
+                            local targetPrompt = newDrop:FindFirstChild("ModulePrompt") or newDrop:FindFirstChildOfClass("ProximityPrompt")
+                            if targetPrompt then
+                                local isPickedUp = false
+                                
+                                local equipSignal
+                                equipSignal = game.Players.LocalPlayer.Backpack.ChildAdded:Connect(function(newTool)
+                                    if newTool.Name == targetToolName then
+                                        isPickedUp = true
+                                        equipSignal:Disconnect()
+                                        task.defer(function()
+                                            if humanoid and newTool.Parent == game.Players.LocalPlayer.Backpack then
+                                                humanoid:EquipTool(newTool)
+                                            end
+                                        end)
+                                    end
+                                end)
+
+                                task.spawn(function()
+                                    while not isPickedUp and targetPrompt and targetPrompt.Parent and child.Parent ~= character and not game.Players.LocalPlayer.Backpack:FindFirstChild(targetToolName) do
+                                        pcall(function()
+                                            Functions.FirePrompt(targetPrompt)
+                                        end)
+                                        task.wait(0.05)
+                                    end
+                                end)
+                            end
+                        end)
+                    end
+
+                    RemotesFolder.DropItem:FireServer(child)
+                end
+            end)
+        end
+    end)
+end
+
+if game.Players.LocalPlayer.Character then
+    ManageCharacterState(game.Players.LocalPlayer.Character)
+    MonitorToolActivation(game.Players.LocalPlayer.Character)
+end
+
+game.Players.LocalPlayer.CharacterAdded:Connect(function(newCharacter)
+    ManageCharacterState(newCharacter)
+    MonitorToolActivation(newCharacter)
+end)
+
 local ObstructionNames = { ThingToOpen = "RemoveBasementGate", MovingDoor = "RemovePaintingsDoor", Wax_Door = "RemoveSkeletonDoor" }
 for ObjName, ToggleName in ObstructionNames do
 	Toggles[ToggleName]:OnChanged(function(Value)
@@ -2211,6 +2730,35 @@ for ObjName, ToggleName in ObstructionNames do
 		end
 	end)
 end
+
+local MainHook
+local OtherHook
+if Functions.CC({"hookmetamethod", "newcclosure", "getnamecallmethod"}) then
+	MainHook = BlackKing.Environment.hookmetamethod(game, "__namecall", BlackKing.Environment.newcclosure(function(Self, ...)
+		local Args = { ... }
+		if BlackKing and BlackKing.Environment then
+			local Method = BlackKing.Environment.getnamecallmethod()
+
+			if Self.Name == "Crouch" and Method == "FireServer" then
+				if Toggles.AntiFH.Value or Toggles.PositionSpoof.Value then
+					Args[1] = true
+				end
+				Args[2] = true
+			end
+
+			if Self.Name == "MotorReplication" and Method == "FireServer" then
+				local DoBypass = (Toggles.BypassEyes.Value and Globals.IsEyes) or (Toggles.BypassLookman.Value and Globals.IsLookman)
+				if DoBypass then
+					if Floor == "Fools" or Floor == "OldHotel" then
+						Args[1] = 0 Args[2] = (Globals.SpoofOffset == 200 and 65 or -65) Args[3] = 0 Args[4] = false
+					else
+						Args[1] = -650
+					end
+				end
+			end
+		end
+		return MainHook(Self, table.unpack(Args))
+	end))
 
 if Services.ReplicatedStorage:FindFirstChild("ModulesClient") then
 	ClientModules = Services.ReplicatedStorage.ModulesClient
@@ -2230,10 +2778,10 @@ Modules = {
 }
 
 local CharacterOldConnectionKeys = {
-	"MainHandler", "JumpHandler", "LibraryCodeHandler1", "LibraryCodeHandler2",
+	"MainHandler", "JumpHandler", "LibraryCodeHandler1", "LibraryCodeHandler2", 
 	"OxygenConnection", "AnimationHandler", "AutoHideConnection", "AutoReviveHandler",
 	"SHMFixer", "AnticheatDisabler", "AnticheatEnableDetector1", "AnticheatEnableDetector2",
-	"AutoSolveAnchorsConnection", "FootstepHandler"
+	"AutoSolveAnchorsConnection", "FootstepHandler", "AutoSteerMinecartDuckHandler"
 }
 
 Globals.IsTyping = false
@@ -2299,6 +2847,44 @@ Functions.HandleCharacter = function(NewCharacter)
 	if Main_Game and Toggles.RemoveCameraBobbing.Value then
 		Main_Game.spring.Speed = 9e9
 	end
+	
+	if Main_Game and Functions.CC({"require"}) then
+		local Controls = require(LocalPlayer.PlayerScripts.PlayerModule):GetControls()
+		local OriginalGetMoveVector = Controls.GetMoveVector
+		Globals.OriginalGetMoveVector = OriginalGetMoveVector
+		Controls.GetMoveVector = function(...)
+			if Toggles.AutoSteerMinecart.Value and Floor == "Mines" then
+				local Node = Globals.NearestTurnNode
+				if Node and Functions.GetMinecart() then
+					local Turn = Node:GetAttribute("Turn")
+					return Turn == "Left" and Vector3.new(-1, 0, 0) or Turn == "Right" and Vector3.new(1, 0, 0) or Vector3.zero
+				end
+			end
+			return OriginalGetMoveVector(...)
+		end
+	end
+
+	Globals.AutoMinecartDucked = false
+	Globals.LastDuck = tick()
+	Connections.AutoSteerMinecartDuckHandler = Services.RunService.Heartbeat:Connect(function()
+		if not Toggles.AutoSteerMinecart.Value or not Functions.GetMinecart() or tick() - Globals.LastDuck < 0.1 then return end
+		Globals.NearestTurnNode = Functions.GetNearestTurnNode()
+
+		if not Globals.AutoMinecartDucked and Functions.GetNearestDuckBoard() then
+			Main_Game.crouch(true)
+			Globals.AutoMinecartDucked = true
+		elseif not Functions.GetNearestDuckBoard() and Globals.AutoMinecartDucked then
+			Main_Game.crouch(false)
+			Globals.AutoMinecartDucked = false
+		end
+		if Main_Game then
+			Main_Game.fovtarget = Options.FieldOfView.Value
+		else
+			Camera.FieldOfView = Options.FieldOfView.Value
+		end
+		Globals.LastDuck = tick()
+	end)
+
 
 	Globals.AnticheatDisabled = false
 
@@ -2507,6 +3093,18 @@ end
 			Globals.MainUI.Statistics.Death.Text = "Died to BlackKing"
 		end
 
+		local MainFrame = Globals.MainUI:FindFirstChild("MainFrame")
+		if MainFrame then
+			local Effects = MainFrame.Healthbar:FindFirstChild("Effects")
+			if Effects and Effects:FindFirstChild("Crouching") then
+				Effects.Crouching.Visible = Functions.IsCrouching()
+			end
+		end
+
+		if (Toggles.AntiFH.Value or Toggles.PositionSpoof.Value) and RemotesFolder:FindFirstChild("Crouch") then
+			RemotesFolder.Crouch:FireServer(true, true)
+		end
+
 		if Floor ~= "Fools" and Floor ~= "OldHotel" and not Camera:FindFirstChild("MinecartRig") then
 			RootPart.CanCollide = false
 		end
@@ -2517,6 +3115,46 @@ end
 
 		if LocalPlayer:GetAttribute("Alive") == true then
 			Services.SoundService:WaitForChild("Main").Volume = 1
+		end
+
+		if Floor == "OldHotel" or Floor == "Fools" then
+			local SpoofOffset = Toggles.PositionSpoof.Value and Functions.GetNearestEntity() and 20 or 0
+			Globals.SpoofOffset = SpoofOffset
+			Collision.Position = RootPart.Position + Vector3.new(0, SpoofOffset, 0)
+			Collision.CanCollide = false
+			if Floor == "Fools" then
+				Collision.CollisionCrouch.CanCollide = false
+				CollisionClone.CollisionCrouch.CanCollide = false
+			end
+			RootPart.CanCollide = not (Toggles.NoclipToggle.Value or Toggles.VelocityManipulationToggle.Value)
+		else
+			Collision.CanCollide = false
+			if Collision:FindFirstChild("CollisionCrouch") then Collision.CollisionCrouch.CanCollide = false end
+
+			if CollisionClone:FindFirstChild("CollisionCrouch") then
+				local IsCrouch = Functions.IsCrouching()
+				CollisionClone.CanCollide = not (Toggles.NoclipToggle.Value or Toggles.VelocityManipulationToggle.Value or IsCrouch)
+				CollisionClone.CollisionCrouch.CanCollide = not (Toggles.NoclipToggle.Value or Toggles.VelocityManipulationToggle.Value or not IsCrouch)
+			else
+				RootPart.CanCollide = not (Toggles.NoclipToggle.Value or Toggles.VelocityManipulationMode.Value)
+			end
+
+			if Character:FindFirstChild("LowerTorso") and Character.LowerTorso:FindFirstChild("Root") then
+				Character.LowerTorso.Root.C1 = Globals.OriginalC1 * CFrame.new(0, Toggles.PositionSpoof.Value and -2.346 or 0, 0)
+			end
+
+			local SpoofY = Toggles.PositionSpoof.Value and 2.328 or 0.18
+			Collision.Position     = RootPart.Position + Vector3.new(0, SpoofY, 0)
+			CollisionPart.Position = RootPart.Position + Vector3.new(0, SpoofY, 0)
+
+			if Collision:FindFirstChild("CollisionCrouch") and CollisionClone:FindFirstChild("CollisionCrouch") then
+				local CrouchY = Toggles.PositionSpoof.Value and 1.328 or -0.982
+				Collision.CollisionCrouch.Position = RootPart.Position + Vector3.new(0, CrouchY, 0)
+				CollisionClone.CollisionCrouch.CollisionGroup = Collision.CollisionCrouch.CollisionGroup
+			end
+			if CollisionClone:FindFirstChild("CollisionCrouch") then
+				CollisionClone.CollisionCrouch.Position = RootPart.Position + Vector3.new(0, Toggles.PositionSpoof.Value and 0.75 or -0.982, 0)
+			end
 		end
 
 		CollisionClone.CollisionGroup = Collision.CollisionGroup
@@ -2550,6 +3188,9 @@ end
 		end
 
 		Character:SetAttribute("Sliding", Globals.Sliding)
+if Character:GetAttribute("Crouching") ~= Functions.IsCrouching() then
+    Character:SetAttribute("Crouching", Functions.IsCrouching())
+end
 
 
 		RayParams.FilterDescendantsInstances = { Character }
@@ -2736,8 +3377,26 @@ Functions.HandleObject = function(Object)
 		end)
 		table.insert(Objects.Objectives, Object)
 	elseif Name == "MandrakeLive" then
-		if Toggles.ObjectiveESPToggle.Value and Options.EntityESPOptions.Value["Mandrake Hole"] then Functions.AddESP({ Object = Object.Hole, Text = "Mandrake Hole", Color = Options.EntityESPColor.Value }, true) end
-		table.insert(Objects.Entities, Object.Hole)
+		local Mandrake = Object:FindFirstChild("Mandrake")
+		if Mandrake then
+			local Root = Mandrake:FindFirstChild("Root")
+			if Root then
+				if Toggles.ObjectiveESPToggle.Value and Options.EntityESPOptions.Value["Mandrake Hole"] then
+					Functions.AddESP({ Object = Object.Hole, Text = "Mandrake Hole", Color = Options.EntityESPColor.Value }, true)
+				end
+				table.insert(Objects.Entities, Object.Hole)
+				table.insert(Objects.Entities, Root)
+				if Toggles.BypassMandrake.Value then
+					local BF = Root:FindFirstChild("AntiMandrakeForce")
+					if not BF then
+						BF = Instance.new("BodyForce")
+						BF.Name = "AntiMandrakeForce"
+						BF.Parent = Root
+					end
+					BF.Force = Vector3.new(100000, -99999999, 100000)
+				end
+			end
+	end
 	elseif Name == "MinesGenerator" then
 		task.spawn(function()
 			task.wait(0.75)
@@ -3612,7 +4271,7 @@ Functions.TriggerPrompt = function(Prompt)
 end
 
 Globals.LastAutoInteractFire = tick()
-Con.AutoInteract = Services.RunService.Heartbeat:Connect(function()
+Connections.AutoInteract = Services.RunService.Heartbeat:Connect(function()
 	local Active = Toggles.AutoInteractToggle.Value or Options.AutoInteractKeybind:GetState()
     if not Active then return end
     if tick() - Globals.LastAutoInteractFire < 1/60 then return end
@@ -3764,7 +4423,7 @@ Con.EntityHandler = Services.Workspace.ChildAdded:Connect(function(Entity)
 		Functions.Notify({ Title = NotifyTitle, Body = NotifyBody, Image = NotifyImage, Time = nil })
 
 		if Toggles.EntityChatToggle.Value then
-			Functions.SendChat("[BlackKing] " .. Name .. " " .. Options.EntityChatMessage.Value)
+			Functions.SendChat(Name .. " " .. Options.EntityChatMessage.Value)
 		end
 	end
 
@@ -3963,6 +4622,7 @@ Library:OnUnload(function()
 
 	getgenv().BlackKing = nil
 end)
+end
 
 while not Globals.MainUI do task.wait() end
 BlackKing.Interface.ApplySettingsTab(Window)
