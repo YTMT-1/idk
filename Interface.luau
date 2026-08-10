@@ -12,7 +12,7 @@ local Interface = {
 }
 
 Interface.ThemeManager.BuiltInThemes = {
-		["Default"]		   = { 1,  { FontColor = "ffffff", MainColor = "191919", AccentColor = "7d55ff", BackgroundColor = "0f0f0f", OutlineColor = "282828" }},
+		["Default"]		   = { 1,  { FontColor = "ffffff", MainColor = "191919", AccentColor = "7d55ff", BackgroundColor = "0f0f0f", OutlineColor = "282828" } },
 		["BlackKing"]      = { 2,  { FontColor = "ffffff", MainColor = "1c1c1c", AccentColor = "e755ff", BackgroundColor = "1a1a1a", OutlineColor = "1a1b1d" } },
 		["BBot"]           = { 3,  { FontColor = "ffffff", MainColor = "1e1e1e", AccentColor = "7e48a3", BackgroundColor = "232323", OutlineColor = "141414" } },
 		["Fatality"]       = { 4,  { FontColor = "ffffff", MainColor = "1e1842", AccentColor = "c50754", BackgroundColor = "191335", OutlineColor = "3c355d" } },
