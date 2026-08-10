@@ -1,9 +1,12 @@
 return function(Window)
 	local LatestChangelog = {
-		"24/7/2026",
-		"<font color='rgb(255, 0, 0)'>- BlackKingV3.</font>",
-		"<font color='rgb(0, 255, 0)'>+ BlackKing Official.</font>",
-		"<font color='rgb(0, 255, 0)'>+ Fixed the main loader (obfuscator issue).</font>",
+		"10/8/2026",
+		"<font color='rgb(0, 255, 0)'>+ Figure Old Supports.</font>",
+		"7/8/2026",
+		"<font color='rgb(0, 255, 0)'>+ Anti Mandrake.</font>",
+		"<font color='rgb(0, 255, 0)'>+ Auto Complete Maze (Outdoors).</font>",
+		"<font color='rgb(0, 255, 0)'>+ Lobby Support.</font>",
+		"<font color='rgb(0, 255, 0)'>+ Fixed Bugs.</font>",
 	}
 
 	local function CloneReference(Object)
