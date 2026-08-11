@@ -1736,7 +1736,7 @@ end)
 Gb.Visuals_LeftTab = Tabs.Visuals:AddLeftTabbox("Camera / Effects")
 Gb.Visuals_Camera = Gb.Visuals_LeftTab:AddTab("Camera")
 Gb.Visuals_Camera:AddToggle("AmbientToggle", { Text = "Ambient", Default = false, Tooltip = "Changes the lighting color to the specified value." })
-Gb.Visuals_Camera:AddToggle("Anti-lagToggle", { Text = "Anti-lag", Default = false, Tooltip = "Make your game less lagging."})
+Gb.Visuals_Camera:AddToggle("AntilagToggle", { Text = "Anti-lag", Default = false, Tooltip = "Make your game less lagging."})
 Gb.Visuals_Camera:AddSlider("FieldOfView", { Text = "Field of View", Min = 1, Max = 120, Default = 70, Rounding = 0 })
 Gb.Visuals_Camera:AddDivider()
 Gb.Visuals_Camera:AddToggle("RemoveCameraShake", {
