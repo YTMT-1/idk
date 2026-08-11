@@ -2626,6 +2626,38 @@ Gb.Floors_FigureOld:AddButton({
     end
 })
 
+Gb.Floors_FigureOld:AddButton({ 
+    Name = "SetMaxInventoryCap",
+    Text = "Max Inventory Cap (10)", 
+    Tooltip = "Always forces your character's InventoryCap attribute to 10.",
+    Risky = false,
+    Func = function()
+        if game.PlaceId ~= 15722706376 then
+            pcall(function()
+                Functions.Notify({ Title = "Inventory Cap", Body = "Wrong Game / Place ID!" })
+            end)
+        else
+            local Players = game:GetService("Players")
+            local LocalPlayer = Players.LocalPlayer
+
+            task.spawn(function()
+                while true do
+                    local character = LocalPlayer.Character
+                    if character then
+                        character:SetAttribute("InventoryCap", 10)
+                    end
+                    task.wait(0.5)
+                end
+            end)
+
+            pcall(function()
+                Functions.Notify({ Title = "Inventory Cap", Body = "InventoryCap is now locked at 10!" })
+            end)
+        end
+    end
+})
+
+
 local RagdollConnection
 local ActivatedConnection
 
