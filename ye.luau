@@ -1806,7 +1806,7 @@ task.spawn(function()
 	end
 end)
 
-Toggles.AntiLagToggle:OnChanged(function(Value)
+Toggles.AntilagToggle:OnChanged(function(Value)
 	_G.AntiLagActive = Value
 	
 	if _G.AntiLagActive then
