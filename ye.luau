@@ -1585,36 +1585,20 @@ Toggles.TwerkDance:OnChanged(function(Value)
     end
 end)
 
-local track = nil
-
 Toggles.Chill:OnChanged(function(Value)
-    local character = game.Players.LocalPlayer.Character
-    local hum = character and character:FindFirstChildOfClass("Humanoid")
-    -- Sử dụng Animator bên trong Humanoid để load nhằm tránh lỗi hệ thống
-    local animator = hum and (hum:FindFirstChildOfClass("Animator") or Instance.new("Animator", hum))
-    
-    if not animator then return end
-
     if Value then
-        if track then track:Stop() end
 
         local anim = Instance.new("Animation")
-        -- Đổi sang ID chuyển động thô (Raw Track ID) trích xuất từ gói Adidas Aura
-        anim.AnimationId = "rbxassetid://137164325636646" 
+        anim.AnimationId = "rbxassetid://108381608615369"
 
-        pcall(function()
-            track = animator:LoadAnimation(anim)
-            if track then
-                track.Looped = true
-                -- Đặt mức ưu tiên cao nhất để đè mọi hoạt ảnh di chuyển/đứng im mặc định
-                track.Priority = Enum.AnimationPriority.Action4 
-                track:Play()
-            end
-        end)
+		local hum = Character:FindFirstChildOfClass("Humanoid")
+        track = hum:LoadAnimation(anim)
+        track.Looped = true
+        track:Play()
+
     else
         if track then
             track:Stop()
-            track = nil
         end
     end
 end)
