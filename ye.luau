@@ -2643,46 +2643,17 @@ Gb.Floors_FigureOld:AddToggle("AlwaysMaxInventoryCap", {
             task.spawn(function()
                 local Players = game:GetService("Players")
                 local LocalPlayer = Players.LocalPlayer
-                local connection
                 
-                local function monitorCharacter(char)
-                    if not char then return end
-                    
-                    if connection then connection:Disconnect() end
-                    
-                    char:SetAttribute("InventoryCap", 10)
-                    
-                    connection = char:GetAttributeChangedSignal("InventoryCap"):Connect(function()
-                        if _G.EnableInventoryCapLoop and char:GetAttribute("InventoryCap") ~= 10 then
-                            char:SetAttribute("InventoryCap", 10)
-                        end
-                    end)
-                end
-
-                if LocalPlayer.Character then
-                    monitorCharacter(LocalPlayer.Character)
-                end
-
-                local respawnConnection
-                respawnConnection = LocalPlayer.CharacterAdded:Connect(function(newChar)
-                    if _G.EnableInventoryCapLoop then
-                        monitorCharacter(newChar)
-                    else
-                        if connection then connection:Disconnect() end
-                        respawnConnection:Disconnect()
-                    end
-                end)
-
                 while _G.EnableInventoryCapLoop do
                     local character = LocalPlayer.Character
-                    if character and character:GetAttribute("InventoryCap") ~= 10 then
-                        character:SetAttribute("InventoryCap", 10)
+                    if character then
+                        local currentCap = character:GetAttribute("InventoryCap")
+                        if currentCap ~= 10 then
+                            character:SetAttribute("InventoryCap", 10)
+                        end
                     end
-                    task.wait(0.2)
+                    task.wait()
                 end
-
-                if connection then connection:Disconnect() end
-                if respawnConnection then respawnConnection:Disconnect() end
             end)
             
             pcall(function()
