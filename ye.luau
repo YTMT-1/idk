@@ -1585,20 +1585,32 @@ Toggles.TwerkDance:OnChanged(function(Value)
     end
 end)
 
+local track = nil
+
 Toggles.Chill:OnChanged(function(Value)
+    local character = game.Players.LocalPlayer.Character
+    local hum = character and character:FindFirstChildOfClass("Humanoid")
+    
+    if not hum then return end
+
     if Value then
+        if track then track:Stop() end
 
         local anim = Instance.new("Animation")
-        anim.AnimationId = "https://www.roblox.com/vi/catalog/73137983344853"
+        anim.AnimationId = "rbxassetid://73137983344853"
 
-		local hum = Character:FindFirstChildOfClass("Humanoid")
-        track = hum:LoadAnimation(anim)
-        track.Looped = true
-        track:Play()
-
+        pcall(function()
+            track = hum:LoadAnimation(anim)
+            if track then
+                track.Looped = true
+                track.Priority = Enum.AnimationPriority.Action
+                track:Play()
+            end
+        end)
     else
         if track then
             track:Stop()
+            track = nil
         end
     end
 end)
