@@ -1737,7 +1737,7 @@ Gb.Visuals_LeftTab = Tabs.Visuals:AddLeftTabbox("Camera / Effects")
 Gb.Visuals_Camera = Gb.Visuals_LeftTab:AddTab("Camera")
 Gb.Visuals_Camera:AddToggle("AmbientToggle", { Text = "Ambient", Default = false, Tooltip = "Changes the lighting color to the specified value." })
 
-local Lighting = game:GetService(Lighting)
+local Lighting = game:GetService("Lighting")
 local Terrain = workspace:FindFirstChildWhichIsA("Terrain")
 local originalSettings = {}
 local antiLagConnection = nil
