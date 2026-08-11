@@ -1089,9 +1089,9 @@ BlackKing.Interface.ApplyInfoTab(Window)
 
 local Tabs = {
 	General  = Window:AddTab("General", "house"),
-	Exploits = Window:AddTab("Exploits", "shield"),
-	Visuals  = Window:AddTab("Visuals", "eye"),
-	Floors   = Window:AddTab("Floors", "earth"),
+	Exploits = Window:AddTab("Exploits", "bug"),
+	Visuals  = Window:AddTab("Visuals", "view"),
+	Floors   = Window:AddTab("Floors", "sparkles"),
 }
 
 Gb.General_Character = Tabs.General:AddLeftGroupbox("Character")
