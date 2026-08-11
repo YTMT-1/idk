@@ -1275,13 +1275,13 @@ Toggles.AutoInteractToggle:AddKeyPicker("AutoInteractKeybind", {
 	Text = "Auto Interact", Default = "R",
 	Mode = "Toggle", SyncToggleState = true
 })
-
 Gb.Self_Automation:AddDropdown("AutoInteractIgnoreList", {
 	Text = "Ignore List",
 	Values = { "Glitch Fragments", "Jeff Items", "Dropped Items", "Currency", "Minecarts", "Locks" },
 	Default = { "Glitch Fragments", "Jeff Items", "Dropped Items" },
 	Multi = true, AllowNull = true
 })
+
 Gb.Self_Automation:AddDivider()
 
 Gb.Self_Automation:AddToggle("AutoHideToggle", {
