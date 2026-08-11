@@ -2629,7 +2629,7 @@ Gb.Floors_FigureOld:AddButton({
 Gb.Floors_FigureOld:AddToggle("AlwaysMaxInventoryCap", {
     Text = "Max Inventory Cap (10)",
     Default = false,
-    Tooltip = "Continuously forces Character's InventoryCap attribute to 10 when enabled.",
+    Tooltip = "Forcefully bypasses and disconnects local scripts modifying InventoryCap.",
     Func = function(Value)
         _G.EnableInventoryCapLoop = Value
         
@@ -2643,57 +2643,30 @@ Gb.Floors_FigureOld:AddToggle("AlwaysMaxInventoryCap", {
             task.spawn(function()
                 local Players = game:GetService("Players")
                 local LocalPlayer = Players.LocalPlayer
-                local attributeConnection
                 
-                local function forceCap(char)
-                    if not char then return end
-                    if attributeConnection then attributeConnection:Disconnect() end
-                    
-                    char:SetAttribute("InventoryCap", 10)
-                    
-                    attributeConnection = char:GetAttributeChangedSignal("InventoryCap"):Connect(function()
-                        if _G.EnableInventoryCapLoop then
-                            attributeConnection:Disconnect()
-                            char:SetAttribute("InventoryCap", 10)
-                            forceCap(char)
-                        end
-                    end)
-                end
-
-                if LocalPlayer.Character then
-                    forceCap(LocalPlayer.Character)
-                end
-
-                local charAddedConnection
-                charAddedConnection = LocalPlayer.CharacterAdded:Connect(function(newChar)
-                    if _G.EnableInventoryCapLoop then
-                        forceCap(newChar)
-                    else
-                        if attributeConnection then attributeConnection:Disconnect() end
-                        charAddedConnection:Disconnect()
-                    end
-                end)
-
                 while _G.EnableInventoryCapLoop do
                     local character = LocalPlayer.Character
-                    if character and character:GetAttribute("InventoryCap") ~= 10 then
-                        if attributeConnection then attributeConnection:Disconnect() end
+                    if character then
+                        local signal = character:GetAttributeChangedSignal("InventoryCap")
+                        if signal then
+                            local connections = getconnections(signal)
+                            for _, connection in ipairs(connections) do
+                                connection:Disable()
+                            end
+                        end
+                        
                         character:SetAttribute("InventoryCap", 10)
-                        forceCap(character)
                     end
                     task.wait(0.1)
                 end
-
-                if attributeConnection then attributeConnection:Disconnect() end
-                if charAddedConnection then charAddedConnection:Disconnect() end
             end)
             
             pcall(function()
-                Functions.Notify({ Title = "Inventory Cap", Body = "InventoryCap loop activated!" })
+                Functions.Notify({ Title = "Inventory Cap", Body = "InventoryCap forced to 10!" })
             end)
         else
             pcall(function()
-                Functions.Notify({ Title = "Inventory Cap", Body = "InventoryCap loop deactivated!" })
+                Functions.Notify({ Title = "Inventory Cap", Body = "InventoryCap control released!" })
             end)
         end
     end
