@@ -1762,6 +1762,8 @@ Toggles.AmbientToggle:OnChanged(function(Value)
 		Ambient = Value and Options.AmbientColor.Value or OldAmbient
 	}):Play()
 end)
+
+local Lighting = game:GetService(Lighting)
 local Terrain = workspace:FindFirstChildWhichIsA("Terrain")
 local originalSettings = {}
 local antiLagConnection = nil
