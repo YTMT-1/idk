@@ -5056,116 +5056,114 @@ Gb.Floors_FigureOld:AddButton({
             pcall(function()
                 Functions.Notify({ Title = "Auto Grab Book", Body = "Wrong Game / Place ID!" })
             end)
-            return
-        end
-
-        local Players = game:GetService("Players")
-        local LocalPlayer = Players.LocalPlayer
-        local character = LocalPlayer.Character
-        local rootPart = character and character:FindFirstChild("HumanoidRootPart")
-        local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-        
-        if not rootPart then return end
-        
-        local originalCFrame = rootPart.CFrame
-        local targetBooks = {}
-        
-        for _, obj in ipairs(workspace:GetDescendants()) do
-            if obj.Name == "LiveHintBook" and obj:IsA("Model") then
-                local partsCount = 0
-                local transparentParts = 0
+        else
+            local Players = game:GetService("Players")
+            local LocalPlayer = Players.LocalPlayer
+            local character = LocalPlayer.Character
+            local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+            local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+            
+            if rootPart then
+                local originalCFrame = rootPart.CFrame
+                local targetBooks = {}
                 
-                for _, child in ipairs(obj:GetDescendants()) do
-                    if child:IsA("MeshPart") or child:IsA("BasePart") then
-                        partsCount = partsCount + 1
-                        if child.Transparency >= 0.9 then
-                            transparentParts = transparentParts + 1
+                for _, obj in ipairs(workspace:GetDescendants()) do
+                    if obj.Name == "LiveHintBook" and obj:IsA("Model") then
+                        local partsCount = 0
+                        local transparentParts = 0
+                        
+                        for _, child in ipairs(obj:GetDescendants()) do
+                            if child:IsA("MeshPart") or child:IsA("BasePart") then
+                                partsCount = partsCount + 1
+                                if child.Transparency >= 0.9 then
+                                    transparentParts = transparentParts + 1
+                               end
+                            end
+                        end
+                        
+                        if partsCount == 0 or (transparentParts / partsCount) < 0.8 then
+                            table.insert(targetBooks, obj)
                         end
                     end
                 end
                 
-                if partsCount == 0 or (transparentParts / partsCount) < 0.8 then
-                    table.insert(targetBooks, obj)
-                end
-            end
-        end
-        
-        if #targetBooks == 0 then
-            pcall(function()
-                Functions.Notify({ Title = "Auto Grab Book", Body = "All Books Grabed, Now You Can Continue" })
-            end)
-            return
-        end
-        
-        task.spawn(function()
-            for _, bookModel in ipairs(targetBooks) do
-                if bookModel and bookModel.Parent then
-                    local bookPosition = bookModel:GetPivot().Position
-                    local targetPrompt = bookModel:FindFirstChild("ModulePrompt") or bookModel:FindFirstChildOfClass("ProximityPrompt") or bookModel:FindFirstChild("Prompt", true)
-                    
-                    if targetPrompt then
-                        local isSafe = false
-                        while not isSafe do
-                            isSafe = true
-                            local figure = workspace:FindFirstChild("FigureRagdoll") or workspace:FindFirstChild("Figure")
-                            if figure and figure:FindFirstChild("HumanoidRootPart") then
-                                local distanceToFigure = (bookPosition - figure.HumanoidRootPart.Position).Magnitude
-                                if distanceToFigure <= 25 then
-                                    isSafe = false
-                                    task.wait(0.5)
-                                end
-                            end
-                            if isSafe then break end
-                        end
-                        
-                        rootPart.CFrame = bookModel:GetPivot() + Vector3.new(0, 2, 0)
-                        task.wait(0.1)
-                        
-                        local isCollected = false
-                        local timeout = 0
-                        
-                        while not isCollected and timeout < 3 and bookModel and bookModel.Parent and targetPrompt.Parent do
-                            pcall(function()
-                                Functions.FirePrompt(targetPrompt)
-                            end)
-                            
-                            task.wait(0.1)
-                            timeout = timeout + 0.1
-                            
-                            local partsCount = 0
-                            local transparentParts = 0
-                            for _, child in ipairs(bookModel:GetDescendants()) do
-                                if child:IsA("MeshPart") or child:IsA("BasePart") then
-                                    partsCount = partsCount + 1
-                                    if child.Transparency >= 0.9 then
-                                        transparentParts = transparentParts + 1
+                if #targetBooks == 0 then
+                    pcall(function()
+                        Functions.Notify({ Title = "Auto Grab Book", Body = "All Books Grabed, Now You Can Continue" })
+                    end)
+                else
+                    task.spawn(function()
+                        for _, bookModel in ipairs(targetBooks) do
+                            if bookModel and bookModel.Parent then
+                                local bookPosition = bookModel:GetPivot().Position
+                                local targetPrompt = bookModel:FindFirstChild("ModulePrompt") or bookModel:FindFirstChildOfClass("ProximityPrompt") or bookModel:FindFirstChild("Prompt", true)
+                                
+                                if targetPrompt then
+                                    local isSafe = false
+                                    while not isSafe do
+                                        isSafe = true
+                                        local figure = workspace:FindFirstChild("FigureRagdoll") or workspace:FindFirstChild("Figure")
+                                        if figure and figure:FindFirstChild("HumanoidRootPart") then
+                                            local distanceToFigure = (bookPosition - figure.HumanoidRootPart.Position).Magnitude
+                                            if distanceToFigure <= 25 then
+                                                isSafe = false
+                                                task.wait(0.5)
+                                            end
+                                        end
+                                        if isSafe then break end
+                                    end
+                                    
+                                    rootPart.CFrame = bookModel:GetPivot() + Vector3.new(0, 2, 0)
+                                    task.wait(0.1)
+                                    
+                                    local isCollected = false
+                                    local timeout = 0
+                                    
+                                    while not isCollected and timeout < 3 and bookModel and bookModel.Parent and targetPrompt.Parent do
+                                        pcall(function()
+                                            Functions.FirePrompt(targetPrompt)
+                                        end)
+                                        
+                                        task.wait(0.1)
+                                        timeout = timeout + 0.1
+                                        
+                                        local partsCount = 0
+                                        local transparentParts = 0
+                                        for _, child in ipairs(bookModel:GetDescendants()) do
+                                            if child:IsA("MeshPart") or child:IsA("BasePart") then
+                                                partsCount = partsCount + 1
+                                                if child.Transparency >= 0.9 then
+                                                    transparentParts = transparentParts + 1
+                                                end
+                                            end
+                                        end
+                                        
+                                        if partsCount > 0 and (transparentParts / partsCount) >= 0.8 then
+                                            isCollected = true
+                                        end
                                     end
                                 end
                             end
+                            task.wait(0.1)
+                        end
+                        
+                        if LocalPlayer and LocalPlayer:FindFirstChild("Backpack") and humanoid then
+                            local crucifix = LocalPlayer.Backpack:FindFirstChild("Crucifix")
+                            if not crucifix and character:FindFirstChild("Crucifix") then
+                                crucifix = character.Crucifix
+                            end
                             
-                            if partsCount > 0 and (transparentParts / partsCount) >= 0.8 then
-                                isCollected = true
+                            if crucifix then
+                                humanoid:EquipTool(crucifix)
+                                task.wait(0.1)
                             end
                         end
-                    end
-                end
-                task.wait(0.1)
-            end
-            
-            if LocalPlayer and LocalPlayer:FindFirstChild("Backpack") and humanoid then
-                local crucifix = LocalPlayer.Backpack:FindFirstChild("Crucifix")
-                if not crucifix and character:FindFirstChild("Crucifix") then
-                    crucifix = character.Crucifix
-                end
-                
-                if crucifix then
-                    humanoid:EquipTool(crucifix)
-                    task.wait(0.1)
+                        
+                        rootPart.CFrame = originalCFrame
+                    end)
                 end
             end
-            
-            rootPart.CFrame = originalCFrame
-        end)
+        end
     end
 })
 
