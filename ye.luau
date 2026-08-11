@@ -1854,16 +1854,16 @@ Toggles.DisableEntityJumpscares:OnChanged(function(Value)
 		end
 	end
 end)
--- Kiểm tra và tự động khởi tạo bảng nếu Objects hoặc CutscenceModules bị nil
-if not Objects then Objects = {} end
-if not Objects.CutscenceModules then Objects.CutscenceModules = {} end
 
--- Bọc điều kiện an toàn trước khi chạy vòng lặp pairs
-if type(Objects.CutscenceModules) == "table" then
-    for _, Object in pairs(Objects.CutscenceModules) do
-        if not Object:GetAttribute("OriginalName") then
-            Object:SetAttribute("OriginalName", Object.Name)
-        end
+Gb.Visuals_Effects:AddToggle("DisableCutscene", { 
+    Text = "Disable Cutscene",  
+    Default = false, 
+    Tooltip = "Disables Cutscene For Some Rooms." 
+})
+
+for _, Object in pairs(Objects.CutscenceModules or {}) do
+    if Object and not Object:GetAttribute("OriginalName") then
+        Object:SetAttribute("OriginalName", Object.Name)
     end
 end
 
@@ -1872,27 +1872,37 @@ Toggles.DisableCutscene:OnChanged(function(Value)
     
     local Cutscence = RemoteListener:FindFirstChild("Cutscence") 
         or RemoteListener:FindFirstChild("Cutscence_Disabled")
+        or RemoteListener:FindFirstChild("Cutscene")
+        or RemoteListener:FindFirstChild("Cutscene_Disabled")
+        
     if Cutscence then
-        Cutscence.Name = Value and "Cutscence_Disabled" or "Cutscence"
+        Cutscence.Name = Value and "Cutscene_Disabled" or "Cutscene"
     end
     
-    for _, Object in pairs(Objects.CutscenceModules) do
-        local isTargetCutscene = false
-        
-        for _, name in pairs(CutsceneNames) do
-            if Object.Name:find(name) then
-                isTargetCutscene = true
-                break
-            end
-        end
-        
-        if isTargetCutscene then
-            if not Object:GetAttribute("OriginalName") then
-                Object:SetAttribute("OriginalName", Object.Name)
+    for _, Object in pairs(Objects.CutscenceModules or {}) do
+        if Object and Object.Name then
+            local isTargetCutscene = false
+            local objectNameLower = string.lower(Object.Name)
+            
+            for _, name in pairs(CutsceneNames) do
+                if string.find(objectNameLower, name) then
+                    isTargetCutscene = true
+                    break
+                end
             end
             
-            local origName = Object:GetAttribute("OriginalName")
-            Object.Name = Value and (origName .. "_Disabled") or origName
+            if isTargetCutscene then
+                if not Object:GetAttribute("OriginalName") then
+                    Object:SetAttribute("OriginalName", Object.Name)
+                end
+                
+                local origName = Object:GetAttribute("OriginalName")
+                if Value then
+                    Object.Name = string.find(origName, "_Disabled") and origName or (origName .. "_Disabled")
+                else
+                    Object.Name = string.gsub(origName, "_Disabled", "")
+                end
+            end
         end
     end
 end)
