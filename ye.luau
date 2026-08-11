@@ -1854,9 +1854,16 @@ Toggles.DisableEntityJumpscares:OnChanged(function(Value)
 		end
 	end
 end)
-for _, Object in pairs(Objects.CutscenceModules) do
-    if not Object:GetAttribute("OriginalName") then
-        Object:SetAttribute("OriginalName", Object.Name)
+-- Kiểm tra và tự động khởi tạo bảng nếu Objects hoặc CutscenceModules bị nil
+if not Objects then Objects = {} end
+if not Objects.CutscenceModules then Objects.CutscenceModules = {} end
+
+-- Bọc điều kiện an toàn trước khi chạy vòng lặp pairs
+if type(Objects.CutscenceModules) == "table" then
+    for _, Object in pairs(Objects.CutscenceModules) do
+        if not Object:GetAttribute("OriginalName") then
+            Object:SetAttribute("OriginalName", Object.Name)
+        end
     end
 end
 
