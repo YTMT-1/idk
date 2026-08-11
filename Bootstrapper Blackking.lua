@@ -6,19 +6,10 @@ getgenv().BlackKing = {
     Legit = true
 }
 
--- Sửa lỗi logic gán biến local của script gốc để tránh lỗi index nil
 local BlackKing = getgenv().BlackKing
 
-local GameList = {
-    [2440500124] = "Doors",
-    [15722706376] = "FigureOld",
-    [93149414018318] = "FigureByMoon",
-}
-
--- Định nghĩa đường dẫn GitHub cá nhân lưu trữ các tệp tin trong ảnh của bạn
 local BaseUrl = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/"
 
--- Thiết lập môi trường sUNC giả lập an toàn
 BlackKing.Environment = {
     cloneref = type(cloneref) == "function" and cloneref or function(obj) return obj end,
     writefile = type(writefile) == "function" and writefile or nil,
@@ -40,7 +31,6 @@ local Services = setmetatable({}, {
     end
 })
 
--- Hệ thống quản lý UserData ghi nhận số lần chạy script
 if BlackKing.Environment.writefile and BlackKing.Environment.readfile then
     if not BlackKing.Environment.isfile("BlackKing/UserData.json") then
         local Data = { TotalExecutions = 0, UILibrary = "Obsidian" }
@@ -56,9 +46,6 @@ if BlackKing.Environment.writefile and BlackKing.Environment.readfile then
     BlackKing.Environment.writefile("BlackKing/UserData.json", Services.HttpService:JSONEncode(Decoded))
 end
 
--- =============================================================================
--- NẠP TUẦN TỰ CÁC THƯ VIỆN COMPONENT THEO DANH SÁCH ẢNH
--- =============================================================================
 local function LoadComponent(fileName)
     local success, result = pcall(function()
         return loadstring(game:HttpGet(BaseUrl .. fileName))()
@@ -69,22 +56,37 @@ local function LoadComponent(fileName)
     return result
 end
 
--- Nạp thư viện hệ thống và ESP xuyên tường từ danh sách của bạn
-BlackKing.Environment = LoadComponent("Environment.luau") or BlackKing.Environment
-BlackKing.ESPLibrary = LoadComponent("ESPLibrary.luau")
-
--- Nạp giao diện chính (Interface) và các tab cài đặt phụ
 BlackKing.Interface = LoadComponent("Interface.luau")
+
+local ObsidianLib = getgenv().Library or getgenv().Obsidian or _G.Library
+
+local Loading = ObsidianLib:CreateLoading({ Title = "BlackKing Hub", TotalSteps = 4 })
+Loading:ShowSidebarPage(true)
+Loading.Sidebar:AddLabel("User: " .. Services.Players.LocalPlayer.Name)
+Loading.Sidebar:AddLabel("Executions: " .. tostring(BlackKing.TotalExecutions or 1))
+
+Loading:SetMessage("Loading Script")
+
+Loading:SetCurrentStep(1)
+Loading:SetDescription("Loading Environment core...")
+BlackKing.Environment = LoadComponent("Environment.luau") or BlackKing.Environment
+task.wait(0.2)
+
+Loading:SetCurrentStep(2)
+Loading:SetDescription("Loading ESP Library components...")
+BlackKing.ESPLibrary = LoadComponent("ESPLibrary.luau")
+task.wait(0.2)
+
+Loading:SetCurrentStep(3)
+Loading:SetDescription("Injecting Info and Settings tabs...")
 BlackKing.InfoTab = LoadComponent("InfoTab.luau")
 BlackKing.SettingsTab = LoadComponent("SettingsTab.luau")
+task.wait(0.2)
 
--- =============================================================================
--- ĐIỀU HƯỚNG SANG FILE TÍNH NĂNG CHÍNH (ye.luau) KHI VÀO GAME DOORS
--- =============================================================================
---[[local CurrentGame = GameList[game.GameId]
-if CurrentGame then
-    -- Đưa đường dẫn về thẳng thư mục gốc (BaseUrl) chứa file Loader.lua của bạn
-    loadstring(game:HttpGet(BaseUrl .. "ye.luau"))()
-end]]--
+Loading:SetCurrentStep(4)
+Loading:SetDescription("Executing main feature script...")
 loadstring(game:HttpGet(BaseUrl .. "ye.luau"))()
-print("yall, Madium is Good and Script will run after 2-5 second")
+task.wait(0.5)
+
+Loading:Continue()
+print("Script Running Success, Enjoy!")
