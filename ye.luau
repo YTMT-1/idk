@@ -2643,17 +2643,49 @@ Gb.Floors_FigureOld:AddToggle("AlwaysMaxInventoryCap", {
             task.spawn(function()
                 local Players = game:GetService("Players")
                 local LocalPlayer = Players.LocalPlayer
+                local attributeConnection
                 
+                local function forceCap(char)
+                    if not char then return end
+                    if attributeConnection then attributeConnection:Disconnect() end
+                    
+                    char:SetAttribute("InventoryCap", 10)
+                    
+                    attributeConnection = char:GetAttributeChangedSignal("InventoryCap"):Connect(function()
+                        if _G.EnableInventoryCapLoop then
+                            attributeConnection:Disconnect()
+                            char:SetAttribute("InventoryCap", 10)
+                            forceCap(char)
+                        end
+                    end)
+                end
+
+                if LocalPlayer.Character then
+                    forceCap(LocalPlayer.Character)
+                end
+
+                local charAddedConnection
+                charAddedConnection = LocalPlayer.CharacterAdded:Connect(function(newChar)
+                    if _G.EnableInventoryCapLoop then
+                        forceCap(newChar)
+                    else
+                        if attributeConnection then attributeConnection:Disconnect() end
+                        charAddedConnection:Disconnect()
+                    end
+                end)
+
                 while _G.EnableInventoryCapLoop do
                     local character = LocalPlayer.Character
-                    if character then
-                        local currentCap = character:GetAttribute("InventoryCap")
-                        if currentCap ~= 10 then
-                            character:SetAttribute("InventoryCap", 10)
-                        end
+                    if character and character:GetAttribute("InventoryCap") ~= 10 then
+                        if attributeConnection then attributeConnection:Disconnect() end
+                        character:SetAttribute("InventoryCap", 10)
+                        forceCap(character)
                     end
-                    task.wait()
+                    task.wait(0.1)
                 end
+
+                if attributeConnection then attributeConnection:Disconnect() end
+                if charAddedConnection then charAddedConnection:Disconnect() end
             end)
             
             pcall(function()
