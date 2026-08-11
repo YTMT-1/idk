@@ -1736,32 +1736,6 @@ end)
 Gb.Visuals_LeftTab = Tabs.Visuals:AddLeftTabbox("Camera / Effects")
 Gb.Visuals_Camera = Gb.Visuals_LeftTab:AddTab("Camera")
 Gb.Visuals_Camera:AddToggle("AmbientToggle", { Text = "Ambient", Default = false, Tooltip = "Changes the lighting color to the specified value." })
-Gb.Visuals_Camera:AddToggle("AntilagToggle", { Text = "Anti-lag", Default = false, Tooltip = "Make your game less lagging."})
-Gb.Visuals_Camera:AddSlider("FieldOfView", { Text = "Field of View", Min = 1, Max = 120, Default = 70, Rounding = 0 })
-Gb.Visuals_Camera:AddDivider()
-Gb.Visuals_Camera:AddToggle("RemoveCameraShake", {
-	Text = "Remove Camera Shake", Default = false, Tooltip = "Prevents the camera from shaking.",
-	Disabled = not Functions.CheckCompatability({"require"}), DisabledTooltip = Globals.IncompatibleMessage
-})
-Gb.Visuals_Camera:AddToggle("RemoveCameraBobbing", {
-	Text = "Remove Camera Bobbing", Default = false, Tooltip = "Prevents the camera from bobbing when moving.",
-	Disabled = not Functions.CheckCompatability({"require"}), DisabledTooltip = Globals.IncompatibleMessage
-})
-Gb.Visuals_Camera:AddToggle("RemoveCameraFog", { Text = "Remove Fog", Default = false, Tooltip = "Removes all fog effects from the camera." })
-Gb.Visuals_Camera:AddDivider()
-Gb.Visuals_Camera:AddToggle("ThirdPersonToggle", { Text = "Third Person", Default = false, Tooltip = "Zooms out your camera, allowing you to see your character from behind." })
-Toggles.ThirdPersonToggle:AddKeyPicker("ThirdPersonKeybind", { Text = "Third Person", Default = "T", Mode = "Toggle", SyncToggleState = true })
-Gb.Visuals_Camera:AddSlider("ThirdPersonOffsetX", { Text = "X Offset", Min = -10, Max = 10, Default = 1.5, Rounding = 1, Compact = true })
-Gb.Visuals_Camera:AddSlider("ThirdPersonOffsetY", { Text = "Y Offset", Min = -10, Max = 10, Default = 1,   Rounding = 1, Compact = true })
-Gb.Visuals_Camera:AddSlider("ThirdPersonOffsetZ", { Text = "Z Offset", Min = -10, Max = 10, Default = 5,   Rounding = 1, Compact = true })
-Gb.Visuals_Camera:AddToggle("ThirdPersonWallCheck", { Text = "Wall Check", Default = false, Tooltip = "Prevents third person from going through walls." })
-Toggles.AmbientToggle:AddColorPicker("AmbientColor", { Text = "Ambient", Default = Color3.fromRGB(255, 255, 255), Transparency = 0 })
-Toggles.AmbientToggle:OnChanged(function(Value)
-	local OldAmbient = CurrentRooms:FindFirstChild(tostring(LocalPlayer:GetAttribute("CurrentRoom"))):GetAttribute("Ambient")
-	Services.TweenService:Create(Services.Lighting, TweenInfo.new(0.2, Enum.EasingStyle.Exponential), {
-		Ambient = Value and Options.AmbientColor.Value or OldAmbient
-	}):Play()
-end)
 
 local Lighting = game:GetService(Lighting)
 local Terrain = workspace:FindFirstChildWhichIsA("Terrain")
@@ -1808,90 +1782,120 @@ task.spawn(function()
 	end
 end)
 
-Toggles.AntilagToggle:OnChanged(function(Value)
-	_G.AntiLagActive = Value
-	
-	if _G.AntiLagActive then
-		originalSettings.WaterWaveSize = Terrain.WaterWaveSize
-		originalSettings.WaterWaveSpeed = Terrain.WaterWaveSpeed
-		originalSettings.WaterReflectance = Terrain.WaterReflectance
-		originalSettings.WaterTransparency = Terrain.WaterTransparency
-		originalSettings.GlobalShadows = Lighting.GlobalShadows
-		originalSettings.FogEnd = Lighting.FogEnd
-		originalSettings.FogStart = Lighting.FogStart
+Gb.Visuals_Camera:AddToggle("AntilagToggle", { 
+	Text = "Anti-lag", 
+	Default = false, 
+	Tooltip = "Make your game less lagging.",
+	Func = function(Value)
+		_G.AntiLagActive = Value
 		
-		Terrain.WaterWaveSize = 0
-		Terrain.WaterWaveSpeed = 0
-		Terrain.WaterReflectance = 0
-		Terrain.WaterTransparency = 1
-		Lighting.GlobalShadows = false
-		Lighting.FogEnd = 9e9
-		Lighting.FogStart = 9e9
-		settings().Rendering.QualityLevel = 1
-		
-		for _, v in pairs(Lighting:GetDescendants()) do
-			if v:IsA("PostEffect") then
-				originalSettings[v] = {
-					Enabled = v.Enabled
-				}
-				v.Enabled = false
+		if _G.AntiLagActive then
+			originalSettings.WaterWaveSize = Terrain.WaterWaveSize
+			originalSettings.WaterWaveSpeed = Terrain.WaterWaveSpeed
+			originalSettings.WaterReflectance = Terrain.WaterReflectance
+			originalSettings.WaterTransparency = Terrain.WaterTransparency
+			originalSettings.GlobalShadows = Lighting.GlobalShadows
+			originalSettings.FogEnd = Lighting.FogEnd
+			originalSettings.FogStart = Lighting.FogStart
+			
+			Terrain.WaterWaveSize = 0
+			Terrain.WaterWaveSpeed = 0
+			Terrain.WaterReflectance = 0
+			Terrain.WaterTransparency = 1
+			Lighting.GlobalShadows = false
+			Lighting.FogEnd = 9e9
+			Lighting.FogStart = 9e9
+			settings().Rendering.QualityLevel = 1
+			
+			for _, v in pairs(Lighting:GetDescendants()) do
+				if v:IsA("PostEffect") then
+					originalSettings[v] = {
+						Enabled = v.Enabled
+					}
+					v.Enabled = false
+				end
 			end
-		end
-		
-		antiLagConnection = workspace.DescendantAdded:Connect(function(child)
-			task.spawn(function()
-				if _G.AntiLagActive then
-					if child:IsA("ForceField") or child:IsA("Sparkles") or child:IsA("Smoke") or child:IsA("Fire") or child:IsA("Beam") then
-						game:GetService("RunService").Heartbeat:Wait()
-						child:Destroy()
-					elseif child:IsA("BasePart") then
-						child.CastShadow = false
-						child.Material = Enum.Material.Plastic
-						child.Reflectance = 0
-					elseif child:IsA("Decal") or child:IsA("Texture") then
-						child.Transparency = 1
-						child.Texture = ""
+			
+			antiLagConnection = workspace.DescendantAdded:Connect(function(child)
+				task.spawn(function()
+					if _G.AntiLagActive then
+						if child:IsA("ForceField") or child:IsA("Sparkles") or child:IsA("Smoke") or child:IsA("Fire") or child:IsA("Beam") then
+							game:GetService("RunService").Heartbeat:Wait()
+							child:Destroy()
+						elseif child:IsA("BasePart") then
+							child.CastShadow = false
+							child.Material = Enum.Material.Plastic
+							child.Reflectance = 0
+						elseif child:IsA("Decal") or child:IsA("Texture") then
+							child.Transparency = 1
+							child.Texture = ""
+						end
 					end
-				end
+				end)
 			end)
-		end)
-	else
-		if antiLagConnection then
-			antiLagConnection:Disconnect()
-			antiLagConnection = nil
-		end
-		
-		if originalSettings.WaterWaveSize then
-			Terrain.WaterWaveSize = originalSettings.WaterWaveSize
-			Terrain.WaterWaveSpeed = originalSettings.WaterWaveSpeed
-			Terrain.WaterReflectance = originalSettings.WaterReflectance
-			Terrain.WaterTransparency = originalSettings.WaterTransparency
-			Lighting.GlobalShadows = originalSettings.GlobalShadows
-			Lighting.FogEnd = originalSettings.FogEnd
-			Lighting.FogStart = originalSettings.FogStart
-		end
-		
-		for obj, settingsTable in pairs(originalSettings) do
-			pcall(function()
-				if obj and obj.Parent then
-					if obj:IsA("BasePart") then
-						obj.CastShadow = settingsTable.CastShadow
-						obj.Material = settingsTable.Material
-						obj.Reflectance = settingsTable.Reflectance
-					elseif obj:IsA("Decal") or obj:IsA("Texture") then
-						obj.Transparency = settingsTable.Transparency
-						obj.Texture = settingsTable.Texture
-					elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") then
-						obj.Lifetime = settingsTable.Lifetime
-					elseif obj:IsA("PostEffect") then
-						obj.Enabled = settingsTable.Enabled
+		else
+			if antiLagConnection then
+				antiLagConnection:Disconnect()
+				antiLagConnection = nil
+			end
+			
+			if originalSettings.WaterWaveSize then
+				Terrain.WaterWaveSize = originalSettings.WaterWaveSize
+				Terrain.WaterWaveSpeed = originalSettings.WaterWaveSpeed
+				Terrain.WaterReflectance = originalSettings.WaterReflectance
+				Terrain.WaterTransparency = originalSettings.WaterTransparency
+				Lighting.GlobalShadows = originalSettings.GlobalShadows
+				Lighting.FogEnd = originalSettings.FogEnd
+				Lighting.FogStart = originalSettings.FogStart
+			end
+			
+			for obj, settingsTable in pairs(originalSettings) do
+				pcall(function()
+					if obj and obj.Parent then
+						if obj:IsA("BasePart") then
+							obj.CastShadow = settingsTable.CastShadow
+							obj.Material = settingsTable.Material
+							obj.Reflectance = settingsTable.Reflectance
+						elseif obj:IsA("Decal") or obj:IsA("Texture") then
+							obj.Transparency = settingsTable.Transparency
+							obj.Texture = settingsTable.Texture
+						elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") then
+							obj.Lifetime = settingsTable.Lifetime
+						elseif obj:IsA("PostEffect") then
+							obj.Enabled = settingsTable.Enabled
+						end
 					end
-				end
-			end)
+				end)
+			end
+			
+			table.clear(originalSettings)
 		end
-		
-		table.clear(originalSettings)
 	end
+})
+Gb.Visuals_Camera:AddSlider("FieldOfView", { Text = "Field of View", Min = 1, Max = 120, Default = 70, Rounding = 0 })
+Gb.Visuals_Camera:AddDivider()
+Gb.Visuals_Camera:AddToggle("RemoveCameraShake", {
+	Text = "Remove Camera Shake", Default = false, Tooltip = "Prevents the camera from shaking.",
+	Disabled = not Functions.CheckCompatability({"require"}), DisabledTooltip = Globals.IncompatibleMessage
+})
+Gb.Visuals_Camera:AddToggle("RemoveCameraBobbing", {
+	Text = "Remove Camera Bobbing", Default = false, Tooltip = "Prevents the camera from bobbing when moving.",
+	Disabled = not Functions.CheckCompatability({"require"}), DisabledTooltip = Globals.IncompatibleMessage
+})
+Gb.Visuals_Camera:AddToggle("RemoveCameraFog", { Text = "Remove Fog", Default = false, Tooltip = "Removes all fog effects from the camera." })
+Gb.Visuals_Camera:AddDivider()
+Gb.Visuals_Camera:AddToggle("ThirdPersonToggle", { Text = "Third Person", Default = false, Tooltip = "Zooms out your camera, allowing you to see your character from behind." })
+Toggles.ThirdPersonToggle:AddKeyPicker("ThirdPersonKeybind", { Text = "Third Person", Default = "T", Mode = "Toggle", SyncToggleState = true })
+Gb.Visuals_Camera:AddSlider("ThirdPersonOffsetX", { Text = "X Offset", Min = -10, Max = 10, Default = 1.5, Rounding = 1, Compact = true })
+Gb.Visuals_Camera:AddSlider("ThirdPersonOffsetY", { Text = "Y Offset", Min = -10, Max = 10, Default = 1,   Rounding = 1, Compact = true })
+Gb.Visuals_Camera:AddSlider("ThirdPersonOffsetZ", { Text = "Z Offset", Min = -10, Max = 10, Default = 5,   Rounding = 1, Compact = true })
+Gb.Visuals_Camera:AddToggle("ThirdPersonWallCheck", { Text = "Wall Check", Default = false, Tooltip = "Prevents third person from going through walls." })
+Toggles.AmbientToggle:AddColorPicker("AmbientColor", { Text = "Ambient", Default = Color3.fromRGB(255, 255, 255), Transparency = 0 })
+Toggles.AmbientToggle:OnChanged(function(Value)
+	local OldAmbient = CurrentRooms:FindFirstChild(tostring(LocalPlayer:GetAttribute("CurrentRoom"))):GetAttribute("Ambient")
+	Services.TweenService:Create(Services.Lighting, TweenInfo.new(0.2, Enum.EasingStyle.Exponential), {
+		Ambient = Value and Options.AmbientColor.Value or OldAmbient
+	}):Play()
 end)
 
 local Main_Game
