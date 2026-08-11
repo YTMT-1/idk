@@ -1512,6 +1512,11 @@ Gb.Exploits_BypassRight:AddToggle("TwerkDance", {
     Default = false, 
     Tooltip = "just Twerk." 
 })
+Gb.Exploits_BypassRight:AddToggle("Chill", { 
+    Text = "Chill dance", 
+    Default = false, 
+    Tooltip = "just Chilling." 
+})
 Gb.Exploits_BypassRight:AddToggle("DisableAnticheat", {
 	Text = "Anticheat Bypass", Default = false,
 	Tooltip = "Completely disables the anticheat, after interacting with a ladder."
@@ -1567,6 +1572,24 @@ Toggles.TwerkDance:OnChanged(function(Value)
 
         local anim = Instance.new("Animation")
         anim.AnimationId = "rbxassetid://12874447851"
+
+		local hum = Character:FindFirstChildOfClass("Humanoid")
+        track = hum:LoadAnimation(anim)
+        track.Looped = true
+        track:Play()
+
+    else
+        if track then
+            track:Stop()
+        end
+    end
+end)
+
+Toggles.Chill:OnChanged(function(Value)
+    if Value then
+
+        local anim = Instance.new("Animation")
+        anim.AnimationId = "rbxassetid://73137983344853"
 
 		local hum = Character:FindFirstChildOfClass("Humanoid")
         track = hum:LoadAnimation(anim)
