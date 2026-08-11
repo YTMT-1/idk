@@ -1589,7 +1589,7 @@ Toggles.Chill:OnChanged(function(Value)
     if Value then
 
         local anim = Instance.new("Animation")
-        anim.AnimationId = "rbxassetid://73137983344853"
+        anim.AnimationId = "https://www.roblox.com/vi/catalog/73137983344853"
 
 		local hum = Character:FindFirstChildOfClass("Humanoid")
         track = hum:LoadAnimation(anim)
