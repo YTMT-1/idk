@@ -146,22 +146,22 @@ local Entities = {
 }
 
 local EntityIcons = {
-	["RushMoving"]      = "https://raw.githubusercontent.com/GeorgeRoblox/Notification/refs/heads/main/Images/Rush.jpg",
-	["AmbushMoving"]    = "https://raw.githubusercontent.com/GeorgeRoblox/Notification/refs/heads/main/Images/Ambush.jpg",
-	["A60"]             = "https://raw.githubusercontent.com/GeorgeRoblox/Notification/refs/heads/main/Images/A-60.jpg",
-	["A120"]            = "https://raw.githubusercontent.com/GeorgeRoblox/Notification/refs/heads/main/Images/A-120.jpg",
-	["BackdoorRush"]    = "https://raw.githubusercontent.com/GeorgeRoblox/Notification/refs/heads/main/Images/Blitz.jpg",
-	["Eyes"]            = "https://raw.githubusercontent.com/GeorgeRoblox/Notification/refs/heads/main/Images/Eyes.jpg",
-	["Lookman"]         = "https://raw.githubusercontent.com/GeorgeRoblox/Notification/refs/heads/main/Images/Eyes.jpg",
-	["BackdoorLookman"] = "https://raw.githubusercontent.com/GeorgeRoblox/Notification/refs/heads/main/Images/Lookman.jpg",
-	["GloombatSwarm"]   = "https://raw.githubusercontent.com/GeorgeRoblox/Notification/refs/heads/main/Images/GloomBats.jpg",
-	["Halt"]            = "https://raw.githubusercontent.com/GeorgeRoblox/Notification/refs/heads/main/Images/halt.jpg",
-	["JeffTheKiller"]   = "https://raw.githubusercontent.com/GeorgeRoblox/Notification/refs/heads/main/Images/JeffTheKiller.jpg",
+	["RushMoving"]      = "rbxassetid://10716032262",
+	["AmbushMoving"]    = "rbxassetid://10110576663",
+	["A60"]             = "rbxassetid://12571092295",
+	["A120"]            = "rbxassetid://12711591665",
+	["BackdoorRush"]    = "rbxassetid://16602023490",
+	["Eyes"]            = "rbxassetid://10183704772",
+	["Lookman"]         = "rbxassetid://10183704772",
+	["BackdoorLookman"] = "rbxassetid://16764872677",
+	["GloombatSwarm"]   = "rbxassetid://79221203116470",
+	["Halt"]            = "rbxassetid://11331795398",
+	["JeffTheKiller"]   = "rbxassetid://94479432156278",
 	["GlitchRush"]      = "rbxassetid://73859273102919",
 	["GlitchAmbush"]    = "rbxassetid://88369678433359",
-	["SallyMoving"]     = "https://raw.githubusercontent.com/GeorgeRoblox/Notification/refs/heads/main/Images/sally.jpg",
-	["MonumentEntity"]  = "https://raw.githubusercontent.com/GeorgeRoblox/Notification/refs/heads/main/Images/Monument.jpg",
-	["Groundskeeper"]   = "https://raw.githubusercontent.com/GeorgeRoblox/Notification/refs/heads/main/Images/groundskeeper.jpg"
+	["SallyMoving"]     = "rbxassetid://10840888070",
+	["MonumentEntity"]  = "rbxassetid://88933556873017",
+	["Groundskeeper"]   = "rbxassetid://114991380115557"
 }
 
 local ItemNames = {
@@ -1248,7 +1248,7 @@ Toggles.AutoBreakerBox:OnChanged(function(Value)
 	if Value and CurrentRooms:FindFirstChild("ElevatorBreaker", true) then
 		if not Globals.BreakerBoxInteracted then
 			if not Globals.BreakerBoxNotified then
-				Functions.Notify({ Title = "Interact with the breaker box.", Body = "It will be automatically solved.", Image = George })
+				Functions.Notify({ Title = "Interact with the breaker box.", Body = "It will be automatically solved.", Image = YTMT })
 				Globals.BreakerBoxInteracted = true
 			end
 		else
@@ -1813,6 +1813,7 @@ Gb.Visuals_Effects:AddDivider()
 Gb.Visuals_Effects:AddToggle("DisableHideVignette",      { Text = "Disable Hide Vignette",      Default = false, Tooltip = "Disables the hiding screen effect." })
 Gb.Visuals_Effects:AddToggle("DisableFiredampEffect",    { Text = "Disable Firedamp Effect",    Default = false, Tooltip = "Disables the firedamp screen effect." })
 Gb.Visuals_Effects:AddToggle("DisableEntityJumpscares",  { Text = "Disable Entity Jumpscares",  Default = false, Tooltip = "Disables jumpscares from entities like Rush and Ambush." })
+Gb.Visuals_Effects:AddToggle("DisableCutscene",			 { Text = "Disable Cutscene",  Default = false, Tooltip = "Disables Cutscence For Some Rooms." })
 
 Toggles.DisableGlitchJumpscare:OnChanged(function(Value)
 	Modules.Glitch.Name = Value and "Glitch_Disabled" or "Glitch"
@@ -1852,6 +1853,41 @@ Toggles.DisableEntityJumpscares:OnChanged(function(Value)
 			Object.Name = Value and (Object:GetAttribute("OriginalName") .. "_Disabled") or Object:GetAttribute("OriginalName")
 		end
 	end
+end)
+for _, Object in pairs(Objects.CutscenceModules) do
+    if not Object:GetAttribute("OriginalName") then
+        Object:SetAttribute("OriginalName", Object.Name)
+    end
+end
+
+Toggles.DisableCutscene:OnChanged(function(Value)
+    local RemoteListener = Globals.MainUI.Initiator.Main_Game.RemoteListener
+    
+    local Cutscence = RemoteListener:FindFirstChild("Cutscence") 
+        or RemoteListener:FindFirstChild("Cutscence_Disabled")
+    if Cutscence then
+        Cutscence.Name = Value and "Cutscence_Disabled" or "Cutscence"
+    end
+    
+    for _, Object in pairs(Objects.CutscenceModules) do
+        local isTargetCutscene = false
+        
+        for _, name in pairs(CutsceneNames) do
+            if Object.Name:find(name) then
+                isTargetCutscene = true
+                break
+            end
+        end
+        
+        if isTargetCutscene then
+            if not Object:GetAttribute("OriginalName") then
+                Object:SetAttribute("OriginalName", Object.Name)
+            end
+            
+            local origName = Object:GetAttribute("OriginalName")
+            Object.Name = Value and (origName .. "_Disabled") or origName
+        end
+    end
 end)
 
 Gb.Visuals_RightTab     = Tabs.Visuals:AddRightTabbox("Entities / Settings")
@@ -2226,12 +2262,12 @@ Gb.Floors_Completion:AddButton({
     Tooltip = "Automatically teleports to and interacts with each anochor.",
     Func = function()
         if LatestRoom.Value < 50 or Floor ~= "Mines" then
-			Functions.Notify({ Title = "BlackKing", Body = "You must be in Room 150 to do this", Image = George})
+			Functions.Notify({ Title = "BlackKing", Body = "You must be in Room 150 to do this", Image = YTMT})
             return
         end
 
         if Globals.AnticheatDisabled ~= true then
-			Functions.Notify({ Title = "BlackKing", Body = "Please Climb on the ladder to disable the anticheat", Image = George})
+			Functions.Notify({ Title = "BlackKing", Body = "Please Climb on the ladder to disable the anticheat", Image = YTMT})
             return
         end
 
@@ -2285,7 +2321,7 @@ Gb.Floors_Completion:AddButton({
 
                         Running = false
 
-						Functions.Notify({ Title = "BlackKing", Body = "Successfully completed the nest, please interact with the button to proceed.", Image = George})
+						Functions.Notify({ Title = "BlackKing", Body = "Successfully completed the nest, please interact with the button to proceed.", Image = YTMT})
                     end
 
                     break
@@ -4418,6 +4454,20 @@ Con.InfiniteItemsHandler = Services.ProximityPromptService.PromptTriggered:Conne
 	else
 		local RealPrompt = FakePrompts[Object]
 		Functions.FirePrompt(RealPrompt)
+	end
+end)
+
+Con.FloorReplicatedHandler = FloorReplicated.DescendantAdded:Connect(function(Object)
+	if Object.Name == "GlitchScreech" then
+		Modules.GlitchScreech = Object
+		if Toggles.RemoveScreech.Value then Object.Name = "GlitchScreech_Disabled" end
+	end
+	if Object.Name:find("Jumpscare") and Object:IsA("ModuleScript")
+		and not Object.Name:find("Eyestalk") and not Object.Name:find("Groundskeeper") and not Object.Name:find("Monument")
+	then
+		Object:SetAttribute("OriginalName", Object.Name)
+		if Toggles.DisableEntityJumpscares.Value then Object.Name = Object.Name .. "_Disabled" end
+		table.insert(Objects.JumpscareModules, Object)
 	end
 end)
 
