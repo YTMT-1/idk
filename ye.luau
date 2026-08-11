@@ -1555,6 +1555,7 @@ Gb.Exploits_BypassRight:AddToggle("PositionSpoof", {
 	Text = "Position Spoof", Default = false,
 	Tooltip = "Makes your character appear underground on the server, protecting you from rush-like entities."
 })
+
 Gb.Exploits_BypassRight:AddToggle("AntiFH", {
     Text = "Anti Figure Hearing",
     Default = false,
