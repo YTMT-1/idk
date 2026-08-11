@@ -1872,6 +1872,7 @@ Gb.Visuals_Camera:AddToggle("AntilagToggle", {
 		end
 	end
 })
+
 Gb.Visuals_Camera:AddSlider("FieldOfView", { Text = "Field of View", Min = 1, Max = 120, Default = 70, Rounding = 0 })
 Gb.Visuals_Camera:AddDivider()
 Gb.Visuals_Camera:AddToggle("RemoveCameraShake", {
