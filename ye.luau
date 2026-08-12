@@ -1535,6 +1535,7 @@ Gb.Exploits_Troll:AddSlider("OrbitSpeed", { Text = "Orbit Speed", Min = 2, Max =
 Gb.Exploits_Troll:AddSlider("OrbitYOffset", { Text = "Orbit Y Offset", Min = 0, Max = 2, Default = 2, Rounding = 1 })
 
 local orbitRadius = 4
+local interactingItems = {}
 
 local function toggleItemPrompts(enable)
     if not Drops then return end
@@ -1556,6 +1557,7 @@ end)
 Toggles.OrbitStuff:OnChanged(function(Value)
     if not Value then
         toggleItemPrompts(true)
+        interactingItems = {}
         return
     end
 
@@ -1569,6 +1571,27 @@ Toggles.OrbitStuff:OnChanged(function(Value)
                 for _, obj in ipairs(Drops:GetChildren()) do
                     if obj:IsA("Model") and obj.Name ~= character.Name then
                         table.insert(items, obj)
+                        
+                        for _, prompt in ipairs(obj:GetDescendants()) do
+                            if prompt:IsA("ProximityPrompt") then
+                                if not prompt:GetAttribute("Hooked") then
+                                    prompt:SetAttribute("Hooked", true)
+                                    
+                                    prompt.PromptButtonHoldBegan:Connect(function()
+                                        interactingItems[obj] = true
+                                    end)
+                                    
+                                    prompt.PromptButtonHoldEnded:Connect(function()
+                                        interactingItems[obj] = nil
+                                    end)
+                                    
+                                    prompt.Triggered:Connect(function()
+                                        interactingItems[obj] = nil
+                                    end)
+                                end
+                            end
+                        end
+                        
                     end
                 end
 
@@ -1579,17 +1602,19 @@ Toggles.OrbitStuff:OnChanged(function(Value)
                     toggleItemPrompts(not (Toggles.OrbitHidePrompts and Toggles.OrbitHidePrompts.Value))
 
                     for i, drop in ipairs(items) do
-                        local speed = Options.OrbitSpeed and Options.OrbitSpeed.Value or 2
-                        local yOffset = Options.OrbitYOffset and Options.OrbitYOffset.Value or 2
-                        local angle = t * speed + (i / count) * math.pi * 2
+                        if not interactingItems[drop] then
+                            local speed = Options.OrbitSpeed and Options.OrbitSpeed.Value or 2
+                            local yOffset = Options.OrbitYOffset and Options.OrbitYOffset.Value or 2
+                            local angle = t * speed + (i / count) * math.pi * 2
 
-                        local offset = Vector3.new(
-                            math.cos(angle) * orbitRadius,
-                            -yOffset,
-                            math.sin(angle) * orbitRadius
-                        )
+                            local offset = Vector3.new(
+                                math.cos(angle) * orbitRadius,
+                                -yOffset,
+                                math.sin(angle) * orbitRadius
+                            )
 
-                        drop:PivotTo(CFrame.new(hrp.Position + offset))
+                            drop:PivotTo(CFrame.new(hrp.Position + offset))
+                        end
                     end
                 end
             end
