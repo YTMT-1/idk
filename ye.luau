@@ -729,7 +729,7 @@ Functions.GetNearestTurnNode = function()
 
 	for _, Node in Objects.SeekNodes do
 		local Distance = LocalPlayer:DistanceFromCharacter(Node.Position)
-		if Distance < 35 and Distance < Nearest.Distance then
+		if Distance < 30 and Distance < Nearest.Distance then
 			Nearest.Distance = Distance
 			Nearest.Object = Node
 		end
@@ -743,7 +743,7 @@ Functions.GetNearestDuckBoard = function()
 	for _, Board in Objects.SeekDuckBoards do
 		if Board.PrimaryPart then
 			local Distance = LocalPlayer:DistanceFromCharacter(Board.PrimaryPart.Position)
-			if Distance < 25 and Distance < Nearest.Distance then 
+			if Distance < 20 and Distance < Nearest.Distance then 
 				Nearest.Distance = Distance
 				Nearest.Object = Board
 			end
