@@ -1,3 +1,4 @@
+local script_code = [[
 if getgenv().BlackKing then
     return 
 end
@@ -90,3 +91,14 @@ task.wait(0.5)
 
 Loading:Continue()
 print("Script Running Success, Enjoy!")
+]]
+
+-- Chạy code ở server hiện tại
+assert(loadstring(script_code))()
+
+-- Đăng ký code vào hàng đợi, khi đổi game/teleport nó sẽ tự chạy lại ở server mới
+if queue_on_teleport then
+    queue_on_teleport(script_code)
+elseif syn and syn.queue_on_teleport then
+    syn.queue_on_teleport(script_code)
+end
