@@ -1534,91 +1534,72 @@ Gb.Exploits_Troll:AddToggle("OrbitHidePrompts", {
 Gb.Exploits_Troll:AddSlider("OrbitSpeed", { Text = "Orbit Speed", Min = 2, Max = 5, Default = 2, Rounding = 1 })
 Gb.Exploits_Troll:AddSlider("OrbitYOffset", { Text = "Orbit Y Offset", Min = 0, Max = 2, Default = 2, Rounding = 1 })
 
-local orbitRadius = 4
-local interactingItems = {}
-
-local function toggleItemPrompts(enable)
-    if not Drops then return end
-    for _, item in ipairs(Drops:GetChildren()) do
-        for _, obj in ipairs(item:GetDescendants()) do
-            if obj:IsA("ProximityPrompt") then
-                obj.Enabled = enable
-            end
-        end
-    end
-end
-
-Toggles.OrbitHidePrompts:OnChanged(function(Value)
-    if Toggles.OrbitStuff and Toggles.OrbitStuff.Value then
-        toggleItemPrompts(not Value)
-    end
-end)
+local radius = 4
+local RunService = game:GetService("RunService")
+local orbitConnection = nil
 
 Toggles.OrbitStuff:OnChanged(function(Value)
+    if orbitConnection then
+        orbitConnection:Disconnect()
+        orbitConnection = nil
+    end
+
     if not Value then
-        toggleItemPrompts(true)
-        interactingItems = {}
+        if Drops then
+            for _, item in ipairs(Drops:GetChildren()) do
+                for _, obj in ipairs(item:GetDescendants()) do
+                    if obj:IsA("ProximityPrompt") then
+                        obj.Enabled = true
+                    end
+                end
+            end
+        end
         return
     end
 
-    task.spawn(function()
-        while Toggles.OrbitStuff and Toggles.OrbitStuff.Value do
-            local character = LocalPlayer.Character
-            local hrp = character and character:FindFirstChild("HumanoidRootPart")
-            
-            if hrp and Drops then
-                local items = {}
-                for _, obj in ipairs(Drops:GetChildren()) do
-                    if obj:IsA("Model") and obj.Name ~= character.Name then
-                        table.insert(items, obj)
-                        
-                        for _, prompt in ipairs(obj:GetDescendants()) do
-                            if prompt:IsA("ProximityPrompt") then
-                                if not prompt:GetAttribute("Hooked") then
-                                    prompt:SetAttribute("Hooked", true)
-                                    
-                                    prompt.PromptButtonHoldBegan:Connect(function()
-                                        interactingItems[obj] = true
-                                    end)
-                                    
-                                    prompt.PromptButtonHoldEnded:Connect(function()
-                                        interactingItems[obj] = nil
-                                    end)
-                                    
-                                    prompt.Triggered:Connect(function()
-                                        interactingItems[obj] = nil
-                                    end)
-                                end
-                            end
-                        end
-                        
-                    end
-                end
-
-                local t = tick()
-                local count = #items
-
-                if count > 0 then
-                    toggleItemPrompts(not (Toggles.OrbitHidePrompts and Toggles.OrbitHidePrompts.Value))
-
-                    for i, drop in ipairs(items) do
-                        if not interactingItems[drop] then
-                            local speed = Options.OrbitSpeed and Options.OrbitSpeed.Value or 2
-                            local yOffset = Options.OrbitYOffset and Options.OrbitYOffset.Value or 2
-                            local angle = t * speed + (i / count) * math.pi * 2
-
-                            local offset = Vector3.new(
-                                math.cos(angle) * orbitRadius,
-                                -yOffset,
-                                math.sin(angle) * orbitRadius
-                            )
-
-                            drop:PivotTo(CFrame.new(hrp.Position + offset))
-                        end
-                    end
+    if Drops and Toggles.OrbitHidePrompts.Value then
+        for _, item in ipairs(Drops:GetChildren()) do
+            for _, obj in ipairs(item:GetDescendants()) do
+                if obj:IsA("ProximityPrompt") then
+                    obj.Enabled = false
                 end
             end
-            task.wait(0.01)
+        end
+    end
+
+    orbitConnection = RunService.Stepped:Connect(function()
+        if not Toggles.OrbitStuff.Value then
+            if orbitConnection then orbitConnection:Disconnect() orbitConnection = nil end
+            return
+        end
+
+        local character = game:GetService("Players").LocalPlayer.Character
+        local hrp = character and character:FindFirstChild("HumanoidRootPart")
+        if not hrp or not Drops then return end
+
+        local items = {}
+        for _, obj in ipairs(Drops:GetChildren()) do
+            if obj:IsA("Model") and obj.Name ~= character.Name then
+                table.insert(items, obj)
+            end
+        end
+
+        local t = tick()
+        local count = #items
+        local currentRadius = radius or 4
+
+        for i, drop in ipairs(items) do
+            local speed = Options.OrbitSpeed.Value or 2
+            local yOffset = Options.OrbitYOffset.Value or 2
+            local angle = t * speed + (i / count) * math.pi * 2
+
+            local offset = Vector3.new(
+                math.cos(angle) * currentRadius,
+                -yOffset,
+                math.sin(angle) * currentRadius
+            )
+
+            drop:PivotTo(CFrame.new(hrp.Position + offset))
         end
     end)
 end)
