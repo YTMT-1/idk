@@ -1917,48 +1917,6 @@ Toggles.DisableEntityJumpscares:OnChanged(function(Value)
 		end
 	end
 end)
--- Kiểm tra và tự động khởi tạo bảng nếu Objects hoặc CutscenceModules bị nil
-if not Objects then Objects = {} end
-if not Objects.CutscenceModules then Objects.CutscenceModules = {} end
-
--- Bọc điều kiện an toàn trước khi chạy vòng lặp pairs
-if type(Objects.CutscenceModules) == "table" then
-    for _, Object in pairs(Objects.CutscenceModules) do
-        if not Object:GetAttribute("OriginalName") then
-            Object:SetAttribute("OriginalName", Object.Name)
-        end
-    end
-end
-
-Toggles.DisableCutscene:OnChanged(function(Value)
-    local RemoteListener = Globals.MainUI.Initiator.Main_Game.RemoteListener
-    
-    local Cutscence = RemoteListener:FindFirstChild("Cutscence") 
-        or RemoteListener:FindFirstChild("Cutscence_Disabled")
-    if Cutscence then
-        Cutscence.Name = Value and "Cutscence_Disabled" or "Cutscence"
-    end
-    
-    for _, Object in pairs(Objects.CutscenceModules) do
-        local isTargetCutscene = false
-        
-        for _, name in pairs(CutsceneNames) do
-            if Object.Name:find(name) then
-                isTargetCutscene = true
-                break
-            end
-        end
-        
-        if isTargetCutscene then
-            if not Object:GetAttribute("OriginalName") then
-                Object:SetAttribute("OriginalName", Object.Name)
-            end
-            
-            local origName = Object:GetAttribute("OriginalName")
-            Object.Name = Value and (origName .. "_Disabled") or origName
-        end
-    end
-end)
 
 Gb.Visuals_RightTab     = Tabs.Visuals:AddRightTabbox("Entities / Settings")
 Gb.Visuals_Entities     = Gb.Visuals_RightTab:AddTab("Entities")
