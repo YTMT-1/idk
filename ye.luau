@@ -656,38 +656,147 @@ Functions.Sliding = function(Value)
     end
 end
 
+local IsExitingSpot = false
+local W_KEY_CODE = 0x57
+local Vim = game:GetService("VirtualInputManager")
+
 local EntityDistances = {
 	["RushMoving"]    = 100,
-	["AmbushMoving"]  = 150,
+	["AmbushMoving"]  = 160,
 	["A60"]           = 125,
 	["A120"]          = 100,
 	["GlitchRush"]    = 100,
 	["GlitchAmbush"]  = 175,
 	["BackdoorRush"]  = 85,
 	["CustomEntity"]  = 100,
-	["FigureRig"] = 50,
+	["FigureRig"]     = 50,
 	["FigureRagdoll"] = 50,
 }
 
-Functions.GetNearestEntity = function(CheckDisabled, List, UseRaycasting)
-	local Nearest = { Distance = math.huge, Object = nil }
-
-	for _, Entity in Services.Workspace:GetChildren() do
-		if Entity and EntityDistances[Entity.Name] and Entity.PrimaryPart then
-			local EntityData = Entities[Entity.Name]
-			if not (List and List[EntityData.Name]) then
-				local Distance = LocalPlayer:DistanceFromCharacter(Entity.PrimaryPart.Position)
-				if Distance < EntityDistances[Entity.Name] and Distance < Nearest.Distance then
-					if not CheckDisabled or Entity:GetAttribute("Inactive") ~= true then
-						Nearest.Distance = Distance
-						Nearest.Object = Entity
-					end
-				end
-			end
-		end
-	end
-	return Nearest.Object
+Functions.IsEntityIgnored = function(EntityName)
+    local Dropdown = Options.AutoClosetEntityList
+    if not Dropdown then return false end
+    local SelectedValues = Dropdown.Value
+    
+    if typeof(SelectedValues) == "table" and SelectedValues[EntityName] then
+        return true
+    end
+    return false
 end
+
+Functions.GetNearestEntity = function(CheckDisabled)
+    local Nearest = { Distance = math.huge, Object = nil }
+    
+    for _, Entity in pairs(workspace:GetChildren()) do
+        if Entity and EntityDistances[Entity.Name] and Entity.PrimaryPart then
+            if CheckDisabled and Entity:GetAttribute("Inactive") then continue end
+            if Functions.IsEntityIgnored(Entity.Name) then continue end
+
+            local Distance = LocalPlayer:DistanceFromCharacter(Entity.PrimaryPart.Position)
+            if Distance < EntityDistances[Entity.Name] and Distance < Nearest.Distance then
+                Nearest.Distance = Distance
+                Nearest.Object = Entity
+            end
+        end
+    end
+    return Nearest.Object
+end
+
+Functions.GetNearestHidingSpot = function()
+    local Nearest = { Distance = math.huge, Object = nil }
+    for _, Object in pairs(Objects.HidingSpots) do
+        if Object.PrimaryPart then
+            local Prompt = Object:FindFirstChildWhichIsA("ProximityPrompt", true) or Object:FindFirstChild("HidePrompt", true)
+            if Prompt then
+                local Distance = LocalPlayer:DistanceFromCharacter(Object.PrimaryPart.Position)
+                if Distance < Prompt.MaxActivationDistance and Distance < Nearest.Distance then
+                    Nearest.Distance = Distance
+                    Nearest.Object = Object
+                end
+            end
+        end
+    end
+    return Nearest.Object
+end
+
+Functions.ProcessAutoCloset = function()
+    if Floor == "Retro" then return end 
+    if not Toggles.AutoClosetToggle.Value then return end
+
+    local TargetEntity = Functions.GetNearestEntity(true)
+    local PlayerHiding = Character:GetAttribute("Hiding") == true or (Character:FindFirstChild("InHidingSpot") and Character.InHidingSpot.Value)
+
+    if PlayerHiding then
+        if not TargetEntity then
+            if IsExitingSpot then return end
+            IsExitingSpot = true
+            
+            Globals.SpectateEntity = nil
+            Globals.AutoClosetActive = false
+            
+            if RemotesFolder and RemotesFolder:FindFirstChild("CamLock") then
+                RemotesFolder.CamLock:FireServer()
+            end
+
+            task.spawn(function()
+                pcall(function()
+                    if Vim then
+                        Vim:SendKeyEvent(true, W_KEY_CODE, false, game)
+                        task.wait(0.15)
+                        Vim:SendKeyEvent(false, W_KEY_CODE, false, game)
+                    end
+                end)
+                
+                local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+                if Humanoid then
+                    local StartTime = os.clock()
+                    while os.clock() - StartTime < 0.3 do
+                        Humanoid:Move(Vector3.new(0, 0, -1), true)
+                        task.wait()
+                    end
+                end
+                task.wait(1)
+                IsExitingSpot = false
+            end)
+        else
+            if Toggles.SpectateEntityToggle.Value and TargetEntity.PrimaryPart then
+                Globals.SpectateEntity = TargetEntity
+            end
+        end
+        return
+    end
+
+    if TargetEntity and not IsExitingSpot then
+        local HideSpot = Functions.GetNearestHidingSpot()
+        if HideSpot then
+            local Prompt = HideSpot:FindFirstChildWhichIsA("ProximityPrompt", true) or HideSpot:FindFirstChild("HidePrompt", true)
+            if Prompt then
+                pcall(function()
+                    if fireproximityprompt then
+                        fireproximityprompt(Prompt)
+                    elseif Functions.ForceFirePrompt then
+                        Functions.ForceFirePrompt(Prompt)
+                    end
+                end)
+            end
+        end
+    end
+end
+
+Services.RunService.RenderStepped:Connect(function()
+    if Globals.SpectateEntity and Toggles.AutoClosetToggle.Value and Toggles.SpectateEntityToggle.Value then
+        local Entity = Globals.SpectateEntity
+        if Entity.PrimaryPart and Character:FindFirstChild("Head") then
+            local CamPosition
+            if Options.SpecateEntityMode.Value == "Player to Entity" then
+                CamPosition = CFrame.lookAt(Character.Head.Position, Entity.PrimaryPart.Position)
+            else
+                CamPosition = CFrame.lookAt(Entity.PrimaryPart.Position, Character.Head.Position)
+            end
+            Camera.CFrame = CamPosition
+        end
+    end
+end)
 
 Functions.GetNearestFigure = function()
 	local Nearest = { Distance = math.huge, Object = nil }
@@ -699,25 +808,6 @@ Functions.GetNearestFigure = function()
 			if Distance < Nearest.Distance and Distance < 25 then
 				Nearest.Distance = Distance
 				Nearest.Object = Object
-			end
-		end
-	end
-	return Nearest.Object
-end
-
-Functions.GetNearestHidingSpot = function()
-	local Nearest = { Distance = math.huge, Object = nil }
-	local LastHideSpot = Character:FindFirstChild("LastHideSpot")
-
-	for _, Object in Objects.HidingSpots do
-		if Object.PrimaryPart and Object:FindFirstChild("HidePrompt") then
-			local Distance = LocalPlayer:DistanceFromCharacter(Object.PrimaryPart.Position)
-			if Distance < Object.HidePrompt.MaxActivationDistance and Distance < Nearest.Distance then
-				local Persistent = Functions.IsHidePersistent()
-				if not Persistent or (LastHideSpot and LastHideSpot.Value ~= Object) or not LastHideSpot then
-					Nearest.Distance = Distance
-					Nearest.Object = Object
-				end
 			end
 		end
 	end
@@ -853,159 +943,6 @@ end
 
 Functions.BlacklistESP = function(Object)
 	table.insert(ESPBlacklist, Object)
-end
-Functions.IsEntityIgnored = function(EntityName)
-    local Dropdown = Options.AutoClosetEntityList
-    if not Dropdown then return false end
-    local SelectedValues = Dropdown.Value
-    if typeof(SelectedValues) == "table" and SelectedValues[EntityName] then
-        return true
-    end
-    return false
-end
-
-Functions.GetEntityInView = function()
-    if not Camera then return nil end
-    local Dropdown = Options.AutoClosetEntityList
-    if not Dropdown then return nil end
-    local SelectedValues = Dropdown.Value
-    if typeof(SelectedValues) ~= "table" then return nil end
-    for _, Entity in pairs(Services.Workspace:GetChildren()) do
-        if Entity and Entity:IsA("Model") and Entities[Entity.Name] and Entity.PrimaryPart then
-            if Entity:GetAttribute("Inactive") ~= true then
-                local EntityConfig = Entities[Entity.Name]
-                local CleanName = EntityConfig.Name
-                local IsInDropdownList = false
-                for _, Value in pairs(Dropdown.Values) do
-                    if Value == CleanName then
-                        IsInDropdownList = true
-                        break
-                    end
-                end
-                if IsInDropdownList then
-                    if SelectedValues[CleanName] then
-                        continue
-                    end
-                    local MaxDistance = EntityDistances[Entity.Name] or EntityDistances[CleanName] or 100
-                    local Distance = LocalPlayer:DistanceFromCharacter(Entity.PrimaryPart.Position)
-                    local ScreenPos, IsOnScreen = Camera:WorldToViewportPoint(Entity.PrimaryPart.Position)
-                    if IsOnScreen then
-                        if Distance < MaxDistance then
-                            return Entity
-                        end
-                    else
-                        if Entity.Name == "AmbushMoving" or CleanName == "Ambush" or Entity.Name == "GlitchAmbush" then
-                            if Distance < MaxDistance then
-                                return Entity
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
-    return nil
-end
-
-Functions.GetNearestHidingSpot = function()
-    local Nearest = { Distance = math.huge, Object = nil }
-    for _, Object in pairs(Objects.HidingSpots) do
-        if Object.PrimaryPart and Object:FindFirstChildWhichIsA("ProximityPrompt", true) then
-            local Prompt = Object:FindFirstChildWhichIsA("ProximityPrompt", true)
-            local Distance = LocalPlayer:DistanceFromCharacter(Object.PrimaryPart.Position)
-            if Distance < Prompt.MaxActivationDistance and Distance < Nearest.Distance then
-                Nearest.Distance = Distance
-                Nearest.Object = Object
-            end
-        end
-    end
-    return Nearest.Object
-end
-
-Functions.IsPlayerInSpot = function()
-    if Character and Character:FindFirstChild("InHidingSpot") then
-        return Character.InHidingSpot.Value
-    end
-    for _, Spot in pairs(Objects.HidingSpots) do
-        local Hidden = Spot:FindFirstChild("HiddenPlayer", true)
-        if Hidden and Hidden.Value == Character then
-            return true
-        end
-    end
-    return false
-end
-
-local IsExitingSpot = false
-local W_KEY_CODE = 0x57
-local Vim = game:GetService("VirtualInputManager")
-
-Functions.ProcessAutoCloset = function()
-    if Floor == "Retro" then return end 
-    local TargetEntity = Functions.GetEntityInView()
-    local PlayerHiding = Functions.IsPlayerInSpot()
-    if PlayerHiding then
-        if not TargetEntity then
-            if IsExitingSpot then return end
-            IsExitingSpot = true
-            task.spawn(function()
-                pcall(function()
-                    if Vim then
-                        Vim:SendKeyEvent(true, W_KEY_CODE, false, game)
-                        task.wait(0.2)
-                        Vim:SendKeyEvent(false, W_KEY_CODE, false, game)
-                    end
-                end)
-                if keypress and keyrelease then
-                    pcall(function()
-                        keypress(W_KEY_CODE)
-                        task.wait(0.2)
-                        keyrelease(W_KEY_CODE)
-                    end)
-                end
-                local Humanoid = Character and Character:FindFirstChildWhichIsA("Humanoid")
-                if Humanoid then
-                    local StartTime = os.clock()
-                    while os.clock() - StartTime < 0.4 do
-                        Humanoid:Move(Vector3.new(0, 0, -1), true)
-                        task.wait()
-                    end
-                end
-                task.wait(1.2)
-                IsExitingSpot = false
-            end)
-        end
-        return
-    end
-    if TargetEntity then
-        if not IsExitingSpot then
-            local EntityConfig = Entities[TargetEntity.Name]
-            local CleanName = EntityConfig and EntityConfig.Name or ""
-            if TargetEntity.Name == "AmbushMoving" or CleanName == "Ambush" then
-                local HideSpot = Functions.GetNearestHidingSpot()
-                if HideSpot then
-                    local Prompt = HideSpot:FindFirstChildWhichIsA("ProximityPrompt", true)
-                    if Prompt then
-                        pcall(function()
-                            fireproximityprompt(Prompt)
-                        end)
-                    end
-                end
-            else
-                local ScreenPos, IsOnScreen = Camera:WorldToViewportPoint(TargetEntity.PrimaryPart.Position)
-                if IsOnScreen then
-                    local HideSpot = Functions.GetNearestHidingSpot()
-                    if HideSpot then
-                        local Prompt = HideSpot:FindFirstChildWhichIsA("ProximityPrompt", true)
-                        if Prompt then
-                            pcall(function()
-                                fireproximityprompt(Prompt)
-                            end)
-                        end
-                    end
-                end
-            end
-        end
-    end
 end
 
 Functions.GetDoorNumber = function(Object)
@@ -1323,7 +1260,11 @@ Gb.Self_Automation:AddDropdown("AutoClosetEntityList", {
     AllowNull = true,
     Tooltip = "Choose the monsters that you DO NOT want to automatically hide when you see them."
 })
-
+Gb.Self_Automation:AddToggle("SpectateEntityToggle", {
+	Text = "Spectate Entity",
+	Default = false,
+	Tooltip = "Spectates the entity while auto hiding."
+})
 Gb.Self_Misc = Tabs.General:AddRightGroupbox("Mics")
 Gb.Self_Misc:AddButton({
 	Text = "Play Again", Tooltip = "Makes you join a new run, click again to cancel.", DoubleClick = true,
