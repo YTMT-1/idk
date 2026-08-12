@@ -1508,17 +1508,32 @@ Toggles.BypassJeff:OnChanged(function(Value)
 	end
 end)
 
-Gb.Exploits_BypassRight = Tabs.Exploits:AddRightGroupbox("Bypass")
-Gb.Exploits_BypassRight:AddToggle("TwerkDance", { 
+Gb.Exploits_Troll = Tabs.Exploits:AddRightGroupbox("Troll/Others")
+Gb.Exploits_Troll:AddToggle("TwerkDance", { 
     Text = "Twerk", 
     Default = false, 
     Tooltip = "just Twerk." 
 })
-Gb.Exploits_BypassRight:AddToggle("Chill", { 
+Gb.Exploits_Troll:AddToggle("Chill", { 
     Text = "Chill dance", 
     Default = false, 
     Tooltip = "just Chilling." 
 })
+Gb.Exploits_Troll:AddToggle("OrbitStuff", { 
+    Text = "Orbit Items", 
+    Default = false, 
+    Disabled = Floor == "Party",
+    DisabledTooltip = Floor == "Party" and "Orbit items is disabled on this floor." or nil,
+    Tooltip = "Spins items that are dropped around you." 
+})
+Gb.Exploits_Troll:AddToggle("OrbitHidePrompts", { 
+    Text = "Hide Prompts", 
+    Default = false, 
+    Tooltip = "Hides prompts when orbiting items." 
+})
+Gb.Exploits_Troll:AddSlider("OrbitSpeed", { Text = "Orbit Speed", Min = 2, Max = 5, Default = 2, Rounding = 1 })
+Gb.Exploits_Troll:AddSlider("OrbitYOffset", { Text = "Orbit Y Offset", Min = 0, Max = 2, Default = 2, Rounding = 1 })
+Gb.Exploits_BypassRight = Tabs.Exploits:AddRightGroupbox("Bypass")
 Gb.Exploits_BypassRight:AddToggle("DisableAnticheat", {
 	Text = "Anticheat Bypass", Default = false,
 	Tooltip = "Completely disables the anticheat, after interacting with a ladder."
@@ -1568,6 +1583,55 @@ Gb.Exploits_BypassRight:AddToggle("AntiFH", {
     Default = false,
     Disabled = not RemotesFolder:FindFirstChild("Crouch")
 })
+
+radius = 4
+
+Toggles.OrbitStuff:OnChanged(function(Value)
+    if Value then
+        task.spawn(function()
+            while Toggles.OrbitStuff.Value do
+                local items = Drops:GetChildren()
+                if Toggles.OrbitHidePrompts.Value then
+                    for _, item in ipairs(items) do
+                        for _, obj in ipairs(item:GetDescendants()) do
+                            if obj:IsA("ProximityPrompt") then
+                                obj.Enabled = false
+                            end
+                        end
+                    end
+                else
+                    for _, item in ipairs(items) do
+                        for _, obj in ipairs(item:GetDescendants()) do
+                            if obj:IsA("ProximityPrompt") then
+                                obj.Enabled = true
+                            end
+                        end
+                    end
+                end
+
+                local t = tick()
+                local count = #items
+
+                for i, drop in ipairs(items) do
+                    if drop:IsA("Model") then
+                        local angle = t * Options.OrbitSpeed.Value + (i / count) * math.pi * 2
+
+                        local offset = Vector3.new(
+                            math.cos(angle) * radius,
+                            -Options.OrbitYOffset.Value,
+                            math.sin(angle) * radius
+                        )
+
+                        local newPos = Character.HumanoidRootPart.Position + offset
+                        drop:PivotTo(CFrame.new(newPos))
+                    end
+                end
+
+                task.wait()
+            end
+        end)
+    end
+end)
 
 Toggles.TwerkDance:OnChanged(function(Value)
     if Value then
@@ -1813,7 +1877,6 @@ Gb.Visuals_Effects:AddDivider()
 Gb.Visuals_Effects:AddToggle("DisableHideVignette",      { Text = "Disable Hide Vignette",      Default = false, Tooltip = "Disables the hiding screen effect." })
 Gb.Visuals_Effects:AddToggle("DisableFiredampEffect",    { Text = "Disable Firedamp Effect",    Default = false, Tooltip = "Disables the firedamp screen effect." })
 Gb.Visuals_Effects:AddToggle("DisableEntityJumpscares",  { Text = "Disable Entity Jumpscares",  Default = false, Tooltip = "Disables jumpscares from entities like Rush and Ambush." })
-Gb.Visuals_Effects:AddToggle("DisableCutscene",			 { Text = "Disable Cutscene",  Default = false, Tooltip = "Disables Cutscence For Some Rooms." })
 
 Toggles.DisableGlitchJumpscare:OnChanged(function(Value)
 	Modules.Glitch.Name = Value and "Glitch_Disabled" or "Glitch"
@@ -1854,16 +1917,16 @@ Toggles.DisableEntityJumpscares:OnChanged(function(Value)
 		end
 	end
 end)
+-- Kiểm tra và tự động khởi tạo bảng nếu Objects hoặc CutscenceModules bị nil
+if not Objects then Objects = {} end
+if not Objects.CutscenceModules then Objects.CutscenceModules = {} end
 
-Gb.Visuals_Effects:AddToggle("DisableCutscene", { 
-    Text = "Disable Cutscene",  
-    Default = false, 
-    Tooltip = "Disables Cutscene For Some Rooms." 
-})
-
-for _, Object in pairs(Objects.CutscenceModules or {}) do
-    if Object and not Object:GetAttribute("OriginalName") then
-        Object:SetAttribute("OriginalName", Object.Name)
+-- Bọc điều kiện an toàn trước khi chạy vòng lặp pairs
+if type(Objects.CutscenceModules) == "table" then
+    for _, Object in pairs(Objects.CutscenceModules) do
+        if not Object:GetAttribute("OriginalName") then
+            Object:SetAttribute("OriginalName", Object.Name)
+        end
     end
 end
 
@@ -1872,37 +1935,27 @@ Toggles.DisableCutscene:OnChanged(function(Value)
     
     local Cutscence = RemoteListener:FindFirstChild("Cutscence") 
         or RemoteListener:FindFirstChild("Cutscence_Disabled")
-        or RemoteListener:FindFirstChild("Cutscene")
-        or RemoteListener:FindFirstChild("Cutscene_Disabled")
-        
     if Cutscence then
-        Cutscence.Name = Value and "Cutscene_Disabled" or "Cutscene"
+        Cutscence.Name = Value and "Cutscence_Disabled" or "Cutscence"
     end
     
-    for _, Object in pairs(Objects.CutscenceModules or {}) do
-        if Object and Object.Name then
-            local isTargetCutscene = false
-            local objectNameLower = string.lower(Object.Name)
-            
-            for _, name in pairs(CutsceneNames) do
-                if string.find(objectNameLower, name) then
-                    isTargetCutscene = true
-                    break
-                end
+    for _, Object in pairs(Objects.CutscenceModules) do
+        local isTargetCutscene = false
+        
+        for _, name in pairs(CutsceneNames) do
+            if Object.Name:find(name) then
+                isTargetCutscene = true
+                break
+            end
+        end
+        
+        if isTargetCutscene then
+            if not Object:GetAttribute("OriginalName") then
+                Object:SetAttribute("OriginalName", Object.Name)
             end
             
-            if isTargetCutscene then
-                if not Object:GetAttribute("OriginalName") then
-                    Object:SetAttribute("OriginalName", Object.Name)
-                end
-                
-                local origName = Object:GetAttribute("OriginalName")
-                if Value then
-                    Object.Name = string.find(origName, "_Disabled") and origName or (origName .. "_Disabled")
-                else
-                    Object.Name = string.gsub(origName, "_Disabled", "")
-                end
-            end
+            local origName = Object:GetAttribute("OriginalName")
+            Object.Name = Value and (origName .. "_Disabled") or origName
         end
     end
 end)
