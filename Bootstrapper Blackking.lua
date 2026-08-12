@@ -1,7 +1,12 @@
 local script_code = [[
 if getgenv().BlackKing then
-    return 
+    getgenv().BlackKing = nil
 end
+
+-- --- BẮT ĐẦU SCRIPT GỐC ---
+getgenv().BlackKing = {
+    Legit = true
+}
 
 getgenv().BlackKing = {
     Legit = true
