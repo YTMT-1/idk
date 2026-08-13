@@ -2246,6 +2246,254 @@ Gb.Floors_Automation:AddToggle("AutoSteerMinecart", {
 	Text = "Auto Minecart", Default = false, Tooltip = "Automatically completes the minecart chase.",
 	Disabled = not Functions.CC({"require"}), DisabledTooltip = Globals.IncompatibleMessage
 })
+Gb.Floors_Automation:AddDivider()
+Gb.Floors_Automation:AddToggle("RoomsAutoWalk",             { Text = "Auto Rooms",       Default = false, Tooltip = "Automatically moves and hides from entities in The Rooms." })
+Gb.Floors_Automation:AddSlider("RoomsAutoWalkPathfindTimeout", { Text = "Pathfind Timeout", Min = 0.5, Max = 3, Default = 1, Rounding = 1 })
+Gb.Floors_Automation:AddToggle("RoomsAutoWalkIgnoreA60",    { Text = "Ignore A-60",      Default = false, Tooltip = "Continues to walk if entity 'A-60' is present, enables position spoof automatically." })
+Gb.Floors_Automation:AddToggle("RoomsAutoWalkShowPathToggle", { Text = "Show Path",       Default = false, Tooltip = "Shows the current path of rooms auto-walk." })
+Gb.Floors_Automation:AddToggle("RoomsAutoWalkSpoofFootsteps", {
+    Text = "Spoof Footsteps", Default = false, Tooltip = "Makes it appear as if your character is walking normally.",
+    Disabled = not Functions.CheckCompatability({"hookmetamethod", "newcclosure", "getnamecallmethod"}), DisabledTooltip = Globals.IncompatibleMessage
+})
+
+Toggles.RoomsAutoWalk:OnChanged(function()
+	for _, Object in Globals.RoomsNodesFolder:GetChildren() do
+		if Object.Name == "PathNode" then Object:Destroy() end
+	end
+end)
+Toggles.RoomsAutoWalkShowPathToggle:AddColorPicker("RoomsAutoWalkShowPathColor", { Text = "Path", Default = Color3.fromRGB(0, 255, 0), Transparency = 0 })
+Toggles.RoomsAutoWalkShowPathToggle:OnChanged(function(Value)
+	for _, Object in Globals.RoomsNodesFolder:GetChildren() do
+		if Object.Name == "PathNode" then Object.Transparency = Value and 0.5 or 1 end
+	end
+end)
+Options.RoomsAutoWalkShowPathColor:OnChanged(function(Value)
+	for _, Object in Globals.RoomsNodesFolder:GetChildren() do
+		if Object.Name == "PathNode" then Object.Color = Value end
+	end
+end)
+
+Functions.RoomsAutoWalk = {}
+Functions.RoomsAutoWalk.GetNearestHidingSpot = function()
+	local Nearest = { Distance = math.huge, Object = nil }
+	for _, Object in Objects.HidingSpots do
+		if Object.PrimaryPart and Object:FindFirstChild("HidePrompt") then
+			local Distance = LocalPlayer:DistanceFromCharacter(Object.PrimaryPart.Position)
+			if Distance < Nearest.Distance and Object.PrimaryPart.Position.Y > -10 then
+				local HiddenPlayer = Object:FindFirstChild("HiddenPlayer", true)
+				if HiddenPlayer and not HiddenPlayer.Value then
+					Nearest.Distance = Distance
+					Nearest.Object = Object
+				end
+			end
+		end
+	end
+	return Nearest.Object
+end
+
+local RoomsEntityList = { "RushMoving","AmbushMoving","BackdoorRush","A60","A120","CustomEntity","GlitchRush","GlitchAmbush" }
+Functions.RoomsAutoWalk.GetPathfindTarget = function()
+	for _, Object in Services.Workspace:GetChildren() do
+		if table.find(RoomsEntityList, Object.Name) and Object.PrimaryPart then
+			local Y = Object.PrimaryPart.Position.Y
+			if Y > -10 and Y < 150 then
+				if Object.Name == "A60" and not Toggles.RoomsAutoWalkIgnoreA60.Value or Object.Name ~= "A60" then
+					return Functions.RoomsAutoWalk.GetNearestHidingSpot() or CurrentRooms[tostring(LatestRoom.Value)]:FindFirstChild("RoomExit")
+				end
+			end
+		end
+	end
+	return CurrentRooms[tostring(LatestRoom.Value)]:FindFirstChild("RoomExit")
+end
+
+Connections.RoomsAutoWalkHandler = Services.RunService.Heartbeat:Connect(function()
+	if Floor ~= "Rooms" or not Toggles.RoomsAutoWalk.Value or Globals.RoomsAutoWalkActive or not CollisionPart or LatestRoom.Value >= 1000 then return end
+	Globals.RoomsAutoWalkActive = true
+
+	local Path = Services.PathfindingService:CreatePath({
+		AgentCanJump = true, AgentCanClimb = false, WaypointSpacing = 4,
+		AgentRadius = 1.5, AgentHeight = 1.5, Costs = { StuckPart = 8 }
+	})
+
+	if Toggles.RoomsAutoWalkIgnoreA60.Value and not Toggles.PositionSpoof.Value then
+		Toggles.PositionSpoof:SetValue(true)
+	end
+
+	local TargetPart = Functions.RoomsAutoWalk.GetPathfindTarget()
+	if not TargetPart then
+		Globals.RoomsAutoWalkActive = false
+		return
+	end
+
+	local TargetPosition
+	if TargetPart.Name == "RoomExit" then
+		TargetPosition = TargetPart.Position
+	elseif TargetPart:FindFirstChild("HidePrompt") then
+		for _, Part in TargetPart:GetDescendants() do
+			if Part:IsA("BasePart") then Part.CanCollide = false end
+		end
+		TargetPosition = TargetPart.PrimaryPart.Position
+	end
+
+	if CollisionPart.Anchored and not TargetPart:FindFirstChild("HidePrompt") then
+		Character:SetAttribute("Hiding", true)
+		RemotesFolder.CamLock:FireServer()
+		Character:SetAttribute("Hiding", false)
+	end
+
+	local CurrentRoom = CurrentRooms[tostring(LatestRoom.Value)]
+	if CurrentRoom:FindFirstChild("Door") then
+		CurrentRoom.Door.Door.CanCollide = false
+	end
+
+	if not TargetPosition or LocalPlayer:DistanceFromCharacter(TargetPosition) >= 750 then
+		Globals.RoomsAutoWalkActive = false
+		return
+	end
+
+	Path:ComputeAsync(CollisionPart.Position, TargetPosition)
+	local Waypoints = Path:GetWaypoints()
+
+	if #Waypoints == 0 then
+		local RoomExit = CurrentRoom:FindFirstChild("RoomExit")
+		if RoomExit then Humanoid:MoveTo(RoomExit.Position) end
+		Globals.RoomsAutoWalkActive = false
+		return
+	end
+
+	for _, Node in Globals.RoomsNodesFolder:GetChildren() do
+		if Node.Name == "PathNode" then Node:Destroy() end
+	end
+
+	for _, Waypoint in Waypoints do
+		local Block = Instance.new("Part", Globals.RoomsNodesFolder)
+		Block.Transparency = Toggles.RoomsAutoWalkShowPathToggle.Value and 0.5 or 1
+		Block.Size = Vector3.one
+		Block.Position = Waypoint.Position
+		Block.Shape = Enum.PartType.Ball
+		Block.CanCollide = false
+		Block.Anchored = true
+		Block.Name = "PathNode"
+		Block.Color = Options.RoomsAutoWalkShowPathColor.Value
+		Block.Material = Enum.Material.Neon
+	end
+
+	local Stuck = false
+	for _, Waypoint in Waypoints do
+		if Stuck or not Toggles.RoomsAutoWalk.Value then break end
+
+		local Finished = false
+		local Start = tick()
+
+		local StepConnection = Services.RunService.RenderStepped:Connect(function()
+			if Stuck or not Toggles.RoomsAutoWalk.Value then Finished = true return end
+
+			local NewTarget = Functions.RoomsAutoWalk.GetPathfindTarget()
+			if NewTarget and NewTarget:FindFirstChild("HidePrompt") and not TargetPart:FindFirstChild("HidePrompt") then
+				Finished = true return
+			end
+			if TargetPart:FindFirstChild("HidePrompt") then
+				local HidePrompt = TargetPart:FindFirstChild("HidePrompt")
+				if LocalPlayer:DistanceFromCharacter(TargetPosition) < HidePrompt.MaxActivationDistance
+					and Character:GetAttribute("Hiding") ~= true
+				then
+					Functions.ForceFirePrompt(HidePrompt)
+				end
+			end
+			local FlatPos = Vector3.new(Waypoint.Position.X, RootPart.Position.Y, Waypoint.Position.Z)
+			if LocalPlayer:DistanceFromCharacter(FlatPos) < 5 then Finished = true end
+			Humanoid:MoveTo(Waypoint.Position)
+		end)
+
+		while not Finished do
+			if tick() - Start > Options.RoomsAutoWalkPathfindTimeout.Value then
+				local StuckBlock = Instance.new("Part", Globals.RoomsNodesFolder)
+				StuckBlock.Transparency = 1
+				StuckBlock.Size = Vector3.one
+				StuckBlock.CFrame = Collision.CFrame
+				StuckBlock.Shape = Enum.PartType.Ball
+				StuckBlock.CanCollide = false
+				StuckBlock.Anchored = true
+				StuckBlock.Name = "StuckPart"
+				local Modifier = Instance.new("PathfindingModifier", StuckBlock)
+				Modifier.Label = "StuckPart"
+				Stuck = true
+				break
+			end
+			task.wait()
+		end
+		StepConnection:Disconnect()
+		Humanoid:MoveTo(RootPart.Position)
+	end
+
+	Globals.RoomsAutoWalkActive = false
+end)
+
+Connections.RoomsHandler = CurrentRooms.ChildAdded:Connect(function(Room)
+	for _, Object in Globals.RoomsNodesFolder:GetChildren() do
+		if Object.Name == "StuckPart" then Object:Destroy() end
+	end
+
+	if Room:GetAttribute("RawName") and string.find(Room:GetAttribute("RawName"), "Eyestalk") then
+        local PreviousNode = nil
+
+		local function CreateEyestalkNode(WaypointPos)
+			local NewNode = Instance.new("Part")
+			NewNode.Size = Vector3.one
+			NewNode.Transparency = 1
+			NewNode.Parent = Globals.SeekNodesFolder
+			NewNode.Anchored = true
+			NewNode.Position = WaypointPos
+			NewNode.CanCollide = false
+			NewNode.Name = "SeekLightNode"
+
+			local PrevNode = PreviousNode or NewNode
+			PreviousNode = NewNode
+
+			local NewBeam = Instance.new("Beam")
+			NewBeam.Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, Options.ShowEyestalkPathColor.Value), ColorSequenceKeypoint.new(1, Options.ShowEyestalkPathColor.Value) })
+			NewBeam.FaceCamera = true
+			NewBeam.Width0 = 0.2
+			NewBeam.Width1 = 0.2
+			NewBeam.Brightness = 10
+			NewBeam.LightInfluence = 0
+			NewBeam.LightEmission = 0
+			NewBeam.Enabled = true
+
+			local Vis = Toggles.ShowEyestalkPathToggle.Value and 0 or 1
+			NewBeam.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, Vis), NumberSequenceKeypoint.new(1, Vis) })
+			NewBeam.Parent = Globals.SeekNodesFolder
+
+			local A0 = Instance.new("Attachment", NewNode)
+			local A1 = Instance.new("Attachment", PrevNode)
+			NewBeam.Attachment0 = A0
+			NewBeam.Attachment1 = A1
+
+			table.insert(Objects.EyestalkHighlights, NewBeam)
+		end
+
+		Room:WaitForChild("RoomEntrance", 9e9)
+		Room:WaitForChild("RoomExit", 9e9)
+
+		while not Room:GetAttribute("PathFound") do
+			if Toggles.ShowEyestalkPathToggle.Value then
+				local EyePath = game:GetService("PathfindingService"):CreatePath({
+					AgentCanJump = false, AgentCanClimb = false, WaypointSpacing = 2, AgentRadius = 1, AgentHeight = 1
+				})
+				EyePath:ComputeAsync(RootPart.Position, Room.RoomExit.Position)
+				if EyePath.Status == Enum.PathStatus.Success then
+					Room:SetAttribute("PathFound", true)
+					for _, Waypoint in EyePath:GetWaypoints() do
+						CreateEyestalkNode(Waypoint.Position)
+						task.wait()
+					end
+                    break
+				end
+			end
+			task.wait(0.25)
+		end
+	end
+end)
 
 Gb.Floors_Completion = Tabs.Floors:AddRightGroupbox("Completion")
 Gb.Floors_Completion:AddButton({
