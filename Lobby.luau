@@ -224,7 +224,7 @@ Globals.DoorsNotify = function(NotifyOptions)
 	Achievement.Frame.Glow.ImageColor3 = Color
 	Achievement.Parent = AchievementsHolder
 
-	PlaySound(AchievementsHolder, "rbxassetid://10469938989", 1)
+	PlaySound(AchievementsHolder, "rbxassetid://3318713980", 1)
 
 	task.spawn(function()
 		Achievement:TweenSize(UDim2.new(1, 0, 0.2, 0), "In", "Quad", 0.8, true)
