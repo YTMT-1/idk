@@ -249,7 +249,6 @@ Globals.DoorsNotify = function(NotifyOptions)
 		Achievement:Destroy()
 	end)
 end
-local notify = loadstring(game:HttpGet("https://raw.githubusercontent.com/GeorgeRoblox/Notification/refs/heads/main/Source.lua"))()
 
 Functions.Notify = function(Settings)
     local Container
