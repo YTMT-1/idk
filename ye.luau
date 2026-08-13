@@ -1223,7 +1223,7 @@ Gb.Self_Automation:AddDropdown("AutoInteractIgnoreList", {
 
 Gb.Self_Automation:AddDivider()
 
-Gb.Self_Automation:AddToggle("AutoHideToggle", {
+Gb.Self_Automation:AddToggle("AutoClosetToggle", {
     Text = "Auto Closet",
     Default = false,
     Tooltip = "Auto Hide in Some Entity",
@@ -1231,7 +1231,7 @@ Gb.Self_Automation:AddToggle("AutoHideToggle", {
         if Value then
             if not Globals.AutoClosetConnection then
                 Globals.AutoClosetConnection = Services.RunService.RenderStepped:Connect(function()
-                    local IsActive = Toggles.AutoHideToggle.Value or Options.AutoHideKeybind:GetState()
+                    local IsActive = Toggles.AutoClosetToggle.Value or Options.AutoHideKeybind:GetState()
                     if IsActive then
                         Functions.ProcessAutoCloset()
                     end
@@ -1246,7 +1246,7 @@ Gb.Self_Automation:AddToggle("AutoHideToggle", {
     end
 })
 
-Toggles.AutoHideToggle:AddKeyPicker("AutoHideKeybind", {
+Toggles.AutoClosetToggle:AddKeyPicker("AutoHideKeybind", {
     Text = "Auto Closet",
     Default = "Q",
     Mode = "Toggle",
