@@ -90,7 +90,7 @@ task.wait(0.2)
 
 Loading:SetCurrentStep(4)
 Loading:SetDescription("Executing main feature script...")
-loadstring(game:HttpGet(BaseUrl .. "ye.luau"))()
+loadstring(game:HttpGet(BaseUrl .. "Game.luau"))()
 task.wait(0.5)
 
 Loading:Continue()
