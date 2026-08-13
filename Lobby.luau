@@ -251,43 +251,22 @@ Globals.DoorsNotify = function(NotifyOptions)
 end
 local notify = loadstring(game:HttpGet("https://raw.githubusercontent.com/GeorgeRoblox/Notification/refs/heads/main/Source.lua"))()
 Functions.Notify = function(Settings)
-    local HiddenContainer = GetHiddenContainer()
-
-    if not Settings.Body then
-        Settings.Body = "..."
-    end
-
-    if not Options.NotifyStyle or Options.NotifyStyle.Value == "BlackKing" then
-        local IsEntity = false
-        local EntityName = ""
-
-        for Index, Object in pairs(Entities) do
-            if Object.NotifyMessage.Title == Settings.Title or Object.NotifyMessage.Body == Settings.Body then
-                IsEntity = true
-                EntityName = Index
-            end
-        end
-        notify("BlackKing", {
-            Title = Settings.Title,
-            Description = Settings.Body,
-            Image = Settings.Image,
-            Color = IsEntity and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(255, 222, 189),
-            Time = Settings.Time
-        })
+    local Container
+    if Functions.CheckCompatability({"gethui"}) then
+        Container = BlackKing.Environment.gethui()
     else
-        local Sound = Instance.new("Sound", HiddenContainer)
-        Sound.SoundId = "rbxassetid://4590662766"
-        Sound.Volume = (Toggles.NotifyPlaySound and Toggles.NotifyPlaySound.Value and Options.NotifySoundVolume.Value)
-            or (Toggles.NotifyPlaySound and 0 or 3)
-        Sound.PlayOnRemove = true
-        Sound:Destroy()
-
-        Library:OldNotify({
-            Title = Settings.Title,
-            Description = Settings.Body,
-            Time = Settings.Time
-        })
+        Container = Services.CoreGui
     end
+
+	local NotificationColor = Color3.fromRGB(0, 120, 255)
+
+	Notify(
+        Settings.Title,
+        Settings.Body,
+        Settings.Image,
+        NotificationColor,
+        Settings.Time or 5
+    )
 end
 
 Functions.Caption = function(Text, PlaySound)
