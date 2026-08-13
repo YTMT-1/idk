@@ -1,5 +1,6 @@
 local LoadStart = tick()
 BlackKing.SavePath = "Doors/Lobby"
+YTMT = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/YT_MT%20Image.png"
 
 local Library = BlackKing.Interface.Library
 local SaveManager = BlackKing.Interface.SaveManager
@@ -36,15 +37,16 @@ end
 task.wait(1)
 
 local Window = Library:CreateWindow({
-    Title = "BlackKing",
-    Footer = "dsc.gg/BlackKing",
-    NotifySide = "Right",
-    ShowCustomCursor = false,
-    AutoShow = true,
-    Center = true,
+	Title = "BlackKing",
+	Icon = YTMT,
+	Footer = "Modify by YT_MT(manhtien_yt.) in Discord, Orignal Script By Geroge Join Blackking Discord dsc.gg/BlackKing",
+	NotifySide = "Right",
+	ShowCustomCursor = false,
+	AutoShow = true,
+	Center = true,
 	TabPadding = 3,
 	MenuFadeTime = 0,
-    CornerRadius = 2,
+	CornerRadius = 2,
 })
 
 BlackKing.Interface.ApplyInfoTab(Window)
