@@ -260,7 +260,7 @@ Functions.Notify = function(Settings)
 
 	local NotificationColor = Color3.fromRGB(0, 120, 255)
 
-	Notify(
+	DoorsNotify(
         Settings.Title,
         Settings.Body,
         Settings.Image,
