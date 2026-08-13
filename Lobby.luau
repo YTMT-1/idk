@@ -249,28 +249,100 @@ Globals.DoorsNotify = function(NotifyOptions)
 		Achievement:Destroy()
 	end)
 end
-
+local notify = loadstring(game:HttpGet("https://raw.githubusercontent.com/GeorgeRoblox/Notification/refs/heads/main/Source.lua"))()
 Functions.Notify = function(Settings)
-    local Container
-    if Functions.CheckCompatability({"gethui"}) then
-        Container = BlackKing.Environment.gethui()
-    else
-        Container = Services.CoreGui
+    local HiddenContainer = GetHiddenContainer()
+
+    if not Settings.Body then
+        Settings.Body = "..."
     end
 
-	local NotificationColor = Color3.fromRGB(0, 120, 255)
+    if not Options.NotifyStyle or Options.NotifyStyle.Value == "BlackKing" then
+        local IsEntity = false
+        local EntityName = ""
 
-	Notify(
-    	Settings.Title,
-        Settings.Body,
-        Settings.Image,
-        NotificationColor,
-        Settings.Time or 5
-    )
+        for Index, Object in pairs(Entities) do
+            if Object.NotifyMessage.Title == Settings.Title or Object.NotifyMessage.Body == Settings.Body then
+                IsEntity = true
+                EntityName = Index
+            end
+        end
+        notify("BlackKing", {
+            Title = Settings.Title,
+            Description = Settings.Body,
+            Image = Settings.Image,
+            Color = IsEntity and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(255, 222, 189),
+            Time = Settings.Time
+        })
+    else
+        local Sound = Instance.new("Sound", HiddenContainer)
+        Sound.SoundId = "rbxassetid://4590662766"
+        Sound.Volume = (Toggles.NotifyPlaySound and Toggles.NotifyPlaySound.Value and Options.NotifySoundVolume.Value)
+            or (Toggles.NotifyPlaySound and 0 or 3)
+        Sound.PlayOnRemove = true
+        Sound:Destroy()
+
+        Library:OldNotify({
+            Title = Settings.Title,
+            Description = Settings.Body,
+            Time = Settings.Time
+        })
+    end
 end
 
+Functions.Caption = function(Text, PlaySound)
+	if typeof(PlaySound) ~= "boolean" then
+		PlaySound = true
+	end
+	local CaptionValue = Instance.new("NumberValue")
+	local Caption = Globals.MainUI:WaitForChild("MainFrame"):WaitForChild("Caption"):Clone()
+	local CaptionSound = Globals.MainUI:WaitForChild("Initiator"):WaitForChild("Main_Game"):WaitForChild("Reminder"):WaitForChild("Caption")
+	local CaptionSoundClone = CaptionSound:Clone()
+	CaptionSoundClone.Parent = CaptionSound.Parent
+	CaptionSoundClone.Volume = 0.1
+
+	Caption.Destroying:Connect(function()
+		CaptionValue:Destroy()
+	end)
+
+	for _, Child in Globals.MainUI:GetChildren() do
+		if Child.Name == "LiveCaption" then
+			Child:Destroy()
+		end
+	end
+
+	Caption.Parent = Globals.MainUI
+	Caption.Visible = true
+	Caption.Name = "LiveCaption"
+	Caption.Text = Text
+
+	if PlaySound then
+		CaptionSoundClone:Play()
+	end
+
+	Services.Debris:AddItem(CaptionSoundClone, 5)
+
+	local HolderTween = Services.TweenService:Create(CaptionValue, TweenInfo.new(3), { Value = 100 })
+	HolderTween:Play()
+	HolderTween.Completed:Connect(function()
+		CaptionValue:Destroy()
+		Services.TweenService:Create(Caption, TweenInfo.new(4, Enum.EasingStyle.Linear), { TextTransparency = 1 }):Play()
+		Services.TweenService:Create(Caption, TweenInfo.new(4, Enum.EasingStyle.Linear), { TextStrokeTransparency = 1 }):Play()
+	end)
+end
+
+Functions.GetHasteTime = function()
+	local TimeRemaining = FloorReplicated.DigitalTimer.Value
+	local Minutes = math.floor(TimeRemaining / 60)
+	local Seconds = TimeRemaining - (Minutes * 60)
+	local MinutesText = Minutes < 10 and ("0" .. tostring(Minutes)) or tostring(Minutes)
+	local SecondsText = Seconds < 10 and ("0" .. tostring(Seconds)) or tostring(Seconds)
+	return MinutesText .. ":" .. SecondsText
+end
+
+Library.OldNotify = Library.Notify
 Library.Notify = function(Data, Body, Time)
-    Functions.Notify({Title = Body, Time = Time or 5})
+	Functions.Notify({ Title = Body, Time = Time or 5 })
 end
 
 Functions.CheckElevators = function()
