@@ -1265,6 +1265,11 @@ Gb.Self_Automation:AddToggle("SpectateEntityToggle", {
 	Default = false,
 	Tooltip = "Spectates the entity while auto hiding."
 })
+Gb.Self_Automation:AddDropdown("SpecateEntityMode", {
+	Values = {"Player to Entity", "Entity to Player"},
+	Default = 1,
+	AllowNull = true
+})
 Gb.Self_Misc = Tabs.General:AddRightGroupbox("Mics")
 Gb.Self_Misc:AddButton({
 	Text = "Play Again", Tooltip = "Makes you join a new run, click again to cancel.", DoubleClick = true,
