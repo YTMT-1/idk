@@ -501,7 +501,7 @@ for _, Object in Services.Lighting:GetChildren() do
 			if Object.Density ~= 0 then
 				Object:SetAttribute("Density_Old", Object.Density)
 			end
-			if Toggles.RemoveCameraFog.Value then
+			if Toggles.FogHandler.Value then
 				Object.Density = 0
 			end
 		end)
@@ -2995,6 +2995,7 @@ local function ManageCharacterState(character)
             for _, instance in ipairs(character:GetDescendants()) do
                 if instance:IsA("Motor6D") then
                     instance.Enabled = true
+					instance.Parent:WaitForChild("RagdollCollision").CanCollide = false
                 end
             end
         end)
