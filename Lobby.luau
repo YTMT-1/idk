@@ -185,311 +185,71 @@ local function UpdateBlackKingPositions()
     end
 end
 
-local function BlackKingNotify(TitleText, DescriptionText, Image, Color, Time)
-    local MainColor = Color or Color3.fromRGB(0, 120, 255)
+Globals.DoorsNotify = function(NotifyOptions)
+	local function PlaySound(Parent, SoundId, Volume)
+		local Sound = Instance.new("Sound")
+		Sound.SoundId = SoundId
+		Sound.Volume = Volume or 1
+		Sound.Parent = Parent
+		task.spawn(function()
+			task.wait(0.1)
+			Sound:Play()
+			Sound.Ended:Wait()
+			Sound:Destroy()
+		end)
+	end
 
-    local Main = Instance.new("Frame")
-    Main.Name = "Notification"
-    Main.Parent = NotificationHolder
-    Main.AnchorPoint = Vector2.new(0.5, 0.5)
+	local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+	local UIContainer = PlayerGui:FindFirstChild("GlobalUI") or PlayerGui:FindFirstChild("MainUI")
+	if not UIContainer then return end
 
-    Main.Size = UDim2.fromScale(0.23, 0.06)
-    Main.Position = UDim2.fromScale(0.5, 0.68)
+	local AchievementsHolder = UIContainer:FindFirstChild("AchievementsHolder")
+	if not AchievementsHolder then return end
 
-    Main.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    Main.BackgroundTransparency = 1
+	local Achievement = AchievementsHolder.Achievement:Clone()
+	Achievement.Size = UDim2.new(0, 0, 0, 0)
+	Achievement.Frame.Position = UDim2.new(1.1, 0, 0, 0)
+	Achievement.Name = "LiveAchievement"
+	Achievement.Visible = true
 
-    Main.BorderSizePixel = 1
-    Main.BorderColor3 = MainColor
+	Achievement.Frame.TextLabel.Text = NotifyOptions.Style or "NOTIFICATION"
+	Achievement.Frame.Details.Title.Text = NotifyOptions.Title or "Sem Título"
+	Achievement.Frame.Details.Desc.Text = NotifyOptions.Description or "Sem Descrição"
+	Achievement.Frame.Details.Reason.Text = NotifyOptions.Reason or ""
+	Achievement.Frame.ImageLabel.Image = (NotifyOptions.Image ~= "" and NotifyOptions.Image) or "rbxassetid://6023426923"
 
-    Main.ZIndex = 999999
+	local Color = NotifyOptions.Color or Color3.new(1, 1, 1)
+	Achievement.Frame.TextLabel.TextColor3 = Color
+	Achievement.Frame.UIStroke.Color = Color
+	Achievement.Frame.Glow.ImageColor3 = Color
+	Achievement.Parent = AchievementsHolder
 
-    local Corner = Instance.new("UICorner")
-    Corner.CornerRadius = UDim.new(0, 5)
-    Corner.Parent = Main
+	PlaySound(AchievementsHolder, "rbxassetid://10469938989", 1)
 
-    local Line = Instance.new("Frame")
-    Line.Name = "Line"
-    Line.Parent = Main
-    Line.AnchorPoint = Vector2.new(0, 1)
-    Line.Position = UDim2.fromScale(0, 1)
-    Line.Size = UDim2.fromScale(0, 0.035)
-    Line.BackgroundColor3 = MainColor
-    Line.BackgroundTransparency = 1
-    Line.BorderSizePixel = 0
-    Line.ZIndex = 1000000
+	task.spawn(function()
+		Achievement:TweenSize(UDim2.new(1, 0, 0.2, 0), "In", "Quad", 0.8, true)
+		task.wait(0.8)
+		Achievement.Frame:TweenPosition(UDim2.new(0, 0, 0, 0), "Out", "Quad", 0.5, true)
+		Services.TweenService:Create(
+			Achievement.Frame.Glow,
+			TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+			{ ImageTransparency = 1 }
+		):Play()
 
-    local LineCorner = Instance.new("UICorner")
-    LineCorner.CornerRadius = UDim.new(1, 0)
-    LineCorner.Parent = Line
+		if typeof(NotifyOptions.Time) == "Instance" then
+			NotifyOptions.Time.Destroying:Wait()
+		else
+			task.wait(NotifyOptions.Time or 5)
+		end
 
-    local Logo = Instance.new("ImageLabel")
-    Logo.Name = "Logo"
-    Logo.Parent = Main
-    Logo.AnchorPoint = Vector2.new(0.5, 0.5)
-    Logo.Position = UDim2.fromScale(0.067, 0.5)
-    Logo.Size = UDim2.fromScale(0.115, 0.88)
-    Logo.BackgroundTransparency = 1
-    Logo.BorderSizePixel = 0
-    Logo.ScaleType = Enum.ScaleType.Fit
-    Logo.ImageTransparency = 1
-    Logo.ZIndex = 1000000
-
-    if Image and Image ~= "" then
-        if typeof(Image) == "string" and Image:sub(1, 13) == "rbxassetid://" then
-            Logo.Image = Image
-        elseif isfile and isfile(Image) and getcustomasset then
-            Logo.Image = getcustomasset(Image)
-        elseif LogoAsset then
-            Logo.Image = LogoAsset
-        end
-    elseif LogoAsset then
-        Logo.Image = LogoAsset
-    end
-
-    local Title = Instance.new("TextLabel")
-    Title.Name = "Title"
-    Title.Parent = Main
-    Title.AnchorPoint = Vector2.new(0, 0.5)
-    Title.Position = UDim2.fromScale(0.135, 0.35)
-    Title.Size = UDim2.fromScale(0.84, 0.35)
-    Title.BackgroundTransparency = 1
-    Title.BorderSizePixel = 0
-
-    Title.Font = Enum.Font.SourceSans
-    Title.Text = "[BlackKing] " .. tostring(TitleText or "Notification")
-    Title.TextScaled = true
-    Title.TextSize = 1
-    Title.TextStrokeTransparency = 0.5
-    Title.TextXAlignment = Enum.TextXAlignment.Left
-    Title.TextColor3 = MainColor
-    Title.TextTransparency = 1
-    Title.ZIndex = 1000000
-
-    local Description = Instance.new("TextLabel")
-    Description.Name = "Description"
-    Description.Parent = Main
-    Description.AnchorPoint = Vector2.new(0, 0.5)
-    Description.Position = UDim2.fromScale(0.135, 0.68)
-    Description.Size = UDim2.fromScale(0.84, 0.29)
-    Description.BackgroundTransparency = 1
-    Description.BorderSizePixel = 0
-
-    Description.Font = Enum.Font.SourceSans
-    Description.Text = tostring(DescriptionText or "...")
-    Description.TextScaled = true
-    Description.TextSize = 1
-    Description.TextStrokeTransparency = 0.5
-    Description.TextXAlignment = Enum.TextXAlignment.Left
-    Description.TextColor3 = MainColor
-    Description.TextTransparency = 1
-    Description.ZIndex = 1000000
-
-    local Number = math.max(
-        Title.TextBounds.X,
-        Description.TextBounds.X
-    ) * 1.125
-
-    local FinalOffset = math.clamp(
-        Number - 265,
-        0,
-        1000
-    )
-
-    Main.Size += UDim2.fromOffset(FinalOffset, 0)
-
-    local Sound = Instance.new("Sound")
-    Sound.SoundId = "rbxassetid://3318713980"
-    Sound.Volume = (Toggles.NotifyPlaySound and Toggles.NotifyPlaySound.Value and Options.NotifySoundVolume.Value) or (Toggles.NotifyPlaySound and 0 or 3)
-    Sound.PlayOnRemove = true
-    Sound.Parent = game.CoreGui
-    Sound:Destroy()
-
-    local Data = {
-        Main = Main,
-        Line = Line,
-        Logo = Logo,
-        Title = Title,
-        Description = Description
-    }
-
-    table.insert(Notifications, Data)
-
-    local Index = #Notifications
-
-    local TargetY = 0.60 + ((Index - 1) * NotificationSpacing)
-
-    local LockColor
-
-    LockColor = RunService.RenderStepped:Connect(function()
-        if not Main or not Main.Parent then
-            if LockColor then
-                LockColor:Disconnect()
-            end
-
-            return
-        end
-
-        Main.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-
-        Main.BorderColor3 = MainColor:Lerp(
-            Color3.new(0, 0, 0),
-            0.4
-        )
-
-        Line.BackgroundColor3 = MainColor
-
-        Logo.ImageColor3 = MainColor
-
-        Title.TextColor3 = MainColor
-
-        Title.TextStrokeColor3 = MainColor:Lerp(
-            Color3.new(0, 0, 0),
-            0.8
-        )
-
-        Description.TextColor3 = MainColor:Lerp(
-            Color3.new(0, 0, 0),
-            0.15
-        )
-
-        Description.TextStrokeColor3 = MainColor:Lerp(
-            Color3.new(0, 0, 0),
-            0.8
-        )
-    end)
-
-    local Timer = Time or 3.33
-
-    local InInfo = TweenInfo.new(
-        0.8,
-        Enum.EasingStyle.Quart,
-        Enum.EasingDirection.Out
-    )
-
-    TweenService:Create(
-        Main,
-        InInfo,
-        {
-            Position = UDim2.fromScale(0.5, TargetY),
-            BackgroundTransparency = 0.4
-        }
-    ):Play()
-
-    TweenService:Create(
-        Line,
-        InInfo,
-        {
-            BackgroundTransparency = 0
-        }
-    ):Play()
-
-    TweenService:Create(
-        Logo,
-        InInfo,
-        {
-            ImageTransparency = 0
-        }
-    ):Play()
-
-    TweenService:Create(
-        Title,
-        InInfo,
-        {
-            TextTransparency = 0
-        }
-    ):Play()
-
-    TweenService:Create(
-        Description,
-        InInfo,
-        {
-            TextTransparency = 0
-        }
-    ):Play()
-
-    Line:TweenSize(
-        UDim2.fromScale(1, 0.035),
-        "Out",
-        "Linear",
-        Timer
-    )
-
-    task.delay(Timer + 0.1, function()
-        if not Main or not Main.Parent then
-            return
-        end
-
-        local OutInfo = TweenInfo.new(
-            0.5,
-            Enum.EasingStyle.Quart,
-            Enum.EasingDirection.In
-        )
-
-        local MainTween = TweenService:Create(
-            Main,
-            OutInfo,
-            {
-                Position = UDim2.fromScale(
-                    0.5,
-                    TargetY - 0.045
-                ),
-                BackgroundTransparency = 1
-            }
-        )
-
-        MainTween:Play()
-
-        TweenService:Create(
-            Line,
-            OutInfo,
-            {
-                BackgroundTransparency = 1
-            }
-        ):Play()
-
-        TweenService:Create(
-            Logo,
-            OutInfo,
-            {
-                ImageTransparency = 1
-            }
-        ):Play()
-
-        TweenService:Create(
-            Title,
-            OutInfo,
-            {
-                TextTransparency = 1
-            }
-        ):Play()
-
-        TweenService:Create(
-            Description,
-            OutInfo,
-            {
-                TextTransparency = 1
-            }
-        ):Play()
-
-        MainTween.Completed:Once(function()
-            if LockColor then
-                LockColor:Disconnect()
-            end
-
-            for i, Notification in ipairs(Notifications) do
-                if Notification == Data then
-                    table.remove(Notifications, i)
-                    break
-                end
-            end
-
-            Main:Destroy()
-
-            UpdateBlackKingPositions()
-        end)
-    end)
+		Achievement.Frame:TweenPosition(UDim2.new(1.1, 0, 0, 0), "In", "Quad", 0.5, true)
+		task.wait(0.5)
+		Achievement:TweenSize(UDim2.new(1, 0, -0.1, 0), "InOut", "Quad", 0.5, true)
+		task.wait(0.5)
+		Achievement:Destroy()
+	end)
 end
+local notify = loadstring(game:HttpGet("https://raw.githubusercontent.com/GeorgeRoblox/Notification/refs/heads/main/Source.lua"))()
 
 Functions.Notify = function(Settings)
     local Container
@@ -501,13 +261,13 @@ Functions.Notify = function(Settings)
 
 	local NotificationColor = Color3.fromRGB(0, 120, 255)
 
-	BlackKingNotify(
-            Settings.Title,
-            Settings.Body,
-            Settings.Image,
-            NotificationColor,
-            Settings.Time or 5
-        )
+	Notify(
+    	Settings.Title,
+        Settings.Body,
+        Settings.Image,
+        NotificationColor,
+        Settings.Time or 5
+    )
 end
 
 Library.Notify = function(Data, Body, Time)
@@ -991,4 +751,4 @@ Library:OnUnload(function()
 end)
 
 BlackKing.Interface.ApplySettingsTab(Window)
-Functions.Notify({ Title = "Successfully loaded in " .. math.floor((tick() - LoadStart) * 1000) / 1000 .. " seconds." , Body = "Press '" .. tostring(Options.MenuKeybind.Value) .. "' to toggle the UI."})
+Functions.Notify({ Title = "YT_MT", Body = "BlackKing Susscesfully loaded, orignal script by Geroge (Blackking Owner).", Image = YTMT})
