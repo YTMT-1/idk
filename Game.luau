@@ -2995,8 +2995,15 @@ local function ManageCharacterState(character)
             for _, instance in ipairs(character:GetDescendants()) do
                 if instance:IsA("Motor6D") then
                     instance.Enabled = true
-					task.wait(0.2)
-					instance.Parent:WaitForChild("RagdollCollision").CanCollide = false
+                    
+                    local part = instance.Parent
+                    -- CHỈ TẬP TRUNG QUÉT VÀO MESHPART HOẶC PART CỦA CƠ THỂ (BỎ QUA CÁC PHỤ KIỆN HOẶC GỐC ROOT)
+                    if part and (part:IsA("MeshPart") or part:IsA("Part")) and part.Name ~= "HumanoidRootPart" and not part:FindFirstAncestorOfClass("Accessory") then
+                        local collisionPart = part:FindFirstChild("RagdollCollision")
+                        if collisionPart then
+                            collisionPart.CanCollide = false
+                        end
+                    end
                 end
             end
         end)
