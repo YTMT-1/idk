@@ -2995,6 +2995,7 @@ local function ManageCharacterState(character)
             for _, instance in ipairs(character:GetDescendants()) do
                 if instance:IsA("Motor6D") then
                     instance.Enabled = true
+					task.wait(0.2)
 					instance.Parent:WaitForChild("RagdollCollision").CanCollide = false
                 end
             end
