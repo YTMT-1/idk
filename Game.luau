@@ -1011,7 +1011,7 @@ end
 
 local Window = Library:CreateWindow({
 	Title = "YT_MT Hub",
-	Icon = 121853883628403,
+	Icon = 135701670173318,
 	Footer = "Modify by YT_MT(manhtien_yt.) in Discord, Orignal Script By Geroge Join Blackking Discord dsc.gg/BlackKing",
 	NotifySide = "Right",
 	ShowCustomCursor = false,
@@ -2881,7 +2881,7 @@ Gb.Floors_FigureOld:AddButton({
                         local isSafe = false
                         while not isSafe do
                             isSafe = true
-                            local figure = workspace:FindFirstChild("FigureRagdoll") or workspace:FindFirstChild("Figure")
+                            local figure = workspace.CurrentRooms("50").FigureSetup:FindFirstChild("FigureRagdoll") or workspace:FindFirstChild("Figure")
                             if figure and figure:FindFirstChild("HumanoidRootPart") then
                                 local distanceToFigure = (bookPosition - figure.HumanoidRootPart.Position).Magnitude
                                 if distanceToFigure <= 22 then
@@ -3027,7 +3027,13 @@ local function MonitorToolActivation(character)
                 if ignoreOptions[child.Name] then return end
 
                 local targetToolName = child.Name
-                task.wait(0.3)
+                local targetDelay = 0.3
+                
+                if targetToolName == "Axe" then
+                    targetDelay = 0.4
+                end
+                
+                task.wait(targetDelay)
 
                 if child.Parent == character then
                     local currentDropFolder = workspace:FindFirstChild("Drops") or workspace:FindFirstChild("DroppedItems")
