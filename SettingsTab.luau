@@ -47,15 +47,15 @@ return function(Window)
 		Default = (YT_MT.UILibrary == "Linoria" and 2 or 1),
 		Callback = function(Value)
 			if YT_MT.Environment.writefile and YT_MT.Environment.readfile then
-				if not YT_MT.Environment.isfile("BlackKing/UserData.json") then
+				if not YT_MT.Environment.isfile("YT_MT/UserData.json") then
 					local Data = {
 						TotalExecutions = 0,
 						UILibrary = "Obsidian"
 					}
-					YT_MT.Environment.writefile("BlackKing/UserData.json", Services.HttpService:JSONEncode(Data))
+					YT_MT.Environment.writefile("YT_MT/UserData.json", Services.HttpService:JSONEncode(Data))
 				end
 
-				local UserData = YT_MT.Environment.readfile("BlackKing/UserData.json")
+				local UserData = YT_MT.Environment.readfile("YT_MT/UserData.json")
 				local Decoded = Services.HttpService:JSONDecode(UserData)
 				Decoded.UILibrary = Value
 
@@ -66,7 +66,7 @@ return function(Window)
 				YT_MT.TotalExecutions = Decoded.TotalExecutions
 				YT_MT.UILibrary = Decoded.UILibrary
 
-				YT_MT.Environment.writefile("BlackKing/UserData.json", Services.HttpService:JSONEncode(Decoded))
+				YT_MT.Environment.writefile("YT_MT/UserData.json", Services.HttpService:JSONEncode(Decoded))
 			end
 		end
 	})
@@ -102,8 +102,8 @@ return function(Window)
 	SaveManager:SetLibrary(Library)
 	SaveManager:IgnoreThemeSettings()
 	SaveManager:SetIgnoreIndexes({"UILibrary"})
-	ThemeManager:SetFolder("BlackKing")
-	SaveManager:SetFolder("BlackKing/" .. BlackKing.SavePath)
+	ThemeManager:SetFolder("YT_MT")
+	SaveManager:SetFolder("YT_MT/" .. BlackKing.SavePath)
 	SaveManager:BuildConfigSection(SettingsTab)
 	ThemeManager:ApplyToTab(SettingsTab)
 	SaveManager:LoadAutoloadConfig()
