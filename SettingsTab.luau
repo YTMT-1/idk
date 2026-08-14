@@ -38,13 +38,14 @@ return function(Window)
 		end,
 	})
 
+	local currentUI = YT_MT.UILibrary or "Obsidian"
 	MenuGroup:AddDropdown("UILibrary", {
 		Text = "UI Style",
 		Values = {
 			"Obsidian",
 			"Linoria"
 		},
-		Default = (YT_MT.UILibrary == "Linoria" and 2 or 1),
+		Default = (currentUI == "Linoria" and 2 or 1),
 		Callback = function(Value)
 			if YT_MT.Environment.writefile and YT_MT.Environment.readfile then
 				if not YT_MT.Environment.isfile("YT_MT/UserData.json") then
@@ -98,12 +99,14 @@ return function(Window)
 	
 	Library.ToggleKeybind = Options.MenuKeybind
 	
+	local targetSavePath = YT_MT.SavePath or "Default_Save"
+	
 	ThemeManager:SetLibrary(Library)
 	SaveManager:SetLibrary(Library)
 	SaveManager:IgnoreThemeSettings()
 	SaveManager:SetIgnoreIndexes({"UILibrary"})
 	ThemeManager:SetFolder("YT_MT")
-	SaveManager:SetFolder("YT_MT/" .. YT_MT.SavePath)
+	SaveManager:SetFolder("YT_MT/" .. targetSavePath)
 	SaveManager:BuildConfigSection(SettingsTab)
 	ThemeManager:ApplyToTab(SettingsTab)
 	SaveManager:LoadAutoloadConfig()
