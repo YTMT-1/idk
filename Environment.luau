@@ -96,7 +96,6 @@ local function RunTest(Name, Test, InternalName)
 			end
 		end
 		Finished = true
-		Environment.PrintResults()
 	end)
 
 	while not Finished do
@@ -629,5 +628,6 @@ RunTest("require", function()
 	TestScript = nil
 end)
 
+Environment.PrintResults()
 
 return Environment
