@@ -1,6 +1,6 @@
 return function(Window)
 	local function CloneReference(Object)
-		if BlackKing and YT_MT.Environment.cloneref then
+		if YT_MT and YT_MT.Environment.cloneref then
 			return YT_MT.Environment.cloneref(Object)
 		else
 			return Object
