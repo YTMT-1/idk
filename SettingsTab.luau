@@ -1,7 +1,7 @@
 return function(Window)
 	local function CloneReference(Object)
-		if BlackKing and BlackKing.Environment.cloneref then
-			return BlackKing.Environment.cloneref(Object)
+		if BlackKing and YT_MT.Environment.cloneref then
+			return YT_MT.Environment.cloneref(Object)
 		else
 			return Object
 		end
@@ -13,9 +13,9 @@ return function(Window)
 		end
 	})
 
-	local Library = BlackKing.Interface.Library
-	local SaveManager = BlackKing.Interface.SaveManager
-	local ThemeManager = BlackKing.Interface.ThemeManager
+	local Library = YT_MT.Interface.Library
+	local SaveManager = YT_MT.Interface.SaveManager
+	local ThemeManager = YT_MT.Interface.ThemeManager
 	
 	local Toggles = Library.Toggles
 	local Options = Library.Options
@@ -44,18 +44,18 @@ return function(Window)
 			"Obsidian",
 			"Linoria"
 		},
-		Default = (BlackKing.UILibrary == "Linoria" and 2 or 1),
+		Default = (YT_MT.UILibrary == "Linoria" and 2 or 1),
 		Callback = function(Value)
-			if BlackKing.Environment.writefile and BlackKing.Environment.readfile then
-				if not BlackKing.Environment.isfile("BlackKing/UserData.json") then
+			if YT_MT.Environment.writefile and YT_MT.Environment.readfile then
+				if not YT_MT.Environment.isfile("BlackKing/UserData.json") then
 					local Data = {
 						TotalExecutions = 0,
 						UILibrary = "Obsidian"
 					}
-					BlackKing.Environment.writefile("BlackKing/UserData.json", Services.HttpService:JSONEncode(Data))
+					YT_MT.Environment.writefile("BlackKing/UserData.json", Services.HttpService:JSONEncode(Data))
 				end
 
-				local UserData = BlackKing.Environment.readfile("BlackKing/UserData.json")
+				local UserData = YT_MT.Environment.readfile("BlackKing/UserData.json")
 				local Decoded = Services.HttpService:JSONDecode(UserData)
 				Decoded.UILibrary = Value
 
@@ -63,10 +63,10 @@ return function(Window)
 					Decoded.UILibrary = "Obsidian"
 				end
 
-				BlackKing.TotalExecutions = Decoded.TotalExecutions
-				BlackKing.UILibrary = Decoded.UILibrary
+				YT_MT.TotalExecutions = Decoded.TotalExecutions
+				YT_MT.UILibrary = Decoded.UILibrary
 
-				BlackKing.Environment.writefile("BlackKing/UserData.json", Services.HttpService:JSONEncode(Decoded))
+				YT_MT.Environment.writefile("BlackKing/UserData.json", Services.HttpService:JSONEncode(Decoded))
 			end
 		end
 	})
