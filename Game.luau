@@ -2881,7 +2881,7 @@ Gb.Floors_FigureOld:AddButton({
                         local isSafe = false
                         while not isSafe do
                             isSafe = true
-                            local figure = workspace.CurrentRooms("50").FigureSetup:FindFirstChild("FigureRagdoll") or workspace:FindFirstChild("Figure")
+                            local figure = workspace.CurrentRooms["50"].FigureSetup:FindFirstChild("FigureRagdoll") or workspace.CurrentRooms["50"].FigureSetup:FindFirstChild("FigureRig")
                             if figure and figure:FindFirstChild("HumanoidRootPart") then
                                 local distanceToFigure = (bookPosition - figure.HumanoidRootPart.Position).Magnitude
                                 if distanceToFigure <= 22 then
@@ -3027,7 +3027,7 @@ local function MonitorToolActivation(character)
                 if ignoreOptions[child.Name] then return end
 
                 local targetToolName = child.Name
-                local targetDelay = 0.3
+                local targetDelay = 0.4
                 
                 if targetToolName == "Axe" then
                     targetDelay = 0.4
