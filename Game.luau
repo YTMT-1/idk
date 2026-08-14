@@ -501,7 +501,7 @@ for _, Object in Services.Lighting:GetChildren() do
 			if Object.Density ~= 0 then
 				Object:SetAttribute("Density_Old", Object.Density)
 			end
-			if Toggles.FogHandler.Value then
+			if Toggles.RemoveCameraFog.Value then
 				Object.Density = 0
 			end
 		end)
