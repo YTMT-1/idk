@@ -55,7 +55,7 @@ return function(Window)
 	local Name, Version = YT_MT.Environment.identifyexecutor()
 	local Executor = InfoTab:AddRightGroupbox("Executor Info")
 
-	for Index, Result in pairs(BlackKing.Environment.Results) do
+	for Index, Result in pairs(YT_MT.Environment.Results) do
 		-- fix for veloshitty 💔
 		Result = Result:gsub("<", "(")
 		Result = Result:gsub(">", ")")
