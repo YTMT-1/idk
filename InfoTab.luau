@@ -10,8 +10,8 @@ return function(Window)
 	}
 
 	local function CloneReference(Object)
-		if BlackKing and BlackKing.Environment.cloneref then
-			return BlackKing.Environment.cloneref(Object)
+		if YT_MT and YT_MT.Environment.cloneref then
+			return YT_MT.Environment.cloneref(Object)
 		else
 			return Object
 		end
@@ -23,9 +23,9 @@ return function(Window)
 		end
 	})
 
-	local Library = BlackKing.Interface.Library
-	local SaveManager = BlackKing.Interface.SaveManager
-	local ThemeManager = BlackKing.Interface.ThemeManager
+	local Library = YT_MT.Interface.Library
+	local SaveManager = YT_MT.Interface.SaveManager
+	local ThemeManager = YT_MT.Interface.ThemeManager
 
 	local Toggles = Library.Toggles
 	local Options = Library.Options
@@ -45,14 +45,14 @@ return function(Window)
 	})
 
 	User:AddLabel("User: " .. LocalPlayer.Name, true)
-	User:AddLabel("Total Executions: " .. (BlackKing.TotalExecutions and BlackKing.TotalExecutions or "N/A"), true)
+	User:AddLabel("Total Executions: " .. (YT_MT.TotalExecutions and YT_MT.TotalExecutions or "N/A"), true)
 
 	local Changelog = InfoTab:AddRightGroupbox("Changelog")
 	for Index, Change in pairs(LatestChangelog) do
 		Changelog:AddLabel(Change, true)
 	end
 
-	local Name, Version = BlackKing.Environment.identifyexecutor()
+	local Name, Version = YT_MT.Environment.identifyexecutor()
 	local Executor = InfoTab:AddRightGroupbox("Executor Info")
 
 	for Index, Result in pairs(BlackKing.Environment.Results) do
