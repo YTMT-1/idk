@@ -1011,7 +1011,7 @@ end
 
 local Window = Library:CreateWindow({
 	Title = "YT_MT Hub",
-	Icon = YTMT,
+	Icon = 121853883628403,
 	Footer = "Modify by YT_MT(manhtien_yt.) in Discord, Orignal Script By Geroge Join Blackking Discord dsc.gg/BlackKing",
 	NotifySide = "Right",
 	ShowCustomCursor = false,
