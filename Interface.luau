@@ -1,15 +1,15 @@
-local Library = (BlackKing.UILibrary == "Linoria" and "LinoriaLib" or "Obsidian")
+local Library = (YT_MT.UILibrary == "Linoria" and "LinoriaLib" or "Obsidian")
 --local BaseUrl = "https://raw.githubusercontent.com/mstudio45/" .. Library .. "/refs/heads/main/"
 local BaseUrl = "https://raw.githubusercontent.com/deividcomsono/" .. Library .. "/refs/heads/main/"
-local BlackKingUrl = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/"
+local YTMTUrl = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/"
 
 local Interface = {
   Library = loadstring(game:HttpGet(BaseUrl .. "Library.lua"))(),
   SaveManager = loadstring(game:HttpGet(BaseUrl .. "addons/SaveManager.lua"))(),
   ThemeManager = loadstring(game:HttpGet(BaseUrl .. "addons/ThemeManager.lua"))(),
 
-  ApplyInfoTab = loadstring(game:HttpGet(BlackKingUrl .. "InfoTab.luau"))(),
-  ApplySettingsTab = loadstring(game:HttpGet(BlackKingUrl .. "SettingsTab.luau"))()
+  ApplyInfoTab = loadstring(game:HttpGet(YTMTUrl .. "InfoTab.luau"))(),
+  ApplySettingsTab = loadstring(game:HttpGet(YTMTUrl .. "SettingsTab.luau"))()
 }
 
 Interface.ThemeManager.BuiltInThemes = {
