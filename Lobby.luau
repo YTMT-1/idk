@@ -76,8 +76,8 @@ Functions.Notify = function(Settings)
     local ObsidianObj = getgenv().Library or getgenv().Obsidian or _G.Library
     if ObsidianObj and type(ObsidianObj.Notify) == "function" then
         ObsidianObj:Notify({
-            Title = Settings.Title or "YT_MT Hub",
-            Content = Settings.Body or "Notification Content",
+            Title = Settings.Title,
+            Content = Settings.Body,
             Duration = Settings.Time or 5
         })
     end
