@@ -72,7 +72,18 @@ local function GetHiddenContainer()
 	end
 end
 
-local original_obsidian_notify = Library.Notify
+Functions.Notify = function(Settings)
+    local ObsidianObj = getgenv().Library or getgenv().Obsidian or _G.Library
+    if ObsidianObj and type(ObsidianObj.Notify) == "function" then
+        ObsidianObj:Notify({
+            Title = Settings.Title or "YT_MT Hub",
+            Content = Settings.Body or "Notification Content",
+            Duration = Settings.Time or 5
+        })
+    else
+        print("[" .. (Settings.Title or "YT_MT") .. "]: " .. (Settings.Body or ""))
+    end
+end
 
 Functions.Caption = function(Text, PlaySound)
 	if typeof(PlaySound) ~= "boolean" then
@@ -122,17 +133,6 @@ Functions.GetHasteTime = function()
 	local MinutesText = Minutes < 10 and ("0" .. tostring(Minutes)) or tostring(Minutes)
 	local SecondsText = Seconds < 10 and ("0" .. tostring(Seconds)) or tostring(Seconds)
 	return MinutesText .. ":" .. SecondsText
-end
-
-Library.OldNotify = original_obsidian_notify
-Library.Notify = function(Data, Body, Time)
-	if original_obsidian_notify then
-		original_obsidian_notify(Library, {
-			Title = Body or "YT_MT Hub",
-			Content = typeof(Data) == "table" and Data.Body or tostring(Data),
-			Duration = Time or 5
-		})
-	end
 end
 
 Functions.CheckElevators = function()
