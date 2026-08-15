@@ -1,17 +1,17 @@
 local LoadStart = tick()
-BlackKing.SavePath = "Doors/Lobby"
+YT_MT.SavePath = "Doors/Lobby"
 YTMT = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/YT_MT%20Image.png"
 
-local Library = BlackKing.Interface.Library
-local SaveManager = BlackKing.Interface.SaveManager
-local ThemeManager = BlackKing.Interface.ThemeManager
+local Library = YT_MT.Interface.Library
+local SaveManager = YT_MT.Interface.SaveManager
+local ThemeManager = YT_MT.Interface.ThemeManager
 
 local Toggles = Library.Toggles
 local Options = Library.Options
 
 local function CloneReference(Object)
-    if BlackKing and BlackKing.Environment.cloneref then
-        return BlackKing.Environment.cloneref(Object)
+    if YT_MT and YT_MT.Environment.cloneref then
+        return YT_MT.Environment.cloneref(Object)
     else
         return Object
     end
@@ -37,7 +37,7 @@ end
 task.wait(1)
 
 local Window = Library:CreateWindow({
-	Title = "BlackKing",
+	Title = "YT_MT Hub",
 	Icon = YTMT,
 	Footer = "Modify by YT_MT(manhtien_yt.) in Discord, Orignal Script By Geroge Join Blackking Discord dsc.gg/BlackKing",
 	NotifySide = "Right",
@@ -49,7 +49,7 @@ local Window = Library:CreateWindow({
 	CornerRadius = 2,
 })
 
-BlackKing.Interface.ApplyInfoTab(Window)
+YT_MT.Interface.ApplyInfoTab(Window)
 local Tabs = {
     General = Window:AddTab("General", "house"),
 }
@@ -57,7 +57,7 @@ local Tabs = {
 Functions.CheckCompatability = function(Array)
     local Valid = true
     for Index, Name in pairs(Array) do
-        if not BlackKing.Environment[Name] then
+        if not YT_MT.Environment[Name] then
             Valid = false
         end
     end
@@ -66,207 +66,18 @@ end
 
 local function GetHiddenContainer()
 	if Functions.CheckCompatability({"gethui"}) then
-		return BlackKing.Environment.gethui()
+		return YT_MT.Environment.gethui()
 	else
 		return Services.CoreGui
 	end
 end
 
-local NotificationLibrary = {
-	LiveNotifications = 0,
-    Notifications = 1
-}
-
-local Container = Instance.new("ScreenGui")
-Container.Name = BlackKing.ESPLibrary:GenerateRandomString()
-Container.Parent = GetHiddenContainer()
-Container.DisplayOrder = 32767
-Container.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-if not Library.Scheme then
-    Library.Scheme = setmetatable({}, {
-        __index = function(self, Name)
-            return Library[Name]
-        end
-    })
-end
-
-local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-
-local LocalPlayer = Players.LocalPlayer
-
-local BlackKingGui = Instance.new("ScreenGui")
-BlackKingGui.Name = "BlackKingNotificationGui"
-BlackKingGui.ResetOnSpawn = false
-BlackKingGui.IgnoreGuiInset = true
-BlackKingGui.DisplayOrder = 999999
-BlackKingGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-BlackKingGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-
-local NotificationHolder = Instance.new("Frame")
-NotificationHolder.Name = "NotificationHolder"
-NotificationHolder.BackgroundTransparency = 1
-NotificationHolder.BorderSizePixel = 0
-NotificationHolder.AnchorPoint = Vector2.new(0.5, 0.5)
-NotificationHolder.Position = UDim2.fromScale(0.5, 0.5)
-NotificationHolder.Size = UDim2.fromScale(1, 1)
-NotificationHolder.ZIndex = 999999
-NotificationHolder.Parent = BlackKingGui
-
-local Notifications = {}
-
-local NotificationSpacing = 0.065
-
-local LogoURL = "https://raw.githubusercontent.com/GeorgeRoblox/Notification/refs/heads/main/Images/bcrown.png"
-local LogoFile = "BlackKing_B_Crown.png"
-
-local function GetLogoAsset()
-    local Success, Result = pcall(function()
-        if not isfile or not writefile or not getcustomasset then
-            return nil
-        end
-
-        if not isfile(LogoFile) then
-            local Request =
-                (syn and syn.request)
-                or request
-                or http_request
-                or (http and http.request)
-
-            if not Request then
-                return nil
-            end
-
-            local Response = Request({
-                Url = LogoURL,
-                Method = "GET"
-            })
-
-            if Response and Response.Body then
-                writefile(LogoFile, Response.Body)
-            end
-        end
-
-        if isfile(LogoFile) then
-            return getcustomasset(LogoFile)
-        end
-
-        return nil
-    end)
-
-    if Success then
-        return Result
-    end
-
-    return nil
-end
-
-local LogoAsset = GetLogoAsset()
-
-local function UpdateBlackKingPositions()
-    for Index, Data in ipairs(Notifications) do
-        if Data.Main and Data.Main.Parent then
-            local TargetY = 0.60 + ((Index - 1) * NotificationSpacing)
-
-            TweenService:Create(
-                Data.Main,
-                TweenInfo.new(
-                    0.45,
-                    Enum.EasingStyle.Quart,
-                    Enum.EasingDirection.Out
-                ),
-                {
-                    Position = UDim2.fromScale(0.5, TargetY)
-                }
-            ):Play()
-        end
-    end
-end
-
-Globals.DoorsNotify = function(NotifyOptions)
-	local function PlaySound(Parent, SoundId, Volume)
-		local Sound = Instance.new("Sound")
-		Sound.SoundId = SoundId
-		Sound.Volume = Volume or 1
-		Sound.Parent = Parent
-		task.spawn(function()
-			task.wait(0.1)
-			Sound:Play()
-			Sound.Ended:Wait()
-			Sound:Destroy()
-		end)
-	end
-
-	local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
-	local UIContainer = PlayerGui:FindFirstChild("GlobalUI") or PlayerGui:FindFirstChild("MainUI")
-	if not UIContainer then return end
-
-	local AchievementsHolder = UIContainer:FindFirstChild("AchievementsHolder")
-	if not AchievementsHolder then return end
-
-	local Achievement = AchievementsHolder.Achievement:Clone()
-	Achievement.Size = UDim2.new(0, 0, 0, 0)
-	Achievement.Frame.Position = UDim2.new(1.1, 0, 0, 0)
-	Achievement.Name = "LiveAchievement"
-	Achievement.Visible = true
-
-	Achievement.Frame.TextLabel.Text = NotifyOptions.Style or "NOTIFICATION"
-	Achievement.Frame.Details.Title.Text = NotifyOptions.Title or "Sem Título"
-	Achievement.Frame.Details.Desc.Text = NotifyOptions.Description or "Sem Descrição"
-	Achievement.Frame.Details.Reason.Text = NotifyOptions.Reason or ""
-	Achievement.Frame.ImageLabel.Image = (NotifyOptions.Image ~= "" and NotifyOptions.Image) or "rbxassetid://6023426923"
-
-	local Color = NotifyOptions.Color or Color3.new(1, 1, 1)
-	Achievement.Frame.TextLabel.TextColor3 = Color
-	Achievement.Frame.UIStroke.Color = Color
-	Achievement.Frame.Glow.ImageColor3 = Color
-	Achievement.Parent = AchievementsHolder
-
-	PlaySound(AchievementsHolder, "rbxassetid://3318713980", 1)
-
-	task.spawn(function()
-		Achievement:TweenSize(UDim2.new(1, 0, 0.2, 0), "In", "Quad", 0.8, true)
-		task.wait(0.8)
-		Achievement.Frame:TweenPosition(UDim2.new(0, 0, 0, 0), "Out", "Quad", 0.5, true)
-		Services.TweenService:Create(
-			Achievement.Frame.Glow,
-			TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
-			{ ImageTransparency = 1 }
-		):Play()
-
-		if typeof(NotifyOptions.Time) == "Instance" then
-			NotifyOptions.Time.Destroying:Wait()
-		else
-			task.wait(NotifyOptions.Time or 5)
-		end
-
-		Achievement.Frame:TweenPosition(UDim2.new(1.1, 0, 0, 0), "In", "Quad", 0.5, true)
-		task.wait(0.5)
-		Achievement:TweenSize(UDim2.new(1, 0, -0.1, 0), "InOut", "Quad", 0.5, true)
-		task.wait(0.5)
-		Achievement:Destroy()
-	end)
-end
-local notify = loadstring(game:HttpGet("https://raw.githubusercontent.com/GeorgeRoblox/Notification/refs/heads/main/Source.lua"))()
 Functions.Notify = function(Settings)
-    local Container
-    if Functions.CheckCompatability({"gethui"}) then
-        Container = BlackKing.Environment.gethui()
-    else
-        Container = Services.CoreGui
-    end
-
-	local NotificationColor = Color3.fromRGB(0, 120, 255)
-
-	DoorsNotify (
-        Settings.Title,
-        Settings.Body,
-        Settings.Image,
-        NotificationColor,
-        Settings.Time or 5
-    )
+    Library:Notify({
+        Title = Settings.Title or "YT_MT Hub",
+        Content = Settings.Body or "Notification Content",
+        Duration = Settings.Time or 5
+    })
 end
 
 Functions.Caption = function(Text, PlaySound)
@@ -797,8 +608,8 @@ Gb.General_Challenges:AddButton({
 })
 Library:OnUnload(function()
     Con.MainConnection:Disconnect()
-	getgenv().BlackKing = nil
+	getgenv().YT_MT = nil
 end)
 
-BlackKing.Interface.ApplySettingsTab(Window)
+YT_MT.Interface.ApplySettingsTab(Window)
 Functions.Notify({ Title = "YT_MT", Body = "BlackKing Susscesfully loaded, orignal script by Geroge (Blackking Owner).", Image = YTMT})
