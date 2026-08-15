@@ -613,4 +613,4 @@ Library:OnUnload(function()
 end)
 
 YT_MT.Interface.ApplySettingsTab(Window)
-Functions.Notify({ Title = "YT_MT", Body = "BlackKing Susscesfully loaded, orignal script by Geroge (Blackking Owner).", Image = YTMT})
+Functions.Notify({ Title = "YT_MT", Body = "BlackKing Susscesfully loaded, orignal script by Geroge (Blackking Owner).", Time = 5})
