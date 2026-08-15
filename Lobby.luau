@@ -80,8 +80,6 @@ Functions.Notify = function(Settings)
             Content = Settings.Body or "Notification Content",
             Duration = Settings.Time or 5
         })
-    else
-        print("[" .. (Settings.Title or "YT_MT") .. "]: " .. (Settings.Body or ""))
     end
 end
 
@@ -212,24 +210,27 @@ Gb.General_Self:AddToggle("TwerkDance", {
 })
 local track
 
-
 Toggles.TwerkDance:OnChanged(function(Value)
     if Value then
-
+        local char = LocalPlayer.Character
+        if not char then return end
+        
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if not hum then return end
+        
         local anim = Instance.new("Animation")
         anim.AnimationId = "rbxassetid://12874447851"
-
-		local hum = Character:FindFirstChildOfClass("Humanoid")
+        
         track = hum:LoadAnimation(anim)
         track.Looped = true
         track:Play()
-
     else
         if track then
             track:Stop()
         end
     end
 end)
+
 Gb.General_Automation = Tabs.General:AddLeftGroupbox("Automation")
 
 Gb.General_Automation:AddToggle("CycleAchievements", {
