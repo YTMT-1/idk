@@ -1,17 +1,17 @@
 local LoadStart = tick()
-YT_MT.SavePath = "Doors/Lobby"
+BlackKing.SavePath = "Doors/Lobby"
 YTMT = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/YT_MT%20Image.png"
 
-local Library = YT_MT.Interface.Library
-local SaveManager = YT_MT.Interface.SaveManager
-local ThemeManager = YT_MT.Interface.ThemeManager
+local Library = BlackKing.Interface.Library
+local SaveManager = BlackKing.Interface.SaveManager
+local ThemeManager = BlackKing.Interface.ThemeManager
 
 local Toggles = Library.Toggles
 local Options = Library.Options
 
 local function CloneReference(Object)
-    if YT_MT and YT_MT.Environment.cloneref then
-        return YT_MT.Environment.cloneref(Object)
+    if BlackKing and BlackKing.Environment.cloneref then
+        return BlackKing.Environment.cloneref(Object)
     else
         return Object
     end
@@ -37,7 +37,7 @@ end
 task.wait(1)
 
 local Window = Library:CreateWindow({
-	Title = "YT_MT Hub",
+	Title = "BlackKing",
 	Icon = YTMT,
 	Footer = "Modify by YT_MT(manhtien_yt.) in Discord, Orignal Script By Geroge Join Blackking Discord dsc.gg/BlackKing",
 	NotifySide = "Right",
@@ -49,7 +49,7 @@ local Window = Library:CreateWindow({
 	CornerRadius = 2,
 })
 
-YT_MT.Interface.ApplyInfoTab(Window)
+BlackKing.Interface.ApplyInfoTab(Window)
 local Tabs = {
     General = Window:AddTab("General", "house"),
 }
@@ -57,7 +57,7 @@ local Tabs = {
 Functions.CheckCompatability = function(Array)
     local Valid = true
     for Index, Name in pairs(Array) do
-        if not YT_MT.Environment[Name] then
+        if not BlackKing.Environment[Name] then
             Valid = false
         end
     end
@@ -66,11 +66,36 @@ end
 
 local function GetHiddenContainer()
 	if Functions.CheckCompatability({"gethui"}) then
-		return YT_MT.Environment.gethui()
+		return BlackKing.Environment.gethui()
 	else
 		return Services.CoreGui
 	end
 end
+
+local NotificationLibrary = {
+	LiveNotifications = 0,
+    Notifications = 1
+}
+
+local Container = Instance.new("ScreenGui")
+Container.Name = BlackKing.ESPLibrary:GenerateRandomString()
+Container.Parent = GetHiddenContainer()
+Container.DisplayOrder = 32767
+Container.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+if not Library.Scheme then
+    Library.Scheme = setmetatable({}, {
+        __index = function(self, Name)
+            return Library[Name]
+        end
+    })
+end
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
 
 Functions.Notify = function(Settings)
     Library:Notify({
@@ -608,8 +633,8 @@ Gb.General_Challenges:AddButton({
 })
 Library:OnUnload(function()
     Con.MainConnection:Disconnect()
-	getgenv().YT_MT = nil
+	getgenv().BlackKing = nil
 end)
 
-YT_MT.Interface.ApplySettingsTab(Window)
+BlackKing.Interface.ApplySettingsTab(Window)
 Functions.Notify({ Title = "YT_MT", Body = "BlackKing Susscesfully loaded, orignal script by Geroge (Blackking Owner).", Image = YTMT})
