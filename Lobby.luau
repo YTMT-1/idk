@@ -72,38 +72,7 @@ local function GetHiddenContainer()
 	end
 end
 
-local NotificationLibrary = {
-	LiveNotifications = 0,
-    Notifications = 1
-}
-
-local Container = Instance.new("ScreenGui")
-Container.Name = YT_MT.ESPLibrary:GenerateRandomString()
-Container.Parent = GetHiddenContainer()
-Container.DisplayOrder = 32767
-Container.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-if not Library.Scheme then
-    Library.Scheme = setmetatable({}, {
-        __index = function(self, Name)
-            return Library[Name]
-        end
-    })
-end
-
-local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-
-local LocalPlayer = Players.LocalPlayer
-
-Functions.Notify = function(Settings)
-    Library:Notify({
-        Title = Settings.Title or "YT_MT Hub",
-        Content = Settings.Body or "Notification Content",
-        Duration = Settings.Time or 5
-    })
-end
+local original_obsidian_notify = Library.Notify
 
 Functions.Caption = function(Text, PlaySound)
 	if typeof(PlaySound) ~= "boolean" then
@@ -155,9 +124,15 @@ Functions.GetHasteTime = function()
 	return MinutesText .. ":" .. SecondsText
 end
 
-Library.OldNotify = Library.Notify
+Library.OldNotify = original_obsidian_notify
 Library.Notify = function(Data, Body, Time)
-	Functions.Notify({ Title = Body, Time = Time or 5 })
+	if original_obsidian_notify then
+		original_obsidian_notify(Library, {
+			Title = Body or "YT_MT Hub",
+			Content = typeof(Data) == "table" and Data.Body or tostring(Data),
+			Duration = Time or 5
+		})
+	end
 end
 
 Functions.CheckElevators = function()
