@@ -2793,7 +2793,6 @@ Gb.Floors_Bypass:AddToggle("RemovePaintingsDoor", { Text = "Remove Paintings Doo
 Gb.Floors_Bypass:AddToggle("RemoveSkeletonDoor",  { Text = "Remove Skeleton Door",   Default = false, Tooltip = "Removes the skeleton door from the infirmary.",    Risky = Floor ~= "Fools" })
 
 Gb.Floors_FigureOld = Tabs.Floors:AddRightGroupbox("Figure Old Configuration")
-local PlaceId = game.PlaceId
 Gb.Floors_FigureOld:AddButton({ 
     Name = "TPFigureOld",
     Text = "Teleport to Figure Old!", 
@@ -2937,7 +2936,7 @@ Gb.Floors_FigureOld:AddButton({
 
 Gb.Floors_FigureOld:AddToggle("FigureGodmode", {
 	Text = "Figure Godmode", Default = false, Tooltip = "Prevents 'Figure' from hurting you.",
-	Risky = not (Floor == "Fools" or Floor == "OldHotel" or PlaceId == 15722706376)
+	Risky = not (Floor == "Fools" or Floor == "OldHotel" or game.PlaceId ~= 15722706376)
 })
 
 Gb.Floors_FigureOld:AddToggle("AlwaysMaxInventoryCap", {
@@ -3509,12 +3508,12 @@ end
 			Services.SoundService:WaitForChild("Main").Volume = 1
 		end
 
-		if Floor == "OldHotel" or Floor == "Fools" or game.PlaceId ~= 15722706376 then
-			local SpoofOffset = Toggles.PositionSpoof.Value and Functions.GetNearestEntity() and 200 or Toggles.FigureGodmode.Value and Functions.GetNearestFigure() and 200 or 0
+		if Floor == "OldHotel" or Floor == "Fools" then
+			local SpoofOffset = Toggles.PositionSpoof.Value and Functions.GetNearestEntity() and 20 or 0
 			Globals.SpoofOffset = SpoofOffset
 			Collision.Position = RootPart.Position + Vector3.new(0, SpoofOffset, 0)
 			Collision.CanCollide = false
-			if Floor == "Fools" or game.PlaceId ~= 15722706376 then
+			if Floor == "Fools" then
 				Collision.CollisionCrouch.CanCollide = false
 				CollisionClone.CollisionCrouch.CanCollide = false
 			end
@@ -3528,7 +3527,7 @@ end
 				CollisionClone.CanCollide = not (Toggles.NoclipToggle.Value or Toggles.VelocityManipulationToggle.Value or IsCrouch)
 				CollisionClone.CollisionCrouch.CanCollide = not (Toggles.NoclipToggle.Value or Toggles.VelocityManipulationToggle.Value or not IsCrouch)
 			else
-				RootPart.CanCollide = not (Toggles.NoclipToggle.Value or Toggles.VelocityManipulationToggle.Value)
+				RootPart.CanCollide = not (Toggles.NoclipToggle.Value or Toggles.VelocityManipulationMode.Value)
 			end
 
 			if Character:FindFirstChild("LowerTorso") and Character.LowerTorso:FindFirstChild("Root") then
@@ -5028,6 +5027,7 @@ Library:OnUnload(function()
 
 	getgenv().YT_MT = nil
 end)
+end
 
 while not Globals.MainUI do task.wait() end
 YT_MT.Interface.ApplySettingsTab(Window)
