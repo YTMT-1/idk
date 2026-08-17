@@ -1011,7 +1011,7 @@ end
 
 local Window = Library:CreateWindow({
 	Title = "YT_MT Hub",
-	Icon = 135701670173318,
+	Icon = "rbxasset://135701670173318",
 	Footer = "Modify by YT_MT(manhtien_yt.) in Discord, Orignal Script By Geroge Join Blackking Discord dsc.gg/BlackKing",
 	NotifySide = "Right",
 	ShowCustomCursor = false,
@@ -1220,6 +1220,9 @@ Gb.Self_Automation:AddDropdown("AutoInteractIgnoreList", {
 	Default = { "Glitch Fragments", "Jeff Items", "Dropped Items" },
 	Multi = true, AllowNull = true
 })
+
+Gb.Self_Automation:AddDivider()
+Gb.Self_Automation:AddToggle("AutoHeartbeatMinigame", { Text = "Auto Heartbeat Minigame", Default = false, Tooltip = "Prevents the 'Figure' minigame from ever failing.", Disabled = not Functions.CheckCompatability({"hookmetamethod", "newcclosure", "getnamecallmethod"}), DisabledTooltip = Globals.IncompatibleMessage })
 
 Gb.Self_Automation:AddDivider()
 
@@ -2931,6 +2934,11 @@ Gb.Floors_FigureOld:AddButton({
     end
 })
 
+Gb.Floors_FigureOld:AddToggle("FigureGodmode", {
+	Text = "Figure Godmode", Default = false, Tooltip = "Prevents 'Figure' from hurting you.",
+	Risky = not (Floor == "Fools" or Floor == "OldHotel" or game.PlaceId ~= 15722706376)
+})
+
 Gb.Floors_FigureOld:AddToggle("AlwaysMaxInventoryCap", {
     Text = "Max Inventory Cap (10)",
     Default = false,
@@ -3113,6 +3121,10 @@ if Functions.CC({"hookmetamethod", "newcclosure", "getnamecallmethod"}) then
 				end
 				Args[2] = true
 			end
+			
+			if Self.Name == "ClutchHeartbeat" and Method == "FireServer" and Toggles.AutoHeartbeatMinigame.Value or Self.Name == "HideMonster" and Method == "FireServer" and Toggles.AutoHeartbeatMinigame.Value then
+				return
+			end
 
 			if Self.Name == "MotorReplication" and Method == "FireServer" then
 				local DoBypass = (Toggles.BypassEyes.Value and Globals.IsEyes) or (Toggles.BypassLookman.Value and Globals.IsLookman)
@@ -3127,6 +3139,17 @@ if Functions.CC({"hookmetamethod", "newcclosure", "getnamecallmethod"}) then
 		end
 		return MainHook(Self, table.unpack(Args))
 	end))
+
+	OtherHook = YT_MT.Environment.hookmetamethod(game, "__index", YT_MT.Environment.newcclosure(function(Self, Property)
+        local Real = OtherHook(Self, Property)
+
+        if Property == "MoveDirection" and Self == Humanoid and Globals.RoomsAutoWalkActive and Toggles.RoomsAutoWalkSpoofFootsteps.Value and Floor == "Rooms" and not Character:GetAttribute("Hiding") then
+            return RootPart.CFrame.LookVector
+        end
+        
+        return Real
+    end))
+end
 
 if Services.ReplicatedStorage:FindFirstChild("ModulesClient") then
 	ClientModules = Services.ReplicatedStorage.ModulesClient
@@ -3485,12 +3508,12 @@ end
 			Services.SoundService:WaitForChild("Main").Volume = 1
 		end
 
-		if Floor == "OldHotel" or Floor == "Fools" then
-			local SpoofOffset = Toggles.PositionSpoof.Value and Functions.GetNearestEntity() and 20 or 0
+		if Floor == "OldHotel" or Floor == "Fools" or game.PlaceId ~= 15722706376 then
+			local SpoofOffset = Toggles.PositionSpoof.Value and Functions.GetNearestEntity() and 200 or Toggles.FigureGodmode.Value and Functions.GetNearestFigure() and 200 or 0
 			Globals.SpoofOffset = SpoofOffset
 			Collision.Position = RootPart.Position + Vector3.new(0, SpoofOffset, 0)
 			Collision.CanCollide = false
-			if Floor == "Fools" then
+			if Floor == "Fools" or game.PlaceId ~= 15722706376 then
 				Collision.CollisionCrouch.CanCollide = false
 				CollisionClone.CollisionCrouch.CanCollide = false
 			end
@@ -3504,7 +3527,7 @@ end
 				CollisionClone.CanCollide = not (Toggles.NoclipToggle.Value or Toggles.VelocityManipulationToggle.Value or IsCrouch)
 				CollisionClone.CollisionCrouch.CanCollide = not (Toggles.NoclipToggle.Value or Toggles.VelocityManipulationToggle.Value or not IsCrouch)
 			else
-				RootPart.CanCollide = not (Toggles.NoclipToggle.Value or Toggles.VelocityManipulationMode.Value)
+				RootPart.CanCollide = not (Toggles.NoclipToggle.Value or Toggles.VelocityManipulationToggle.Value)
 			end
 
 			if Character:FindFirstChild("LowerTorso") and Character.LowerTorso:FindFirstChild("Root") then
