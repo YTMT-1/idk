@@ -2934,11 +2934,6 @@ Gb.Floors_FigureOld:AddButton({
     end
 })
 
-Gb.Floors_FigureOld:AddToggle("FigureGodmode", {
-	Text = "Figure Godmode", Default = false, Tooltip = "Prevents 'Figure' from hurting you.",
-	Risky = not (Floor == "Fools" or Floor == "OldHotel" or game.PlaceId ~= 15722706376)
-})
-
 Gb.Floors_FigureOld:AddToggle("AlwaysMaxInventoryCap", {
     Text = "Max Inventory Cap (10)",
     Default = false,
@@ -5027,7 +5022,6 @@ Library:OnUnload(function()
 
 	getgenv().YT_MT = nil
 end)
-end
 
 while not Globals.MainUI do task.wait() end
 YT_MT.Interface.ApplySettingsTab(Window)
