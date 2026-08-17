@@ -1,13 +1,11 @@
 local AddonsModule = {}
 
 function AddonsModule:Render(Window)
-    local AddonsTab = Window:CreateTab({
-        Name = "Addons",
-        Icon = "boxes"
-    })
+    local AddonsTab = Window:AddTab("Addons", "boxes")
 
     if not listfiles or not isfolder or not makefolder then
-        AddonsTab:CreateLabel({ Text = "Your executor does not support File System functions." })
+        local ErrorGroup = AddonsTab:AddLeftGroupbox("System Error")
+        ErrorGroup:AddLabel("Your executor does not support File System functions.")
         return
     end
 
@@ -33,26 +31,23 @@ function AddonsModule:Render(Window)
 
                     function GroupboxProxy:AddButton(config)
                         if not groupboxInstance then
-                            groupboxInstance = AddonsTab:CreateGroupbox({ Title = currentAddonInfo.Title })
+                            groupboxInstance = AddonsTab:AddLeftGroupbox(currentAddonInfo.Title)
                             if currentAddonInfo.Description ~= "" then
-                                groupboxInstance:CreateLabel({ Text = currentAddonInfo.Description })
+                                groupboxInstance:AddLabel(currentAddonInfo.Description)
                             end
                         end
-                        groupboxInstance:CreateButton({
-                            Name = config.Text,
-                            Callback = config.Func
-                        })
+                        groupboxInstance:AddButton(config.Text, config.Func)
                     end
 
                     function GroupboxProxy:AddToggle(id, config)
                         if not groupboxInstance then
-                            groupboxInstance = AddonsTab:CreateGroupbox({ Title = currentAddonInfo.Title })
+                            groupboxInstance = AddonsTab:AddLeftGroupbox(currentAddonInfo.Title)
                             if currentAddonInfo.Description ~= "" then
-                                groupboxInstance:CreateLabel({ Text = currentAddonInfo.Description })
+                                groupboxInstance:AddLabel(currentAddonInfo.Description)
                             end
                         end
-                        groupboxInstance:CreateToggle({
-                            Name = config.Text,
+                        groupboxInstance:AddToggle(id, {
+                            Text = config.Text,
                             Default = config.Default or false,
                             Callback = config.Func
                         })
@@ -74,7 +69,8 @@ function AddonsModule:Render(Window)
             end
         end
     else
-        AddonsTab:CreateLabel({ Text = "No custom addons found in 'workspace/YT_MT_Addons'." })
+        local InfoGroup = AddonsTab:AddLeftGroupbox("Status")
+        InfoGroup:AddLabel("No custom addons found in 'workspace/YT_MT_Addons'.")
     end
 end
 
