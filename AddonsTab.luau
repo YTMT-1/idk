@@ -1,13 +1,11 @@
 return function(Window)
-    if not Window then 
-        return 
-    end
+    if not Window then return end
     
     local AddonsTab = Window:AddTab("Addons", "boxes")
-
+    local InfoGroup = AddonsTab:AddLeftGroupbox("Status")
+    
     if not listfiles or not isfolder or not makefolder then
-        local ErrorGroup = AddonsTab:AddLeftGroupbox("System Error")
-        ErrorGroup:AddLabel("Your executor does not support File System functions.")
+        InfoGroup:AddLabel("Your executor does not support File System functions.")
         return
     end
 
@@ -71,7 +69,6 @@ return function(Window)
             end
         end
     else
-        local InfoGroup = AddonsTab:AddLeftGroupbox("Status")
         InfoGroup:AddLabel("No custom addons found in 'workspace/YT_MT_Addons'.")
     end
 end
