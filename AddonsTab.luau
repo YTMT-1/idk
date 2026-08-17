@@ -1,6 +1,8 @@
-local AddonsModule = {}
-
-function AddonsModule:Render(Window)
+return function(Window)
+    if not Window then 
+        return 
+    end
+    
     local AddonsTab = Window:AddTab("Addons", "boxes")
 
     if not listfiles or not isfolder or not makefolder then
@@ -73,5 +75,3 @@ function AddonsModule:Render(Window)
         InfoGroup:AddLabel("No custom addons found in 'workspace/YT_MT_Addons'.")
     end
 end
-
-return AddonsModule
