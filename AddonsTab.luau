@@ -1,11 +1,14 @@
-return function(Window)
-    if not Window then return end
-    
+local AddonsModule = {}
+
+function AddonsModule:Render(Window)
     local AddonsTab = Window:AddTab("Addons", "boxes")
-    local InfoGroup = AddonsTab:AddLeftGroupbox("Status")
     
+    local MainGroup = AddonsTab:AddLeftGroupbox("Addons Manager")
+    MainGroup:AddLabel("Place your custom (.lua / .luau) files inside 'workspace/YT_MT_Addons' folder to expand functionality.")
+
     if not listfiles or not isfolder or not makefolder then
-        InfoGroup:AddLabel("Your executor does not support File System functions.")
+        MainGroup:AddDivider()
+        MainGroup:AddLabel("❌ Your executor does not support File System functions.")
         return
     end
 
@@ -14,11 +17,14 @@ return function(Window)
     end
 
     local success, files = pcall(listfiles, "YT_MT_Addons")
+    local hasAddons = false
+
     if success and #files > 0 then
         for _, filePath in pairs(files) do
             if filePath:sub(-5):lower() == ".luau" or filePath:sub(-4):lower() == ".lua" then
                 local readSuccess, content = pcall(readfile, filePath)
                 if readSuccess and content then
+                    hasAddons = true
                     
                     local currentAddonInfo = {
                         Name = filePath:match("([^/\\]+)%.[^.]+$") or "Unknown",
@@ -68,7 +74,12 @@ return function(Window)
                 end
             end
         end
-    else
-        InfoGroup:AddLabel("No custom addons found in 'workspace/YT_MT_Addons'.")
+    end
+
+    if not hasAddons then
+        MainGroup:AddDivider()
+        MainGroup:AddLabel("Status: No active addons detected.")
     end
 end
+
+return AddonsModule
