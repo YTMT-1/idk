@@ -2793,6 +2793,7 @@ Gb.Floors_Bypass:AddToggle("RemovePaintingsDoor", { Text = "Remove Paintings Doo
 Gb.Floors_Bypass:AddToggle("RemoveSkeletonDoor",  { Text = "Remove Skeleton Door",   Default = false, Tooltip = "Removes the skeleton door from the infirmary.",    Risky = Floor ~= "Fools" })
 
 Gb.Floors_FigureOld = Tabs.Floors:AddRightGroupbox("Figure Old Configuration")
+local PlaceId = game.PlaceId
 Gb.Floors_FigureOld:AddButton({ 
     Name = "TPFigureOld",
     Text = "Teleport to Figure Old!", 
@@ -2936,7 +2937,7 @@ Gb.Floors_FigureOld:AddButton({
 
 Gb.Floors_FigureOld:AddToggle("FigureGodmode", {
 	Text = "Figure Godmode", Default = false, Tooltip = "Prevents 'Figure' from hurting you.",
-	Risky = not (Floor == "Fools" or Floor == "OldHotel" or game.PlaceId ~= 15722706376)
+	Risky = not (Floor == "Fools" or Floor == "OldHotel" or PlaceId == 15722706376)
 })
 
 Gb.Floors_FigureOld:AddToggle("AlwaysMaxInventoryCap", {
