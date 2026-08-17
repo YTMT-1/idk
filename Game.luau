@@ -5028,7 +5028,6 @@ Library:OnUnload(function()
 
 	getgenv().YT_MT = nil
 end)
-end
 
 while not Globals.MainUI do task.wait() end
 YT_MT.Interface.ApplySettingsTab(Window)
