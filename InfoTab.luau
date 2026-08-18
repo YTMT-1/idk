@@ -44,33 +44,22 @@ return function(Window)
 		Image = Content
 	})
 
-local LocalizationService = game:GetService("LocalizationService")
-local targetRegion = "VN"
-pcall(function()
-    targetRegion = LocalizationService:GetCountryRegionForPlayerAsync(LocalPlayer)
-end)
-
-local Hour = os.date("*t").hour
-if targetRegion == "VN" then
-    local currentUtc = os.time(os.date("!*t"))
-    local vnTime = os.date("*t", currentUtc + (7 * 3600))
-    Hour = vnTime.hour
-end
-
-local Greeting
-if Hour >= 5 and Hour < 12 then
-    Greeting = "Good Morning"
-elseif Hour >= 12 and Hour < 17 then
-    Greeting = "Good Afternoon"
-elseif Hour >= 17 and Hour < 21 then
-    Greeting = "Good Evening"
-else
-    Greeting = "Good Night"
-end
-
-User:AddLabel(Greeting .. ", " .. LocalPlayer.Name .. ", ty for using this script you executed: " .. (YT_MT.TotalExecutions and tostring(YT_MT.TotalExecutions) or "N/A") .. " times.", true)
-User:AddDivider()
-
+	local CurrentTime = os.date("*t")
+	local Hour = CurrentTime.hour
+	
+	local Greeting
+	if Hour >= 5 and Hour < 12 then
+	    Greeting = "Good Morning"
+	elseif Hour >= 12 and Hour < 17 then
+	    Greeting = "Good Afternoon"
+	elseif Hour >= 17 and Hour < 21 then
+	    Greeting = "Good Evening"
+	else
+	    Greeting = "Good Night"
+	end
+	
+	User:AddLabel(Greeting .. ", " .. LocalPlayer.Name .. ", Thanks For Using This Script Also You Executed This Script: " .. (YT_MT.TotalExecutions and tostring(YT_MT.TotalExecutions) or "N/A") .. " times.", true)
+	User:AddDivider()
 
 	local Changelog = InfoTab:AddRightGroupbox("Changelog")
 	for Index, Change in pairs(LatestChangelog) do
