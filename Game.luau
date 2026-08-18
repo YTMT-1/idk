@@ -5025,65 +5025,13 @@ end)
 
 while not Globals.MainUI do task.wait() end
 YT_MT.Interface.ApplySettingsTab(Window)
-local AddonsTab = Window:AddTab("Addons", "boxes")
+local success, AddonsTab = pcall(function()
+    return loadstring(game:HttpGet("https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/AddonsTab.luau"))()
+end)
 
-if listfiles and isfolder and makefolder then
-    if not isfolder("YT_MT") then
-        makefolder("YT_MT")
-    end
-    if not isfolder("YT_MT/YT_MT_Addons") then
-        makefolder("YT_MT/YT_MT_Addons")
-    end
-
-    local success, files = pcall(listfiles, "YT_MT/YT_MT_Addons")
-    local validFiles = {}
-
-    if success and #files > 0 then
-        for _, filePath in pairs(files) do
-            if filePath:sub(-5):lower() == ".luau" or filePath:sub(-4):lower() == ".lua" then
-                table.insert(validFiles, filePath)
-            end
-        end
-    end
-
-    if #validFiles == 0 then
-        AddonsTab:UpdateWarningBox({
-            Title = "WARNING",
-            Text = "Your addons FOLDER is empty! (workspace/YT_MT/YT_MT_Addons)",
-            IsNormal = false,
-            Visible = true,
-            LockSize = true
-        })
-    else
-        AddonsTab:UpdateWarningBox({ Visible = false })
-
-        for _, filePath in pairs(validFiles) do
-            local readSuccess, content = pcall(readfile, filePath)
-            if readSuccess and content then
-                
-                local env = setmetatable({
-                    YT_MT_Addons = {
-                        Window = Window,
-                        AddonsTab = AddonsTab
-                    }
-                }, { __index = getfenv() })
-
-                local func, compileErr = loadstring(content)
-                if func then
-                    setfenv(func, env)
-                    pcall(func)
-                end
-            end
-        end
-    end
-else
-    AddonsTab:UpdateWarningBox({
-        Title = "SYSTEM ERROR",
-        Text = "Your executor does not support File System functions (UNC).",
-        IsNormal = false,
-        Visible = true,
-        LockSize = true
-    })
+if success and type(AddonsTab) == "function" then
+    pcall(function()
+        AddonsTab(Window)
+    end)
 end
-
 Functions.Notify({ Title = "YT_MT", Body = "YT_MT Hub Susscesfully loaded, orignal script by Geroge (Blackking Owner).", Image = YTMT})
