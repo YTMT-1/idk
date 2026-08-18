@@ -17,14 +17,13 @@ local AddonsModule = function(Window)
     end
 
     local success, files = pcall(listfiles, "YT_MT_Addons")
-    local hasAddons = false
+    local addedAnyAddon = false
 
     if success and #files > 0 then
         for _, filePath in pairs(files) do
             if filePath:sub(-5):lower() == ".luau" or filePath:sub(-4):lower() == ".lua" then
                 local readSuccess, content = pcall(readfile, filePath)
                 if readSuccess and content then
-                    hasAddons = true
                     
                     local currentAddonInfo = {
                         Name = filePath:match("([^/\\]+)%.[^.]+$") or "Unknown",
@@ -47,7 +46,7 @@ local AddonsModule = function(Window)
 
                     function GroupboxProxy:AddToggle(id, config)
                         if not groupboxInstance then
-                            boxgroupInstance = AddonsTab:AddLeftGroupbox(currentAddonInfo.Title)
+                            groupboxInstance = AddonsTab:AddLeftGroupbox(currentAddonInfo.Title)
                             if currentAddonInfo.Description ~= "" then
                                 groupboxInstance:AddLabel(currentAddonInfo.Description)
                             end
@@ -69,14 +68,17 @@ local AddonsModule = function(Window)
                     local func, compileErr = loadstring(content)
                     if func then
                         setfenv(func, env)
-                        pcall(func)
+                        local runSuccess = pcall(func)
+                        if runSuccess then
+                            addedAnyAddon = true
+                        end
                     end
                 end
             end
         end
     end
 
-    if not hasAddons then
+    if not addedAnyAddon then
         MainGroup:AddDivider()
         MainGroup:AddLabel("Status: No active addons detected.")
     end
