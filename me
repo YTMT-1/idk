@@ -1,0 +1,1546 @@
+local ADDON_CONFIG = {
+	FromACManipulationAlt2NoclipAlt = false -- alternative version of noclip is very buggy, not recommended
+}
+
+mspaint.AddonInfo = {
+	Name = 'TplaysAddon',
+	Title = "Tplay's Addon",
+	Game = {
+		'doors/doors',
+		'doors/lobby'
+	}
+}
+
+local Groupbox = mspaint.Groupbox
+
+-- "is this retroslop?"
+-- "dude thats literally 'missing' function from infinite yield"
+function func(t, f, fallback)
+	if type(f) == t then return f end
+	return fallback
+end
+
+function GetLocalFunction(fn, fs)
+	local success, result = pcall(function()
+		for _, v in getgc(true) do
+			if typeof(v) == "function" then
+				local name, src = debug.info(v,"n"), debug.info(v,"s")
+				if name == fn and (not fs or fs == src) then
+					return v
+				end
+			end
+		end
+	end)
+	return success and result
+end
+
+local hookmetamethod = func("function", hookmetamethod or hook_meta_method)
+local getnamecallmethod = func("function", getnamecallmethod or get_namecall_method)
+local checkcaller = func("function", checkcaller or check_caller, function(...) return end)
+
+if game.PlaceId == 6516141723 then
+	local ReplicatedStorage = game:GetService('ReplicatedStorage')
+	local RemotesFolder = ReplicatedStorage:WaitForChild("RemotesFolder")
+	local Create = RemotesFolder.CreateElevator
+	local Leave = RemotesFolder.ElevatorExit
+	local BloxfestMode = false
+	local Connections = {}
+	local Toggles = {}
+
+	local writefile = func("function", writefile, function(...) return end)
+	local readfile = func("function", readfile, function(...) return end)
+	local queue_on_teleport = func("function", queue_on_teleport or queueonteleport)
+	local clear_teleport_queue = func("function", clear_teleport_queue or clearteleportqueue)
+
+	writefile("teleporthandler", [[if game.PlaceId ~= 6839171747 then return end
+local players = game:GetService("Players")
+local player = players.LocalPlayer
+if not player then
+    players:GetPropertyChangedSignal("LocalPlayer"):Wait()
+    player = players.LocalPlayer
+end
+local tpdata = game:GetService("TeleportService"):GetLocalPlayerTeleportData()
+if tpdata and tpdata.Settings and tpdata.Settings.cMode == "true" then
+    local hoststart = game:GetService("ReplicatedStorage"):WaitForChild("RemotesFolder", 999):WaitForChild("HostStartMatch", 999)
+	local mainui = player:WaitForChild("PlayerGui", 999):WaitForChild("MainUI", 999)
+	local maingame = require(mainui:WaitForChild("Initiator", 999):WaitForChild("Main_Game", 999))
+    local hoststartbutton = mainui:WaitForChild("HostStartMatch", 999)
+    hoststartbutton.MouseButton1Click:Once(function()
+        hoststart:FireServer()
+        hoststartbutton.Visible = false
+    end)
+    hoststartbutton.Visible = true
+	task.spawn(function()
+		while hoststartbutton.Visible do
+			maingame.freemouse = true
+			task.wait()
+		end
+		maingame.freemouse = false
+	end)
+end
+queue_on_teleport(readfile("teleporthandler"))]])
+
+	local execute = readfile("teleporthandler")
+	local hasteleporthandler = queue_on_teleport and clear_teleport_queue and execute and true or false
+	if hasteleporthandler then
+		queue_on_teleport(execute)
+	end
+
+	local createhook
+	if hookmetamethod then
+		createhook = hookmetamethod(game, "__namecall", function(self, ...)
+			local args = {...}
+			if self == Create and getnamecallmethod() == "FireServer" then
+				args[1].Settings.cMode = BloxfestMode and "true" or args[1].Settings.cMode
+			end
+			return createhook(self, unpack(args))
+		end)
+	end
+
+	Groupbox:AddDivider({
+		Text = "MAIN",
+		MarginTop = 2,
+		MarginBottom = -2
+	})
+
+	Toggles.BloxfestMode = Groupbox:AddToggle('BloxfestMode', {
+		Text = 'Bloxfest Mode',
+		DisabledTooltip = 'Executor is not supported',
+		Tooltip = 'Create elevator where you can control host start',
+		Default = BloxfestMode,
+		Disabled = not (hasteleporthandler and createhook),
+		Callback = function(value)
+			BloxfestMode = value
+		end
+	})
+
+	local button; button = Groupbox:AddButton('Crash', {
+		Text = 'Crash',
+		DisabledTooltip = "Crashing...",
+		DoubleClick = true,
+		Risky = true,
+		Func = function()
+			button:SetDisabled(true)
+			local threads = 100
+			local ready = 0
+			local launch = false
+			task.spawn(function()
+				for thread = 1,threads do
+					task.spawn(function()
+						ready += 1
+						while not launch do task.wait() end
+						for _ = 1,100 do
+							task.spawn(function()
+								Create:FireServer({
+									Mods = {},
+									Settings = {
+										seed = "crashing using doors crasher by @tplaygd"
+									},
+									Destination = "Hotel",
+									FriendsOnly = true,
+									MaxPlayers = "50"
+								})
+								Leave:FireServer()
+							end)
+						end
+						while task.wait() do
+							for _ = 1,5 do
+								task.spawn(function()
+									Create:FireServer({
+										Mods = {},
+										Settings = {
+											seed = "crashing using doors crasher by @tplaygd"
+										},
+										Destination = "Hotel",
+										FriendsOnly = true,
+										MaxPlayers = "50"
+									})
+									Leave:FireServer()
+								end)
+							end
+						end
+					end)
+					task.wait()
+				end
+			end)
+			while ready < threads do task.wait() end
+			task.wait(1)
+			launch = true
+		end
+	})
+
+	Groupbox:AddDivider({
+		Text = "REJOIN",
+		MarginTop = 2,
+		MarginBottom = -2
+	})
+
+	local scripts = {
+		HideRank = {
+			source = [[while not game:GetService('ReplicatedStorage'):FindFirstChild('RemotesFolder') do
+				task.wait()
+			end
+			while not game:GetService('ReplicatedStorage'):FindFirstChild('RemotesFolder'):FindFirstChild('CheckRank') do
+				task.wait()
+			end
+			game:GetService('ReplicatedStorage'):FindFirstChild('RemotesFolder'):FindFirstChild('CheckRank').Name = '_CheckRank']],
+			enabled = false
+		},
+	}
+
+	Toggles.HideRank = Groupbox:AddToggle('HideRank', {
+		Text = 'Hide Rank',
+		DisabledTooltip = 'Executor is not supported',
+		Tooltip = 'Hides rank while hardstuck badge is equipped',
+		Disabled = not hasteleporthandler,
+		Default = false,
+
+		Callback = function(value)
+			scripts.HideRank.enabled = value
+		end
+	})
+
+	Groupbox:AddButton('Rejoin', {
+		Text = 'Rejoin',
+		DisabledTooltip = not hasteleporthandler,
+		DoubleClick = true,
+		Func = function()
+			local finalscript = ""
+			for _, script in scripts do
+				if script.enabled then
+					finalscript ..= `task.spawn(function() {script.source} end)`
+				end
+			end
+			queue_on_teleport(finalscript)
+			game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId)
+		end
+	})
+
+	Library:OnUnload(function()
+		local success = 0
+		local connections = 0
+		for _, toggle in Toggles do
+			toggle:SetValue(false)
+		end
+		for _, connection in Connections do
+			pcall(function()
+				connection:Disconnect()
+				success += 1
+			end)
+			connections += 1
+		end
+		if hasteleporthandler then
+			clear_teleport_queue()
+		end
+		print(`[Tplay's Addon]: unloaded!{connections > 0 and ` (disconnected {success} connections out of {connections})` or ""}`)
+	end)
+	return "bro this is lobby :sob:"
+end
+
+local addonLoaded = true
+
+local InvisGrumbles = false
+
+local Camera = workspace.CurrentCamera
+local Players = game:GetService('Players')
+local RunService = game:GetService('RunService')
+local ReplicatedStorage = game:GetService('ReplicatedStorage')
+local Debris = game:GetService('Debris')
+local RemotesFolder = ReplicatedStorage:WaitForChild("RemotesFolder", 999)
+local GameData = ReplicatedStorage:WaitForChild("GameData", 999)
+local Projectiles = ReplicatedStorage:WaitForChild("Projectiles", 999)
+local Floor = GameData:WaitForChild("FloorDestination", 999).Value
+local FloorSpecific = GameData:WaitForChild("FloorDestinationSpecific", 999).Value
+local LatestRoom = GameData:WaitForChild("LatestRoom", 999)
+
+local Crouch = RemotesFolder.Crouch
+local ChangeModuleVariable = RemotesFolder.ChangeModuleVariable
+local FireToolProjectile = RemotesFolder.FireToolProjectile
+local DropItem = RemotesFolder.DropItem
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer.PlayerGui
+local CurrentRooms = workspace:WaitForChild('CurrentRooms', 999)
+local deathhint = RemotesFolder.DeathHint
+local thinkanims = {'18885101321', '18885098453', '18885095182'}
+local teleportdata = game:GetService('TeleportService'):GetLocalPlayerTeleportData()
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local main_game = PlayerGui:WaitForChild("MainUI", 999):WaitForChild("Initiator", 999):WaitForChild("Main_Game", 999)
+--[[main_game:WaitForChild("Inventory", 999)
+local firetool = GetLocalFunction("FireTool")]]
+
+local animtrack, Parts, UnanchoredParts, admin, gameid, fakegameid, raknet_hook -- stuff
+local Connections = {}
+local Toggles = {}
+local Module = {}
+local ItemsFromAddon = {}
+local StuffToRemoveLater = {}
+
+Connections.CameraChanged = workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+	Camera = workspace.CurrentCamera
+end)
+
+function isModifierEnabled(modifier)
+	return not not(teleportdata and teleportdata.Modifiers and table.find(teleportdata.Modifiers, modifier))
+end
+
+Module.LoadCustomAsset = function(url: string): string?
+	if getcustomasset then
+		if url:lower():sub(1, 4) == 'http' then
+			local fileName = `temp_{tick()}.txt`
+			writefile(fileName, game:HttpGet(url))
+			local result = getcustomasset(fileName, true)
+			delfile(fileName)
+			return result
+		elseif isfile(url) then
+			return getcustomasset(url, true)
+		end
+	else
+		warn("Executor doesn't support 'getcustomasset', rbxassetid only.")
+	end
+	if url:find('rbxassetid') or tonumber(url) then
+		return 'rbxassetid://'..url:match('%d+')
+	end
+	error(debug.traceback('Failed to load custom asset for:\n'..url))
+end
+
+Module.LoadCustomInstance = function(url: string): Instance?
+	local s, r = pcall(function()
+		return game:GetObjects(Module.LoadCustomAsset(url))[1]
+	end)
+	return s and r or nil
+end
+
+local ScreenGui = Instance.new('ScreenGui', PlayerGui)
+ScreenGui.Name = 'DeluluCaption'
+ScreenGui.DisplayOrder = PlayerGui.MainUI.DisplayOrder
+ScreenGui.ResetOnSpawn = false
+ScreenGui.IgnoreGuiInset = true
+local delulucaption = Module.LoadCustomInstance('https://github.com/Tplay4/ranked-leaderboard/raw/main/caption.rbxm')
+local script1, spawncaption
+
+if delulucaption then
+	delulucaption.Parent = ScreenGui
+	script1 = Instance.new('LocalScript', delulucaption)
+	local v_u_1 = game:GetService('TweenService')
+	local v_u_2 = TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+	local tbas = Instance.new('Sound')
+	tbas.SoundId = 'rbxassetid://6895079853'
+
+	spawncaption = function(p3, p4, p5, p6, p7)
+		local v8 = p3:Clone()
+		v8.Parent = p4
+		v8:WaitForChild('MainText').Text = ''
+		local v9 = v8.Size
+		v8.Size = UDim2.new(0, 0, 1, 0)
+		v8.Visible = true
+		game:GetService('SoundService'):PlayLocalSound(tbas)
+		v_u_1:Create(v8, v_u_2, {
+			['Size'] = v9
+		}):Play()
+		local v10 = Instance.new('Sound')
+		v10.Parent = script1
+		if p6 ~= nil and p6 ~= 'none' then
+			v10.SoundId = p6
+		else
+			v10.SoundId = 'rbxassetid://7107161936'
+		end
+		if p7 ~= nil and p7 ~= 'none' then
+			v8:WaitForChild('MainText').TextColor3 = p7
+		end
+		Debris:AddItem(v8, 3.1+1+(0.0175*#p5))
+		Debris:AddItem(v8, 3.1+1+(0.0175*#p5))
+		task.wait(0.4)
+		v8:WaitForChild('MainText').Visible = true
+		for v11 = 1, #p5 do
+			v8:WaitForChild('MainText').Text = p5:sub(1, v11)
+			game:GetService('SoundService'):PlayLocalSound(v10)
+			task.wait(0.0175)
+		end
+		task.wait(2.5)
+		game:GetService('TweenService'):Create(v8:WaitForChild('MainText'), TweenInfo.new(0.2), {
+			['TextTransparency'] = 1
+		}):Play()
+		game:GetService('TweenService'):Create(v8:WaitForChild('MainText'):WaitForChild('UIStroke'), TweenInfo.new(0.2), {
+			['Transparency'] = 1
+		}):Play()
+		task.wait(0.2)
+		v_u_1:Create(v8, v_u_2, {
+			['Size'] = UDim2.new(0, 0, 1, 0)
+		}):Play()
+	end
+end
+
+Connections.coolconn = LocalPlayer.CharacterAdded:Connect(function(character)
+	main_game = PlayerGui:WaitForChild("MainUI", 999):WaitForChild("Initiator", 999):WaitForChild("Main_Game", 999)
+	--[[main_game:WaitForChild("Inventory", 999)
+	firetool = GetLocalFunction("FireTool")]]
+	character:GetAttributeChangedSignal('Stunned'):Connect(function()
+		Toggles.Stun:SetValue(Character:GetAttribute('Stunned'))
+	end)
+	if Toggles.SlideSpeedHack.Value then
+		Crouch:FireServer(Character:GetAttribute("Crouching"), true)
+	end
+	Character = character
+end)
+
+Character:GetAttributeChangedSignal('Stunned'):Connect(function()
+	Toggles.Stun:SetValue(Character:GetAttribute('Stunned'))
+end)
+
+local success, username = pcall(function()
+	return Players:GetNameFromUserIdAsync(teleportdata.Host)
+end)
+
+if teleportdata.Host and success and username then
+	local player = Players:GetPlayerByUserId(teleportdata.Host)
+	Groupbox:AddDivider({
+		Text = "HOST INFO",
+		MarginTop = 2,
+		MarginBottom = -2
+	})
+	Groupbox:AddLabel('UserId: '..teleportdata.Host)
+	Groupbox:AddLabel('Username: '..Players:GetNameFromUserIdAsync(teleportdata.Host))
+	local status = Groupbox:AddLabel('Status: '..(player and 'In-game' or 'Left'))
+	if player then
+		player.AncestryChanged:Once(function()
+			pcall(function()
+				status:SetText('Status: Left')
+			end)
+		end)
+	end
+else
+	Groupbox:AddLabel('HOST NOT FOUND')
+end
+
+Groupbox:AddDivider({
+	Text = "MAIN",
+	MarginTop = 2,
+	MarginBottom = -2
+})
+
+local cogAlt = false
+local slideSH = false
+local noSpread = false
+local fastThrow = false
+local hook
+local propsFastSpeed = {
+	Bomb = 300,
+	BigBomb = 300,
+	Knockbomb = 250,
+	GoldBullet = 10000,
+	Bullet = 10000
+}
+if hookmetamethod then
+	hook = hookmetamethod(game, "__namecall", function(self, ...)
+		local args = {...}
+		if self == Crouch and getnamecallmethod() == "FireServer" and addonLoaded then
+			if cogAlt then
+				args[1] = true
+			end
+			if slideSH then
+				args[2] = true
+			end
+		end
+		if self == FireToolProjectile and getnamecallmethod() == "Fire" and addonLoaded then
+			--args[1] = args[1] == "GoldBullet" and "Bullet" or args[1]
+        	args[3] = noSpread and Camera.CFrame.Position or args[3]
+        	args[4] = noSpread and Camera.CFrame.LookVector or args[4]
+			args[5] = fastThrow and (propsFastSpeed[args[1]] or 500) or args[5]
+    	end
+		return hook(self, unpack(args))
+	end)
+end
+
+local OGC1 = Character.LowerTorso.Root.C1
+
+Toggles.CollisionOffsetGodmodeAlt = Groupbox:AddToggle('CollisionOffsetGodmodeAlt', {
+	Text = 'Position Offset Alt',
+	Tooltip = "Alternative method of Position Offset (from Abysall)",
+	Default = false,
+
+	Callback = function(value)
+		if value then
+			cogAlt = true
+			Character.HumanoidRootPart.CFrame = Character.HumanoidRootPart.CFrame * CFrame.new(0, -2.146, 0)
+			Character.Humanoid.HipHeight = 0.25
+			Crouch:FireServer(true)
+			Connections.POA = RunService.RenderStepped:Connect(function()
+				if not hook then
+					Crouch:FireServer(true)
+				end
+				if Character:FindFirstChild("LowerTorso") and Character.LowerTorso:FindFirstChild("Root") then
+					Character.LowerTorso.Root.C1 = OGC1 * CFrame.new(0, -2.146, 0)
+				end
+				Character.Collision.Position = Character.HumanoidRootPart.Position + Vector3.new(0, 2.146, 0)
+				if Character.Collision:FindFirstChild("CollisionCrouch") then
+					Character.Collision.CollisionCrouch.Position = Character.HumanoidRootPart.Position + Vector3.new(0, 1.164, 0)
+				end
+			end)
+		else
+			cogAlt = false
+			if Connections.POA then
+				Connections.POA:Disconnect()
+			end
+			Character.HumanoidRootPart.CFrame *= CFrame.new(0, 2.146, 0)
+			Character.Humanoid.HipHeight = 2.4
+			if Character:FindFirstChild("LowerTorso") and Character.LowerTorso:FindFirstChild("Root") then
+				Character.LowerTorso.Root.C1 = OGC1
+			end
+			Character.Collision.Position = Character.HumanoidRootPart.Position
+			if Character.Collision:FindFirstChild("CollisionCrouch") then
+				Character.Collision.CollisionCrouch.Position = Character.HumanoidRootPart.Position - Vector3.new(0, 0.982, 0)
+			end
+		end
+	end
+}):AddKeyPicker("CollisionOffsetGodmodeAltKey", {
+	Text = "Position Offset Alt",
+	Default = "U",
+	Mode = "Toggle",
+	SyncToggleState = true
+})
+
+if ADDON_CONFIG.FromACManipulationAlt2NoclipAlt then
+-- i copied and modified anti noclip script from toolbox :sob:
+local GlobalIgnoreList = {}
+local LastHack = -1/0
+local noclip = false
+
+local Data = {
+	PreviousCFrame = nil,
+	CurrentCFrame = nil
+}
+
+--[[local visual = Instance.new("Part")
+visual.Material = Enum.Material.Neon
+visual.CanCollide = false
+visual.Anchored = true
+visual:SetAttribute("VISUAL",true)
+
+local red, green = Color3.new(.5), Color3.new(0,.5)
+function visualize(Start, End, Legit)
+	local res = (Start-End)
+	local visual = visual:Clone()
+	visual.Size = Vector3.new(.1,.1,res.Magnitude)
+	visual.CFrame = CFrame.lookAt(Start, End)+res.unit*res.Magnitude/2
+	visual.Parent = workspace
+	visual.Color = Legit and green or red
+	task.delay(1, function()
+		visual:Destroy()
+	end)
+end]]
+
+function onStep()
+	UpdatePlayerData(Player)
+
+	local CurrentCFrame = Data.CurrentCFrame
+	local PreviousCFrame = Data.PreviousCFrame
+	if CurrentCFrame and PreviousCFrame then
+		local CurrentPosition = Data.CurrentCFrame.p
+		local PreviousPosition = Data.PreviousCFrame.p
+		local Distance = (CurrentPosition-PreviousPosition).magnitude
+
+		local ray = Ray.new(
+			PreviousPosition,
+			(CurrentPosition-PreviousPosition).unit*Distance
+		)
+
+		local PartHit, WorldHit, NormalHit, MaterialHit = workspace:FindPartOnRayWithIgnoreList(
+			ray,
+			GlobalIgnoreList,
+			false,
+			true
+		)
+
+		if PartHit then
+			if PartHit:GetAttribute("VISUAL") then
+				PartHit = nil
+			end
+		end
+
+		--visualize(PreviousPosition, PreviousPosition+(CurrentPosition-PreviousPosition).unit*Distance, not PartHit)
+
+		LastHack = PartHit and os.clock() or LastHack
+	end
+end
+
+function getPlayerTorso(Player)
+	if not Character then
+		return nil
+	end
+
+	local Humanoid = Character:FindFirstChild("Humanoid")
+	if not Humanoid or Humanoid.Health == 0 then
+		return nil
+	end
+
+	local torso = Character:FindFirstChild("HumanoidRootPart")
+
+	if not torso then
+		return nil
+	end
+
+	return torso
+end
+
+function UpdatePlayerData(Player)
+	local torso = getPlayerTorso(Player)
+	if not torso then
+		ClearPlayerData(Player)
+		return
+	end
+
+	if not(Data.PreviousCFrame or Data.CurrentCFrame) then
+		Data.PreviousCFrame = torso.CFrame
+	else
+		Data.PreviousCFrame = Data.CurrentCFrame
+	end
+
+	Data.CurrentCFrame = torso.CFrame
+end
+
+function ClearPlayerData(Player)
+	Data = {
+		PreviousCFrame = nil,
+		CurrentCFrame = nil
+	}
+end
+
+Connections.RegisteredConnections = {}
+
+function ignoreListAction(part, ignore)
+	if part:IsA("BasePart") then
+		local found = table.find(GlobalIgnoreList, part)
+		if ignore and not found then
+			table.insert(GlobalIgnoreList, part)
+		elseif not ignore and found then
+			table.remove(GlobalIgnoreList, found)
+		end
+	end
+end
+
+function registerPart(part)
+	if part:IsA("BasePart") then
+		Connections.RegisteredConnections[part] = part:GetPropertyChangedSignal("CanCollide"):Connect(function()
+			local char = LocalPlayer.Character or Character
+			ignoreListAction(part, not part.CanCollide or (char and part:IsDescendantOf(char)))
+		end)
+	end
+end
+
+for _, part in workspace:GetDescendants() do
+	registerPart(part)
+end
+Connections.DABRO = workspace.DescendantAdded:Connect(registerPart)
+Connections.DRBRO = workspace.DescendantRemoving:Connect(function(part)
+	if Connections.RegisteredConnections[part] then
+		Connections.RegisteredConnections[part]:Disconnect()
+		ignoreListAction(part, false)
+	end
+end)
+
+local forceWs = nil
+local oldWs = nil
+
+task.spawn(function()
+	while addonLoaded do
+		local Humanoid = Character and Character.Parent and Character:FindFirstChild("Humanoid")
+		if Humanoid then
+			if os.clock()-LastHack < 1 and noclip then
+				if not Connections.TemporaryWSCheck then
+					oldWs = Humanoid.WalkSpeed
+					Connections.TemporaryWSCheck = Humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+						local ws = Humanoid.WalkSpeed
+						oldWs = (ws ~= forceWs and ws ~= oldWs and ws) or oldWs
+						Humanoid.WalkSpeed = 2.25
+					end)
+				end
+				forceWs = 2.25
+				Humanoid.WalkSpeed = 2.25
+			elseif forceWs then
+				Connections.TemporaryWSCheck:Disconnect()
+				forceWs = nil
+				Humanoid.WalkSpeed = oldWs or 15
+				oldWs = nil
+			end
+		end
+		if noclip then
+			pcall(onStep)
+		end
+		task.wait()
+	end
+end)
+
+Toggles.BetterNoclip = Groupbox:AddToggle('BetterNoclip', {
+	Text = 'Better Noclip',
+	Tooltip = "Don't forget to turn on noclip in mspaint",
+	Default = false,
+
+	Callback = function(value)
+		noclip = value
+		if value then
+			while not Character and noclip do task.wait() end
+			if not noclip then return end
+			Connections.BNC = RunService.RenderStepped:Connect(function()
+				Character.Collision.CanCollide = false
+				Character.CollisionPart.CanCollide = false
+				Character.HumanoidRootPart.CanCollide = false
+			end)
+		else
+			while not Character and not noclip do task.wait() end
+			if noclip then return end
+			if Connections.BNC then
+				Connections.BNC:Disconnect()
+			end
+			Character.Collision.CanCollide = not Library.Toggles.Noclip.Value
+			Character.CollisionPart.CanCollide = not Library.Toggles.Noclip.Value
+			Character.HumanoidRootPart.CanCollide = not Library.Toggles.Noclip.Value
+		end
+	end
+}):AddKeyPicker("BetterNoclipKey", {
+	Text = "Better Noclip",
+	Tooltip = "Don't forget to turn on noclip in mspaint",
+	Default = "Y",
+	Mode = "Toggle",
+	SyncToggleState = true
+})
+else
+StuffToRemoveLater.body = Instance.new("BodyVelocity")
+StuffToRemoveLater.body.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+
+Toggles.AnticheatManipulationAlt = Groupbox:AddToggle('AnticheatManipulationAlt', {
+	Text = 'Anticheat Manipulation Alt',
+	Tooltip = "Alternative method of AC manipulation (from Abysall)",
+	Default = false,
+
+	Callback = function(value)
+		if value then
+			StuffToRemoveLater.body.Parent = Character.HumanoidRootPart
+			Connections.ACMA = RunService.RenderStepped:Connect(function()
+				Character.Collision.CanCollide = false
+				Character.CollisionPart.CanCollide = false
+				Character.HumanoidRootPart.CanCollide = false
+				StuffToRemoveLater.body.Velocity = Camera.CFrame.LookVector * 2.25
+			end)
+		else
+			StuffToRemoveLater.body.Parent = nil
+			Character.Collision.CanCollide = not Library.Toggles.Noclip.Value
+			Character.CollisionPart.CanCollide = not Library.Toggles.Noclip.Value
+			Character.HumanoidRootPart.CanCollide = not Library.Toggles.Noclip.Value
+			if not Connections.ACMA then return end
+			Connections.ACMA:Disconnect()
+		end
+	end
+}):AddKeyPicker("AnticheatManipulationAltKey", {
+	Text = "Anticheat Manipulation Alt",
+	Default = "Y",
+	Mode = Library.IsMobile and "Toggle" or "Hold",
+	SyncToggleState = true
+})
+end
+
+local Groundskeepers = {}
+
+local function addGS(gs)
+	if gs.Name == "Groundskeeper" and gs:FindFirstChild("HumanoidRootPart") then
+		Groundskeepers[#Groundskeepers+1] = gs
+	end
+end
+
+for _, gs in CurrentRooms:GetDescendants() do
+	addGS(gs)
+end
+CurrentRooms.DescendantAdded:Connect(addGS)
+CurrentRooms.DescendantRemoving:Connect(function(gs)
+	local found = table.find(Groundskeepers, gs)
+	if found then
+		table.remove(Groundskeepers, found)
+	end
+end)
+
+local function ShouldSpoof(hrp)
+	for _, gs in Groundskeepers do
+		gs = gs:FindFirstChild("HumanoidRootPart")
+		if gs and (gs.Position-hrp.Position).Magnitude < 110 then
+			return true
+		end
+	end
+	return false
+end
+
+local lastlog = os.clock()
+
+local function log(text)
+	if os.clock()-lastlog < .25 then return end
+	print(text)
+	lastlog = os.clock()
+end
+
+Toggles.AntiGroundskeeper = Groupbox:AddToggle('AntiGroundskeeper', {
+	Text = 'Anti Groundskeeper',
+	DisabledTooltip = "Floor is not supported",
+	Disabled = Floor ~= "Garden",
+	Default = false,
+
+	Callback = function(value)
+		if value then
+			Toggles.CollisionOffsetGodmodeAlt:SetValue(false)
+			Toggles.CollisionOffsetGodmodeAlt:SetDisabled(true)
+			Connections.AGS = RunService.Heartbeat:Connect(function()
+				local HumanoidRootPart = Character and Character:FindFirstChild("HumanoidRootPart")
+				if HumanoidRootPart and ShouldSpoof(HumanoidRootPart) then
+					HumanoidRootPart.CFrame *= CFrame.new(0, 3, 0)
+					RunService.RenderStepped:Wait()
+					HumanoidRootPart.CFrame *= CFrame.new(0, -3, 0)
+					Camera.CFrame -= Vector3.new(0,3,0)
+				end
+			end)
+		else
+			Toggles.CollisionOffsetGodmodeAlt:SetDisabled(false)
+			if Connections.AGS then
+				Connections.AGS:Disconnect()
+			end
+		end
+	end
+})
+
+Groupbox:AddDivider({
+	Margin = -6
+})
+
+Toggles.NoSpread = Groupbox:AddToggle('NoSpread', {
+	Text = 'No Spread',
+	Tooltip = 'Accurate prop throw',
+	DisabledTooltip = "Executor is not supported",
+	Disabled = not hook,
+	Default = false,
+
+	Callback = function(value)
+		accurateAim = value
+	end
+})
+
+Toggles.FastThrow = Groupbox:AddToggle('FastThrow', {
+	Text = 'Fast Throw',
+	Tooltip = 'Throws prop as fast as Gold Bullet',
+	DisabledTooltip = "Executor is not supported",
+	Disabled = not hook,
+	Default = false,
+
+	Callback = function(value)
+		fastThrow = value
+	end
+})
+
+local function GetEquippedTool(player: Player)
+	return player and player.Character and player.Character:FindFirstChildOfClass("Tool")
+end
+
+Toggles.BreakGoldGun = Groupbox:AddToggle('BreakGoldGun', {
+	Text = 'Use & Break Gold Blaster',
+	Tooltip = 'Uses and then makes Gold Blaster broken for you and other players',
+	Default = false,
+
+	Callback = function(value)
+		if value then
+			local tool = GetEquippedTool(LocalPlayer)
+			if tool and tool.Name == "GoldGun" and not tool:GetAttribute("OnCooldown") then
+				FireToolProjectile:Fire("GoldBullet", nil, Camera.CFrame.Position, Camera.CFrame.LookVector, 500)
+				task.wait(.25)
+				DropItem:FireServer(tool)
+			end
+		end
+	end
+}):AddKeyPicker("BreakToolKey", {
+	Text = "Use & Break Gold Blaster",
+	Default = "MB3",
+	Mode = "Hold",
+	SyncToggleState = true
+})
+
+Groupbox:AddDivider({
+	Margin = -6
+})
+
+local walkspeed = 15
+local ladderspeed = 15
+local SpeedHack = getgenv().Library.Toggles.EnableSpeedHack
+
+function StartWSConnection()
+	Connections.WalkSpeed = RunService.RenderStepped:Connect(function()
+		if Character and Character.Parent then
+			Character:SetAttribute("SpeedBoostBehind", ladderspeed-15)
+			Character.Humanoid.WalkSpeed = forceWs or walkspeed
+		end
+	end)
+end
+
+local confirmed = false
+
+Toggles.RakNetSpeedHack = Groupbox:AddToggle('RakNetSpeedHack', {
+	Text = 'SpeedHack RakNet method',
+	Tooltip = "I dont recommend you to use this feature",
+	DisabledTooltip = raknet and 'Please wait...' or 'Executor is not supported',
+	Disabled = not raknet,
+	Default = false,
+	Risky = true,
+
+	Callback = function(value)
+		if value then
+			if not confirmed then
+				Toggles.RakNetSpeedHack:SetValue(false)
+				Toggles.RakNetSpeedHack:SetDisabled(true)
+				Library:Notify({
+					Title = "Tplay's Addon [Warning]",
+					Description = 'This feature can lead to ban or even worse account deletion because it abuses raknet library',
+					Time = 5
+				})
+				task.wait(5)
+				confirmed = true
+				Toggles.RakNetSpeedHack:SetDisabled(false)
+				return
+			end
+			SpeedHack:SetValue(false)
+			SpeedHack:SetDisabled(true)
+			Toggles.SlideSpeedHack:SetDisabled(true)
+			Toggles.RakNetSpeedHack:SetDisabled(true)
+
+			local success, response = pcall(function()
+				raknet_hook = raknet.add_send_hook(function(packet)
+					if packet.PacketId == 0x1B then
+						local data = packet.AsBuffer
+						buffer.writeu32(data, 1, 0xFFFFFFFF)
+						buffer.writeu32(data, 2, 0xFFFFFFFF)
+						packet:SetData(data)
+					end
+				end)
+			end)
+
+			if not success then
+				if response:find("raknet not allowed") then
+					Library:Notify({
+						Title = "Tplay's Addon [Error]",
+						Description = 'Raknet is not enabled (you can try to enable it in executor settings).',
+						Time = 4
+					})
+				else
+					Library:Notify({
+						Title = "Tplay's Addon [Error]",
+						Description = 'Something went wrong while trying to load Speed Bypass.',
+						Time = 3
+					})
+				end
+				Toggles.RakNetSpeedHack:SetDisabled(false)
+				Toggles.RakNetSpeedHack:SetValue(false)
+				return
+			end
+
+			StartWSConnection()
+
+			Character:PivotTo(CFrame.new(0,1500000,0))
+			Library:Notify({
+				Title = "Tplay's Addon",
+				Description = 'Speed bypass is loading, please wait...',
+				Time = 3
+			})
+			while Character.Collision.Position.Y > 1000000 do
+				Character.Collision.AssemblyLinearVelocity = Vector3.new(0,0,0)
+				RunService.RenderStepped:Wait()
+			end
+			Toggles.RakNetSpeedHack:SetDisabled(false)
+			Library:Notify({
+				Title = "Tplay's Addon",
+				Description = 'Speed bypass loaded.',
+				Time = 2
+			})
+		else
+			if raknet_hook then
+				raknet.remove_send_hook(raknet_hook)
+			end
+			if Connections.WalkSpeed then
+				Connections.WalkSpeed:Disconnect()
+			end
+			Character:SetAttribute("SpeedBoostBehind", 0)
+			Character.Humanoid.WalkSpeed = 15
+			SpeedHack:SetDisabled(false)
+			Toggles.SlideSpeedHack:SetDisabled(false)
+		end
+	end
+})
+
+Toggles.SlideSpeedHack = Groupbox:AddToggle('SlideSpeedHack', {
+	Text = 'SpeedHack Slide method',
+	Tooltip = "Already in mspaint, but this feature doesnt force crouch (speed bypass method discovered by @nahhthatscrazy)",
+	Default = slideSH,
+
+	Callback = function(value)
+		if value then
+			slideSH = true
+			SpeedHack:SetValue(false)
+			SpeedHack:SetDisabled(true)
+			Toggles.RakNetSpeedHack:SetDisabled(true)
+
+			StartWSConnection()
+
+			if hook then
+				Crouch:FireServer(Character:GetAttribute("Crouching"), true)
+			else
+				while addonLoaded and slideSH do
+					Crouch:FireServer(Character:GetAttribute("Crouching"), true)
+					task.wait()
+				end
+			end
+		else
+			slideSH = false
+			if Connections.WalkSpeed then
+				Connections.WalkSpeed:Disconnect()
+			end
+			Character:SetAttribute("SpeedBoostBehind", 0)
+			Character.Humanoid.WalkSpeed = 15
+			SpeedHack:SetDisabled(false)
+			Toggles.RakNetSpeedHack:SetDisabled(not raknet)
+		end
+	end
+})
+
+Groupbox:AddSlider("WalkSpeed", {
+	Text = "Walk Speed",
+	Default = walkspeed,
+	Min = 0,
+	Max = 75,
+	Rounding = 0,
+	Compact = true,
+	Callback = function(ws)
+		walkspeed = ws
+	end
+})
+
+Groupbox:AddSlider("LadderSpeed", {
+	Text = "Ladder Speed",
+	Default = ladderspeed,
+	Min = 0,
+	Max = 75,
+	Rounding = 0,
+	Compact = true,
+	Callback = function(ls)
+		ladderspeed = ls
+	end
+})
+
+Groupbox:AddDivider({
+	Text = "QOL",
+	MarginTop = 2,
+	MarginBottom = -2
+})
+
+Toggles.Freecam = Groupbox:AddToggle('Freecam', {
+	Text = 'Freecam',
+	DisabledTooltip = 'Executor is not supported',
+	Default = false,
+	Disabled = not (firesignal or require),
+
+	Callback = function(value)
+		if firesignal then
+			local event = ChangeModuleVariable.OnClientEvent
+			firesignal(event, "noclip", value)
+			firesignal(event, "freecam", value)
+			firesignal(event, "hideplayers", 0)
+		else
+			local required_main_game = require(main_game)
+			required_main_game.noclip = value
+			required_main_game.freecam = value
+			required_main_game.hideplayers = 1
+			required_main_game.hideplayers = 0
+		end
+	end
+})
+
+Toggles.NoWardrobeVignette = Groupbox:AddToggle('NoWardrobeVignette', {
+	Text = 'No Wardrobe Vignette',
+	Default = false,
+
+	Callback = function(value)
+		local vignette = PlayerGui.MainUI.MainFrame.HideVignette
+		if value then
+			vignette.Size = UDim2.new(0,0,0,0)
+		else
+			vignette.Size = UDim2.new(1,0,1,0)
+		end
+	end
+})
+
+Toggles.RemoveAmbience = Groupbox:AddToggle('RemoveAmbience', {
+	Text = 'No Random Ambience',
+	Default = false,
+
+	Callback = function(value)
+		if value then
+			Connections.RemoveAmbience = workspace.Terrain.ChildAdded:Connect(function(child)
+				if child:IsA('Attachment') then
+					child:Destroy()
+				end
+			end)
+		else
+			if not Connections.RemoveAmbience then return end
+			Connections.RemoveAmbience:Disconnect()
+		end
+	end
+})
+
+local light = "Blue"
+
+Groupbox:AddDropdown('Lights', {
+	Multi = false,
+	Text = 'Lights',
+	DisabledTooltip = 'Executor is not supported',
+	Disabled = not firesignal,
+	Values = {
+		"Blue",
+		"Yellow",
+		"Glitch",
+		"Rush"
+	},
+	Default = light,
+
+	Callback = function(value)
+		light = value
+	end
+})
+
+Toggles.LightOnDeath = Groupbox:AddToggle('LightOnDeath', {
+	Text = 'Light On Death',
+	Tooltip = "Replace default light on current floor with other ones (text wouldn't change)",
+	DisabledTooltip = 'Executor is not supported',
+	Disabled = not firesignal,
+	Default = false,
+
+	Callback = function(value)
+		if value then
+			local can = true
+			Connections.LOD = deathhint.OnClientEvent:Connect(function(...)
+				if can then
+					can = false
+					task.wait()
+					local args = {...}
+					args[2] = light
+					firesignal(deathhint.OnClientEvent, unpack(args))
+					task.wait()
+					can = true
+				end
+			end)
+		else
+			if not Connections.LOD then return end
+			Connections.LOD:Disconnect()
+		end
+	end
+})
+
+local adminPanelOn = isModifierEnabled("AdminPanel")
+local adminLoaded = false
+local hook2
+
+if adminPanelOn then
+	hook2 = hookmetamethod and hookmetamethod(game, '__index', function(...)
+		local self, key = ...
+		if self == game and key == 'GameId' and not checkcaller() and addonLoaded and adminLoaded then
+			return 3833818265
+		end
+		return hook2(...)
+	end)
+
+	admin = PlayerGui:FindFirstChild('DoorsAdmin')
+	local Event = RemotesFolder.AdminPanelRunCommand
+	local Stuff = {}
+
+	function SetDisabled(bool)
+		for name, stuff in Stuff do
+			stuff:SetDisabled(bool)
+		end
+	end
+
+	PlayerGui.ChildAdded:Connect(function(child)
+		if child.Name == 'DoorsAdmin' and not admin then
+			admin = child
+			SetDisabled(false)
+			Stuff.AdminPanelDebug:SetDisabled(false)
+			admin.AncestryChanged:Once(function()
+				admin = PlayerGui:FindFirstChild("DoorsAdmin")
+				adminLoaded = not not admin -- "not not" converts it to boolean
+				SetDisabled(not admin)
+			end)
+		end
+	end)
+
+	Groupbox:AddDivider({
+		Text = "ADMIN PANEL",
+		MarginTop = 2,
+		MarginBottom = -2
+	})
+
+	Stuff.AdminPanelDebug = Groupbox:AddButton('AdminPanelDebug', {
+		Text = 'Load Debug AP',
+		DisabledTooltip = 'No admin panel',
+		Tooltip = 'Adds debug & dev stuff in Admin Panel (and some custom things too)',
+		DoubleClick = true,
+		Disabled = not admin,
+		Func = function()
+			if adminLoaded then return end
+			Stuff.AdminPanelDebug:SetDisabled(true)
+			adminLoaded = true
+			ItemsFromAddon = {}
+			LocalPlayer:SetAttribute('ServerAdmin', 4)
+			function AddItem(item, name, icon)
+				local itemFolder = Instance.new('Folder', admin.AdminPanel.Items)
+				itemFolder.Name = item
+				itemFolder:SetAttribute('DisplayName', name)
+				itemFolder:SetAttribute('Image', icon)
+				ItemsFromAddon[#ItemsFromAddon+1] = itemFolder
+			end
+			AddItem('Candy', 'Candy', 'rbxassetid://91226846785149')
+			AddItem('CandyBag', 'Candy Bag', 'rbxassetid://88108365460057')
+			AddItem('Buddy', 'Buddy', 'rbxassetid://96164691124017')
+			AddItem('Lotus', 'Lotus', 'rbxassetid://121905075599624')
+			AddItem('LotusPetal', 'Lotus Petal', 'rbxassetid://82584389669499')
+			AddItem('Scanner', 'NVCS-3000', 'rbxassetid://11374263930')
+			task.wait()
+			admin.AdminPanel.PanelClient.Enabled = false
+			admin.Container.Pages:ClearAllChildren()
+			local lol = admin.Container.TabButtons.UIListLayout:Clone()
+			admin.Container.TabButtons:ClearAllChildren()
+			lol.Parent = admin.Container.TabButtons
+			admin.AdminPanel.PanelClient.Enabled = true
+			Library:Notify({
+				Title = "Tplay's Addon",
+				Description = 'Debug Admin Panel successfully loaded.',
+				Time = 3
+			})
+		end
+	})
+
+	local selected_players = nil
+
+	Stuff.Players = Groupbox:AddDropdown('Players', {
+		SpecialType = 'Player',
+		Searchable = true,
+		Multi = true,
+		Text = 'Players',
+		DisabledTooltip = 'No admin panel',
+		Default = {},
+		Disabled = not admin,
+		Callback = function(value)
+			selected_players = value
+		end
+	})
+
+	Stuff.LagPlayer = Groupbox:AddButton('LagPlayer', {
+		Text = 'Lag',
+		DisabledTooltip = 'No admin panel',
+		Tooltip = 'Lags player',
+		DoubleClick = true,
+		Disabled = not admin,
+		Func = function()
+			local PlayersNames = {}
+
+			for player, _ in selected_players do
+				PlayersNames[player.Name] = player.Name
+			end
+
+			for _ = 1,100 do
+				Event:FireServer("GlitchPlayer", {
+					Players = PlayersNames
+				})
+			end
+		end
+	})
+
+	Stuff.LagAll = Groupbox:AddButton('LagAll', {
+		Text = 'Lag All',
+		DisabledTooltip = 'No admin panel',
+		Tooltip = 'Lags all players (except you)',
+		DoubleClick = true,
+		Disabled = not admin,
+		Func = function()
+			local _Players = Players:GetPlayers()
+			local PlayersNames = {}
+
+			for _, player in _Players do
+				if player ~= LocalPlayer then
+					PlayersNames[player.Name] = player.Name
+				end
+			end
+
+			for _ = 1,100 do
+				Event:FireServer("GlitchPlayer", {
+					Players = PlayersNames
+				})
+			end
+		end
+	})
+end
+
+Groupbox:AddDivider({
+	Text = "TROLL",
+	MarginTop = 2,
+	MarginBottom = -2
+})
+
+Toggles.Stun = Groupbox:AddToggle('Stun', {
+	Text = 'Stun',
+	Enabled = false,
+
+	Callback = function(value)
+		if value then
+			Character:SetAttribute('Stunned', true)
+		else
+			Character:SetAttribute('Stunned', false)
+		end
+	end
+})
+
+local thinkinganim = false
+
+Toggles.ThinkingAnimation = Groupbox:AddToggle('ThinkingAnimation', {
+	Text = 'Thinking Animation',
+	Enabled = false,
+
+	Callback = function(value)
+		if value then
+			local animation = Instance.new('Animation')
+			animation.AnimationId = 'rbxassetid://' .. thinkanims[math.random(1, #thinkanims)]
+			animtrack = Character:FindFirstChildOfClass('Humanoid'):LoadAnimation(animation)
+			animtrack.Looped = true
+			animtrack:Play()
+		else
+			if animtrack then
+				animtrack:Stop()
+				animtrack:Destroy()
+			end
+		end
+	end
+})
+
+Groupbox:AddDivider({
+	Text = "MISC",
+	MarginTop = 2,
+	MarginBottom = -2
+})
+
+local sound = '7107161936'
+local color = Color3.new(1,1,1)
+local captionEnabled = false
+
+Toggles.DeluluCaption = Groupbox:AddToggle('DeluluCaption', {
+	Text = 'Delulu Caption',
+	Tooltip = 'Caption from delusional office',
+	DisabledTooltip = 'Caption failed to load',
+	Disabled = not delulucaption,
+	Default = false,
+
+	Callback = function(value)
+		if value then
+			captionEnabled = true
+			main_game.Reminder.Enabled = false
+			Connections.caption = RemotesFolder.Caption.OnClientEvent:Connect(function(text)
+				spawncaption(script1.Parent:WaitForChild('MainTextFrameSample'), script1.Parent, text, `rbxassetid://{sound}`, color)
+			end)
+			Connections.disableogcaption = RunService.RenderStepped:Connect(function()
+				pcall(function()
+					main_game.Reminder.Enabled = false
+				end)
+			end)
+		else
+			if not captionEnabled then return end
+			captionEnabled = false
+			Connections.caption:Disconnect()
+			Connections.disableogcaption:Disconnect()
+			main_game.Reminder.Enabled = true
+		end
+	end
+})
+
+local DeluluSettings = Groupbox:AddDependencyBox("DeluluSettings")
+
+DeluluSettings:AddInput('DeluluSound', {
+	Text = 'Caption Sound',
+	Numeric = true,
+	Finished = true,
+	ClearTextOnFocus = true,
+	Placeholder = sound,
+	Default = sound,
+
+	Callback = function(newsound)
+		sound = newsound
+	end
+})
+
+DeluluSettings:AddLabel('Caption Color'):AddColorPicker('DeluluColor', {
+	Title = 'Caption Color',
+	Default = color,
+
+	Callback = function(newcolor)
+		color = newcolor
+	end
+})
+
+DeluluSettings:SetupDependencies({
+	{ Toggles.DeluluCaption, true }
+})
+
+Groupbox:AddDivider({
+	Margin = -6
+})
+
+function rn2ht(c)
+	return 10+(10/3-10)*c/100
+end
+
+local annoying_notification
+
+function update(arg)
+	if annoying_notification then
+		if Floor == "Hotel" then
+			annoying_notification:ChangeDescription(`Current hide time: {arg==50 and 20 or arg==100 and "Infinite" or math.clamp(math.round((rn2ht(arg)+(arg>=90 and 1.2 or 0))*1000)/1000, -1/0, isModifierEnabled("HideTime") and 4 or 1/0)}`)
+		elseif Floor == "Mines" then
+			annoying_notification:ChangeDescription(`Current hide time: {math.clamp(math.round((rn2ht(arg)+(arg>=61 and 1.4 or 0))*1000)/1000, -1/0, isModifierEnabled("HideTime") and 4 or 1/0)}`)
+		end
+	end
+end
+
+Toggles.CurrentHideTime = Groupbox:AddToggle('CurrentHideTime', {
+	Text = 'Current Hide Time',
+	DisabledTooltip = 'Floor is not supported',
+	Default = false,
+	Disabled = Floor ~= "Hotel" and Floor ~= "Mines",
+
+	Callback = function(value)
+		if value then
+			annoying_notification = Library:Notify({
+				Title = "Tplay's Addon",
+				Description = 'Current hide time: ?',
+				Persist = true
+			})
+			update(LatestRoom.Value)
+			Connections.HideTimeChanged = CurrentRooms.ChildAdded:Connect(function(child)
+				update(LatestRoom.Value)
+			end)
+		else
+			if annoying_notification then
+				annoying_notification:Destroy()
+			end
+			if Connections.HideTimeChanged then
+				Connections.HideTimeChanged:Disconnect()
+			end
+		end
+	end
+})
+
+Toggles.HidingRoomNotify = Groupbox:AddToggle('HidingRoomNotify', {
+	Text = 'Hiding Room Notify',
+	Tooltip = 'May predict when Rush or Ambush will spawn',
+	Default = false,
+
+	Callback = function(value)
+		if value then
+			Connections.EntityPrediction = CurrentRooms.ChildAdded:Connect(function(child)
+				if child:GetAttribute('HidingRoom') and not workspace:FindFirstChild('RushMoving') and not workspace:FindFirstChild('AmbushMoving') then
+					Library:Notify({
+						Title = "Tplay's Addon",
+						Description = 'Next room is a hiding room.',
+						Time = 2
+					})
+				end
+			end)
+		else
+			if not Connections.EntityPrediction then return end
+			Connections.EntityPrediction:Disconnect()
+		end
+	end
+})
+
+Toggles.InvisibleGrumbles = Groupbox:AddToggle('InvisibleGrumbles', {
+	Text = 'Invisible Grumbles',
+	Default = false,
+
+	Callback = function(value)
+		local room = LocalPlayer:GetAttribute('CurrentRoom')
+		if value then
+			if CurrentRooms:WaitForChild(room):FindFirstChild('_NestHandler') then
+				if CurrentRooms:WaitForChild(room):WaitForChild('_NestHandler'):FindFirstChild('Grumbles') then
+					InvisGrumbles = true
+					for _,g in CurrentRooms:WaitForChild(room):WaitForChild('_NestHandler').Grumbles:GetChildren() do
+						g.MainPart.GrumbleAttach.CFrame = CFrame.new(Vector3.new(0,5000,0))
+					end
+				else
+					Library:Notify({
+						Title = "Tplay's Addon [Error]",
+						Description = 'Grumbles not found.',
+						Time = 2
+					})
+					task.wait()
+					Toggles.InvisibleGrumbles:SetValue(false)
+				end
+			else
+				Library:Notify({
+					Title = "Tplay's Addon [Error]",
+					Description = 'Grumbles not found.',
+					Time = 2
+				})
+				task.wait()
+				Toggles.InvisibleGrumbles:SetValue(false)
+			end
+		else
+			if InvisGrumbles then
+				InvisGrumbles = false
+				if CurrentRooms:WaitForChild(room):FindFirstChild('_NestHandler') then
+					if CurrentRooms:WaitForChild(room):WaitForChild('_NestHandler'):FindFirstChild('Grumbles') then
+						for _,g in CurrentRooms:WaitForChild(room):WaitForChild('_NestHandler').Grumbles:GetChildren() do
+							g.MainPart.GrumbleAttach.CFrame = CFrame.new(Vector3.new(0,0,0))
+						end
+					end
+				end
+			end
+		end
+	end
+})
+
+function clearEverything(list: {})
+	list = typeof(list) == "table" and list or {}
+	for _, val in list do
+		if typeof(val) == "table" then
+			clearEverything(val)
+		elseif typeof(val) == "RBXScriptConnection" then
+			pcall(val.Disconnect, val)
+		elseif typeof(val) == "Instance" then
+			pcall(val.Destroy, val)
+		end
+		val = nil
+	end
+end
+
+Library:OnUnload(function()
+	addonLoaded = false
+	for _, toggle in Toggles do
+		toggle:SetValue(false)
+	end
+	clearEverything(Connections)
+	clearEverything(StuffToRemoveLater)
+	GlobalIgnoreList = nil
+	ScreenGui:Destroy()
+	if raknet_hook then
+		raknet.remove_send_hook(raknet_hook)
+	end
+	if admin then
+		task.spawn(function()
+			clearEverything(ItemsFromAddon)
+			task.wait()
+			admin.AdminPanel.PanelClient.Enabled = false
+			admin.Container.Pages:ClearAllChildren()
+			local lol = admin.Container.TabButtons.UIListLayout:Clone()
+			admin.Container.TabButtons:ClearAllChildren()
+			lol.Parent = admin.Container.TabButtons
+			admin.AdminPanel.PanelClient.Enabled = true
+			admin = nil
+		end)
+	end
+	print("[Tplay's Addon]: unloaded!")
+end)
