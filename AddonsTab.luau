@@ -1,9 +1,9 @@
-local AddonsModule = {}
-
-function AddonsModule:Render(Window)
-    local AddonsTab = Window:AddTab("Addons", "boxes")
+local AddonsModule = function(Window)
+    if not Window then return end
     
+    local AddonsTab = Window:AddTab("Addons", "boxes")
     local MainGroup = AddonsTab:AddLeftGroupbox("Addons Manager")
+    
     MainGroup:AddLabel("Place your custom (.lua / .luau) files inside 'workspace/YT_MT_Addons' folder to expand functionality.")
 
     if not listfiles or not isfolder or not makefolder then
@@ -47,7 +47,7 @@ function AddonsModule:Render(Window)
 
                     function GroupboxProxy:AddToggle(id, config)
                         if not groupboxInstance then
-                            groupboxInstance = AddonsTab:AddLeftGroupbox(currentAddonInfo.Title)
+                            boxgroupInstance = AddonsTab:AddLeftGroupbox(currentAddonInfo.Title)
                             if currentAddonInfo.Description ~= "" then
                                 groupboxInstance:AddLabel(currentAddonInfo.Description)
                             end
