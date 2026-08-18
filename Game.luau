@@ -5026,9 +5026,6 @@ end)
 while not Globals.MainUI do task.wait() end
 YT_MT.Interface.ApplySettingsTab(Window)
 local AddonsTab = Window:AddTab("Addons", "boxes")
-local MainGroup = AddonsTab:AddLeftGroupbox("Addons Manager")
-
-MainGroup:AddLabel("Place your custom (.lua / .luau) files inside 'workspace/YT_MT_Addons' folder to expand functionality.")
 
 if listfiles and isfolder and makefolder then
     if not isfolder("YT_MT_Addons") then
@@ -5037,75 +5034,78 @@ if listfiles and isfolder and makefolder then
 
     local success, files = pcall(listfiles, "YT_MT_Addons")
     local addedAnyAddon = false
+    local toggleCount = 0
 
+    local validFiles = {}
     if success and #files > 0 then
         for _, filePath in pairs(files) do
             if filePath:sub(-5):lower() == ".luau" or filePath:sub(-4):lower() == ".lua" then
-                local readSuccess, content = pcall(readfile, filePath)
-                if readSuccess and content then
-                    
-                    local currentAddonInfo = {
-                        Name = filePath:match("([^/\\]+)%.[^.]+$") or "Unknown",
-                        Title = "Custom Addon",
-                        Description = ""
+                table.insert(validFiles, filePath)
+            end
+        end
+    end
+
+    if #validFiles == 0 then
+        local WarningBox = AddonsTab:AddLeftGroupbox("<font color='#ff4d4d'>WARNING</font>")
+        WarningBox:AddLabel("<font color='#ff9999'>Your addons FOLDER is empty! (workspace/YT_MT_Addons)</font>")
+    else
+        for _, filePath in pairs(validFiles) do
+            local readSuccess, content = pcall(readfile, filePath)
+            if readSuccess and content then
+                
+                local currentAddonInfo = {
+                    Name = filePath:match("([^/\\]+)%.[^.]+$") or "Unknown",
+                    Title = "Custom Addon",
+                    Description = ""
+                }
+
+                local GroupboxProxy = {}
+                local groupboxInstance = nil
+
+                local function ensureGroupbox()
+                    if not groupboxInstance then
+                        groupboxInstance = AddonsTab:AddLeftGroupbox(currentAddonInfo.Title)
+                        if currentAddonInfo.Description ~= "" then
+                            groupboxInstance:AddLabel(currentAddonInfo.Description)
+                        end
+                    end
+                end
+
+                function GroupboxProxy:AddButton(config)
+                    ensureGroupbox()
+                    groupboxInstance:AddButton(config.Text, config.Func)
+                end
+
+                function GroupboxProxy:AddToggle(id, config)
+                    ensureGroupbox()
+                    toggleCount = toggleCount + 1
+                    groupboxInstance:AddToggle(id or ("AddonToggle_" .. toggleCount), {
+                        Text = config.Text,
+                        Default = config.Default or false,
+                        Callback = config.Func
+                    })
+                end
+
+                local env = setmetatable({
+                    YT_MT_Addons = {
+                        AddonInfo = currentAddonInfo,
+                        Groupbox = GroupboxProxy
                     }
+                }, { __index = getfenv() })
 
-                    local GroupboxProxy = {}
-                    local groupboxInstance = nil
-
-                    function GroupboxProxy:AddButton(config)
-                        if not groupboxInstance then
-                            groupboxInstance = AddonsTab:AddLeftGroupbox(currentAddonInfo.Title)
-                            if currentAddonInfo.Description ~= "" then
-                                groupboxInstance:AddLabel(currentAddonInfo.Description)
-                            end
-                        end
-                        groupboxInstance:AddButton({
-                            Text = config.Text,
-                            Func = config.Func
-                        })
-                    end
-
-                    function GroupboxProxy:AddToggle(id, config)
-                        if not groupboxInstance then
-                            groupboxInstance = AddonsTab:AddLeftGroupbox(currentAddonInfo.Title)
-                            if currentAddonInfo.Description ~= "" then
-                                groupboxInstance:AddLabel(currentAddonInfo.Description)
-                            end
-                        end
-                        groupboxInstance:AddToggle(id, {
-                            Text = config.Text,
-                            Default = config.Default or false,
-                            Callback = config.Func
-                        })
-                    end
-
-                    local env = setmetatable({
-                        YT_MT_Addons = {
-                            AddonInfo = currentAddonInfo,
-                            Groupbox = GroupboxProxy
-                        }
-                    }, { __index = getfenv() })
-
-                    local func, compileErr = loadstring(content)
-                    if func then
-                        setfenv(func, env)
-                        local runSuccess = pcall(func)
-                        if runSuccess then
-                            addedAnyAddon = true
-                        end
+                local func, compileErr = loadstring(content)
+                if func then
+                    setfenv(func, env)
+                    local runSuccess = pcall(func)
+                    if runSuccess then
+                        addedAnyAddon = true
                     end
                 end
             end
         end
     end
-
-    if not addedAnyAddon then
-        MainGroup:AddDivider()
-        MainGroup:AddLabel("Status: No active addons detected.")
-    end
 else
-    MainGroup:AddDivider()
-    MainGroup:AddLabel("❌ Your executor does not support File System functions.")
+    local ErrorBox = AddonsTab:AddLeftGroupbox("System Error")
+    ErrorBox:AddLabel("❌ Your executor does not support File System functions.")
 end
 Functions.Notify({ Title = "YT_MT", Body = "YT_MT Hub Susscesfully loaded, orignal script by Geroge (Blackking Owner).", Image = YTMT})
