@@ -1,85 +1,81 @@
 return function(Window)
-	local LatestChangelog = {
-		"10/8/2026",
-		"<font color='rgb(0, 255, 0)'>+ Figure Old Supports.</font>",
-		"7/8/2026",
-		"<font color='rgb(0, 255, 0)'>+ Anti Mandrake.</font>",
-		"<font color='rgb(0, 255, 0)'>+ Auto Complete Maze (Outdoors).</font>",
-		"<font color='rgb(0, 255, 0)'>+ Lobby Support.</font>",
-		"<font color='rgb(0, 255, 0)'>+ Fixed Bugs.</font>",
-	}
+    local LatestChangelog = {
+        "10/8/2026",
+        "<font color='rgb(0, 255, 0)'>+ Figure Old Supports.</font>",
+        "7/8/2026",
+        "<font color='rgb(0, 255, 0)'>+ Anti Mandrake.</font>",
+        "<font color='rgb(0, 255, 0)'>+ Auto Complete Maze (Outdoors).</font>",
+        "<font color='rgb(0, 255, 0)'>+ Lobby Support.</font>",
+        "<font color='rgb(0, 255, 0)'>+ Fixed Bugs.</font>",
+    }
 
-	local function CloneReference(Object)
-		if YT_MT and YT_MT.Environment.cloneref then
-			return YT_MT.Environment.cloneref(Object)
-		else
-			return Object
-		end
-	end
+    local GameStatuses = {
+        "🟢 DOORS"
+    }
 
-	local Services = setmetatable({}, {
-		__index = function(self, Name)
-			return CloneReference(game:GetService(Name))
-		end
-	})
+    local function CloneReference(Object)
+        if YT_MT and YT_MT.Environment.cloneref then
+            return YT_MT.Environment.cloneref(Object)
+        else
+            return Object
+        end
+    end
 
-	local Library = YT_MT.Interface.Library
-	local SaveManager = YT_MT.Interface.SaveManager
-	local ThemeManager = YT_MT.Interface.ThemeManager
+    local Services = setmetatable({}, {
+        __index = function(self, Name)
+            return CloneReference(game:GetService(Name))
+        end
+    })
 
-	local Toggles = Library.Toggles
-	local Options = Library.Options
+    local Library = YT_MT.Interface.Library
+    local LocalPlayer = Services.Players.LocalPlayer
 
-	local LocalPlayer = Services.Players.LocalPlayer
-	local InfoTab = Window:AddTab("Info", "door-closed")
+    local InfoTab = Window:AddTab("Home", "home")
 
-	local User = InfoTab:AddLeftGroupbox("User Info")
+    local LeftColumn = InfoTab:AddLeftGroupbox("Account")
+    local RightColumnTop = InfoTab:AddRightGroupbox("Latest Changelog")
 
-	local ImageSize = Enum.ThumbnailSize.Size420x420
-	local ImageType = Enum.ThumbnailType.HeadShot
+    local ImageSize = Enum.ThumbnailSize.Size420x420
+    local ImageType = Enum.ThumbnailType.HeadShot
+    local Content = Services.Players:GetUserThumbnailAsync(LocalPlayer.UserId, ImageType, ImageSize)
 
-	local Content = Services.Players:GetUserThumbnailAsync(LocalPlayer.UserId, ImageType, ImageSize)
+    LeftColumn:AddImage("UserIcon", {
+        Image = Content
+    })
 
-	User:AddImage("UserIcon", {
-		Image = Content
-	})
+    local Hour = os.date("*t").hour
+    local Greeting = "Good Night"
+    if Hour >= 5 and Hour < 12 then
+        Greeting = "Good morning"
+    elseif Hour >= 12 and Hour < 17 then
+        Greeting = "Good afternoon"
+    elseif Hour >= 17 and Hour < 21 then
+        Greeting = "Good evening"
+    end
 
-	local CurrentTime = os.date("*t")
-	local Hour = CurrentTime.hour
-	
-	local Greeting
-	if Hour >= 5 and Hour < 12 then
-	    Greeting = "Good Morning"
-	elseif Hour >= 12 and Hour < 17 then
-	    Greeting = "Good Afternoon"
-	elseif Hour >= 17 and Hour < 21 then
-	    Greeting = "Good Evening"
-	else
-	    Greeting = "Good Night"
-	end
-	
-	User:AddLabel(Greeting .. ", " .. LocalPlayer.Name .. ", Thanks For Using This Script Also You Executed This Script: " .. (YT_MT.TotalExecutions and tostring(YT_MT.TotalExecutions) or "N/A") .. " times.", true)
-	User:AddDivider()
+    LeftColumn:AddLabel(Greeting .. " <font color='rgb(255, 255, 255)'><b>" .. LocalPlayer.Name .. "</b></font>! Welcome back to yt_mt!", true)
+    LeftColumn:AddDivider()
 
-	local Changelog = InfoTab:AddRightGroupbox("Changelog")
-	for Index, Change in pairs(LatestChangelog) do
-		Changelog:AddLabel(Change, true)
-	end
+    LeftColumn:AddButton("Script Dashboard", function() end)
+    LeftColumn:AddButton("Main Server", function()
+        if setclipboard then setclipboard("dsc.gg/gUsPTPYArx") end
+        Library:Notify("Main Server link copied.")
+    end)
+    -- LeftColumn:AddButton("Support Server", function() end)
 
-	local Name, Version = YT_MT.Environment.identifyexecutor()
-	local Executor = InfoTab:AddRightGroupbox("Executor Info")
+    for _, Change in pairs(LatestChangelog) do
+        RightColumnTop:AddLabel(Change, true)
+    end
 
-	for Index, Result in pairs(YT_MT.Environment.Results) do
-		-- fix for veloshitty 💔
-		Result = Result:gsub("<", "(")
-		Result = Result:gsub(">", ")")
+    local RightColumnBottom = InfoTab:AddRightGroupbox("Game Status")
+    for _, Status in pairs(GameStatuses) do
+        RightColumnBottom:AddLabel(Status, true)
+    end
 
-		Executor:AddLabel(Result, true)
-	end
-
-	local Community = InfoTab:AddLeftGroupbox("Community")
-	Community:AddButton("Copy Discord Invite", function()
-		toclipboard("https://dsc.gg/BlackKing")
-		Library:Notify("Discord invite copied.")
-	end)
+    RightColumnBottom:AddDivider()
+    RightColumnBottom:AddLabel("You can report bugs or suggest features in the on-site dashboard:", true)
+    RightColumnBottom:AddButton("Copy Link", function()
+        if setclipboard then setclipboard("https://dsc.gg") end
+        Library:Notify("Dashboard link copied.")
+    end)
 end
