@@ -34,7 +34,6 @@ return function(Window)
 
     local LeftColumn = InfoTab:AddGroupbox("Account")
     
-    -- TẦNG TRÊN BÊN PHẢI: KHUNG TABBOX CHUYÊN DỤNG CHO CHANGELOG
     local TopRightTabbox = InfoTab:AddTabbox()
     local ChangelogTab = TopRightTabbox:AddTab("Latest Changelog")
 
@@ -69,7 +68,6 @@ return function(Window)
         ChangelogTab:AddLabel(Change, true)
     end
 
-    -- TẦNG DƯỚI BÊN PHẢI: GROUPBOX THÔNG THƯỜNG DÀNH CHO GAME STATUS
     local RightColumnBottom = InfoTab:AddRightGroupbox("Game Status")
     for _, Status in pairs(GameStatuses) do
         RightColumnBottom:AddLabel(Status, true)
