@@ -32,8 +32,11 @@ return function(Window)
 
     local InfoTab = Window:AddTab("Home", "home")
 
-    local LeftColumn = InfoTab:AddLeftGroupbox("Account")
-    local RightColumnTop = InfoTab:AddRightGroupbox("Latest Changelog")
+    local LeftColumn = InfoTab:AddGroupbox("Account")
+    
+    -- TẦNG TRÊN BÊN PHẢI: KHUNG TABBOX CHUYÊN DỤNG CHO CHANGELOG
+    local TopRightTabbox = InfoTab:AddTabbox()
+    local ChangelogTab = TopRightTabbox:AddTab("Latest Changelog")
 
     local ImageSize = Enum.ThumbnailSize.Size420x420
     local ImageType = Enum.ThumbnailType.HeadShot
@@ -61,12 +64,12 @@ return function(Window)
         if setclipboard then setclipboard("dsc.gg/gUsPTPYArx") end
         Library:Notify("Main Server link copied.")
     end)
-    -- LeftColumn:AddButton("Support Server", function() end)
 
     for _, Change in pairs(LatestChangelog) do
-        RightColumnTop:AddLabel(Change, true)
+        ChangelogTab:AddLabel(Change, true)
     end
 
+    -- TẦNG DƯỚI BÊN PHẢI: GROUPBOX THÔNG THƯỜNG DÀNH CHO GAME STATUS
     local RightColumnBottom = InfoTab:AddRightGroupbox("Game Status")
     for _, Status in pairs(GameStatuses) do
         RightColumnBottom:AddLabel(Status, true)
