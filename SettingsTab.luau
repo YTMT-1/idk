@@ -38,6 +38,40 @@ return function(Window)
 		end,
 	})
 
+	_G.ReExecuteOnTeleport = _G.ReExecuteOnTeleport or false
+
+	MenuGroup:AddToggle("ReExecuteOnTeleportToggle", {
+		Text = "Re-execute On Teleport",
+		Default = _G.ReExecuteOnTeleport,
+		Callback = function(Value)
+			_G.ReExecuteOnTeleport = Value
+			if Value then
+				local queue_teleport = queue_on_teleport or queueonteleport or (syn and syn.queue_on_teleport)
+				if queue_teleport then
+					local ScriptToRepeat = [==[
+						if not game:IsLoaded() then game.Loaded:Wait() end
+						local Plrs = game:GetService("Players")
+						local LP = Plrs.LocalPlayer
+						while not LP.Character do
+							task.wait(0.2)
+						end
+						local Char = LP.Character
+						while not Char:FindFirstChild("HumanoidRootPart") do
+							task.wait(0.2)
+						end
+						loadstring(game:HttpGet("https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/Loader.lua"))()
+					]==]
+					queue_teleport(ScriptToRepeat)
+					Library:Notify("Re-execute On Teleport Enabled.")
+				else
+					Library:Notify("Executor does not support queue_on_teleport!")
+				end
+			else
+				Library:Notify("Re-execute On Teleport Disabled.")
+			end
+		end,
+	})
+
 	local currentUI = YT_MT.UILibrary or "Obsidian"
 	MenuGroup:AddDropdown("UILibrary", {
 		Text = "UI Style",
@@ -89,7 +123,7 @@ return function(Window)
 	MenuGroup:AddLabel("Menu bind"):AddKeyPicker("MenuKeybind", { Default = "RightShift", NoUI = true, Text = "Menu keybind" })
 	
 	MenuGroup:AddButton("Copy Discord Invite", function()
-		toclipboard("https://dsc.gg/BlackKing")
+		toclipboard("https://dsc.gg")
 		Library:Notify("Discord invite copied.")
 	end)
 	
