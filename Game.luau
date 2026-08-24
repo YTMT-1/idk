@@ -1021,6 +1021,7 @@ local Window = Library:CreateWindow({
 	MenuFadeTime = 0,
 	CornerRadius = 2,
 })
+Window:SetCornerRadius(2)
 
 YT_MT.Interface.ApplyInfoTab(Window)
 
@@ -2764,8 +2765,7 @@ Gb.Floors_Visuals:AddToggle("ShowEyestalkPathToggle", {
 	Risky = Floor ~= "Garden"
 })
 Toggles.ShowEyestalkPathToggle:AddColorPicker("ShowEyestalkPathColor", { Text = "Eyestalk Path", Default = Color3.fromRGB(0, 255, 0), Transparency = 0 })
-Toggles.ShowEyestalkPathToggle:OnChanged(function(V) UpdateBeamVisibility(Objects.EyestalkHighlights, "ShowEyestalkPathColor", V) end)
-Options.ShowEyestalkPathColor:OnChanged(function(V)  UpdateBeamColor(Objects.EyestalkHighlights, V) end)
+
 
 local function UpdateBeamVisibility(BeamTable, ColorKey, Visible)
 	local Vis = Visible and 0 or 1
@@ -2779,6 +2779,8 @@ end
 
 Toggles.ShowSeekPathToggle:OnChanged(function(V)  UpdateBeamVisibility(Objects.SeekHighlights, "ShowSeekPathColor", V) end)
 Options.ShowSeekPathColor:OnChanged(function(V)   UpdateBeamColor(Objects.SeekHighlights, V) end)
+Toggles.ShowEyestalkPathToggle:OnChanged(function(V) UpdateBeamVisibility(Objects.EyestalkHighlights, "ShowEyestalkPathColor", V) end)
+Options.ShowEyestalkPathColor:OnChanged(function(V)  UpdateBeamColor(Objects.EyestalkHighlights, V) end)
 
 Gb.Floors_Bypass = Tabs.Floors:AddLeftGroupbox("Bypass")
 Gb.Floors_Bypass:AddToggle("RemoveSeekTrigger", {
