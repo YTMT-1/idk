@@ -1019,9 +1019,8 @@ local Window = Library:CreateWindow({
 	Center = true,
 	TabPadding = 3,
 	MenuFadeTime = 0,
-	CornerRadius = 2,
+	CornerRadius = 6,
 })
-Window:SetCornerRadius(2)
 
 YT_MT.Interface.ApplyInfoTab(Window)
 
