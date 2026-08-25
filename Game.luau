@@ -1713,7 +1713,7 @@ Gb.Exploits_BypassRight:AddToggle("InfiniteItemsToggle", {
 })
 Gb.Exploits_BypassRight:AddDropdown("InfiniteItemsList", {
 	Text = "Item List",
-	Values = { "Lockpicks", "Skeleton Key", "Shears", "Multitool" },
+	Values = { "Lockpicks", "Skeleton Key", "Shears", "Multitool", "Crucifix" },
 	Multi = true, AllowNull = true,
 	Disabled = not Functions.CheckCompatability({"fireproximityprompt"}),
 	DisabledTooltip = Globals.IncompatibleMessage
