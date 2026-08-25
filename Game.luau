@@ -260,6 +260,7 @@ local GameData        = Services.ReplicatedStorage:WaitForChild("GameData")
 local Floor           = GameData:WaitForChild("Floor").Value
 local LatestRoom      = GameData:WaitForChild("LatestRoom")
 local FinishedLoadingRoom = GameData:FindFirstChild("FinishedLoadingRoom")
+local Workspace = Services.Workspace
 if FinishedLoadingRoom then
 	FinishedLoadingRoom:Destroy()
 end
@@ -1465,7 +1466,7 @@ local TriggerFigureLooping = false
 local TriggerFigureThread
 local PlayersService = game:GetService("Players")
 
-Exploits_Troll:AddToggle("LoopTriggerFigure", {
+Gb.Exploits_Troll:AddToggle("LoopTriggerFigure", {
 	Text = "Trigger Figure",
 	Default = false,
 	Tooltip = "Triggers Figure.",
@@ -1473,8 +1474,8 @@ Exploits_Troll:AddToggle("LoopTriggerFigure", {
 	--Disabled = (not getgenv().it),
 	DisabledTooltip = Globals.IncompatibleMessage
 })
-Exploits_Troll:AddDivider()
-Exploits_Troll:AddDropdown("PlayerListToTrigger", {
+Gb.Exploits_Troll:AddDivider()
+Gb.Exploits_Troll:AddDropdown("PlayerListToTrigger", {
 	Text = "Players",
 	Values = {},
 	Default = 0,
@@ -1845,26 +1846,6 @@ Toggles.NoSurgeDamage:OnChanged(function(Value)
 end)
 
 local Modules = {}
-
-Toggles.RemoveScreech:OnChanged(function(Value)
-	Modules.Screech.Name = Value and "Screech_Disabled" or "Screech"
-	if Modules.GlitchScreech then
-		Modules.GlitchScreech.Name = Value and "GlitchScreech_Disabled" or "GlitchScreech"
-	end
-end)
-Toggles.RemoveHalt:OnChanged(function(Value)
-	Modules.Shade.Name = Value and "Shade_Disabled" or "Shade"
-end)
-Toggles.RemoveA90:OnChanged(function(Value)
-	if Modules.A90 then
-		Modules.A90.Name = Value and "A90_Disabled" or "A90"
-	end
-end)
-Toggles.RemoveDread:OnChanged(function(Value)
-	if Modules.Dread then
-		Modules.Dread.Name = Value and "Dread_Disabled" or "Dread"
-	end
-end)
 
 Gb.Exploits_Audio = Tabs.Exploits:AddLeftGroupbox("Audio")
 Globals.JamMuffle = Services.SoundService:WaitForChild("Main"):FindFirstChild("Jamming") or Instance.new("EqualizerSoundEffect")
@@ -5101,6 +5082,8 @@ LocalPlayer.CharacterAdded:Connect(function(NewCharacter)
 end)
 
 Library:OnUnload(function()
+	TriggerFigureLooping = false
+	TriggerFigureThread = nil
 	for Key, Connection in Con do
 		if type(Key) == "string" then
 			pcall(function() Connection:Disconnect() end)
