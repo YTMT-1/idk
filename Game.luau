@@ -261,6 +261,7 @@ local Floor           = GameData:WaitForChild("Floor").Value
 local LatestRoom      = GameData:WaitForChild("LatestRoom")
 local FinishedLoadingRoom = GameData:FindFirstChild("FinishedLoadingRoom")
 local Workspace = Services.Workspace
+local TweenService = game:GetService("TweenService")
 if FinishedLoadingRoom then
 	FinishedLoadingRoom:Destroy()
 end
