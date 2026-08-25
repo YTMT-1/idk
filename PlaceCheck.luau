@@ -7,9 +7,12 @@ local placeToFile = {
     [104289811284920] = "Game.luau",
     [6839171747] = "Game.luau",
     [2440500124] = "Game.luau",
-    [87716067947993] = "Lobby.luau",
-    [110258689672367] = "Lobby.luau",
-    [15722706376] = "Lobby.luau",
+    [87716067947993] = "Game.luau",
+    [10549820578] = "Game.luau",
+    [110258689672367] = "Game.luau",
+    [6516141723] = "Lobby.luau",
+    [107838858975205] = "Lobby.luau",
+    [74871629393921] = "Lobby.luau",
 }
 
 local filename = placeToFile[game.PlaceId]
