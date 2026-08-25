@@ -480,7 +480,7 @@ local FakeEvents = {
 	Shade   = Instance.new("RemoteEvent"),
 	A90     = Instance.new("RemoteEvent"),
 	Surge   = Instance.new("RemoteEvent"),
-	Figure = Instance.new("RemoteEvent"),
+	Figure 	= Instance.new("RemoteEvent")
 }
 
 FakeEvents.Screech.Name  = "Screech"
@@ -496,8 +496,9 @@ FakeEvents.Surge_Real   = RemotesFolder:FindFirstChild("SurgeRemote")
 FakeEvents.Figure_Real = RemotesFolder:FindFirstChild("FootstepRemoteThatWeNeed")
 
 if not Workspace:FindFirstChild("My_Folder") then
-local MyFolderRemotes = Instance.new("Folder", game.Workspace)
-MyFolderRemotes.Name = "My_Folder"
+local MyFolderRemotes = Instance.new("Folder")
+	MyFolderRemotes.Parent = Workspace
+	MyFolderRemotes.Name = "My_Folder"
 end
 
 Globals.FogInstances = {}
@@ -1771,6 +1772,12 @@ end)
 Con.AntiFHLoop = nil
 
 Toggles.AntiFH:OnChanged(function(Value)
+	if RemotesFolder:FindFirstChild("Crouch") then
+		RemotesFolder.Crouch:FireServer(Value and true or Functions.IsCrouching(), true)
+	end
+end)
+
+Toggles.AntiFH:OnChanged(function(Value)
 	if Value then
 		FakeEvents.Figure.Parent = RemotesFolder
 		FakeEvents.Figure_Real.Parent = Workspace.My_Folder
@@ -1849,6 +1856,174 @@ Toggles.NoSurgeDamage:OnChanged(function(Value)
 end)
 
 local Modules = {}
+
+local DISABLED_HOLDER_NAME = "BlackKingDisabledModules"
+local DECOY_ATTR = "BlackKingDecoy"
+local DisabledModuleDummy
+local OriginalRequire
+local RequireHookInstalled = false
+
+local function EnsureRequireHook()
+	if RequireHookInstalled then return end
+	local Env = BlackKing and BlackKing.Environment
+	if not (Env and Env.hookfunction and Env.newcclosure) then return end
+	DisabledModuleDummy = DisabledModuleDummy or setmetatable({}, {
+		__call = function() end,
+		__index = function() return function() end end,
+		__newindex = function() end,
+	})
+	local Hook = Env.newcclosure(function(Module, ...)
+		if type(Module) == "Instance" and Module:IsA("ModuleScript") and Module:GetAttribute(DECOY_ATTR) then
+			return DisabledModuleDummy
+		end
+		return OriginalRequire(Module, ...)
+	end)
+	local ok, NewOriginal = pcall(Env.hookfunction, require, Hook)
+	if ok and NewOriginal then
+		OriginalRequire = NewOriginal
+		RequireHookInstalled = true
+	end
+end
+
+local function RestoreRequireHook()
+	if RequireHookInstalled and OriginalRequire then
+		local Env = BlackKing and BlackKing.Environment
+		if Env and Env.hookfunction then
+			pcall(Env.hookfunction, require, OriginalRequire)
+		end
+	end
+	RequireHookInstalled = false
+	OriginalRequire = nil
+end
+
+local function EnsureDisabledHolder(Parent)
+	if not Parent then return nil end
+	local Holder = Parent:FindFirstChild(DISABLED_HOLDER_NAME)
+	if not Holder then
+		Holder = Instance.new("Folder")
+		Holder.Name = DISABLED_HOLDER_NAME
+		Holder.Parent = Parent
+	end
+	return Holder
+end
+
+local function SetModuleDisabled(ModulesFolder, Module, ToggleOn)
+	if not Module then return end
+	if ToggleOn then
+		if Module.Name:sub(-9) ~= "_Disabled" then
+			Module.Name = Module.Name .. "_Disabled"
+		end
+	else
+		if Module.Name:sub(-9) == "_Disabled" then
+			Module.Name = Module.Name:sub(1, -10)
+		end
+	end
+end
+
+local function FindRealModule(ModulesFolder, Holder, Name)
+	if not ModulesFolder then return nil end
+	local Real = Holder and Holder:FindFirstChild(Name)
+	if Real then return Real end
+	Real = ModulesFolder:FindFirstChild(Name)
+	if Real and Real:GetAttribute(DECOY_ATTR) then return nil end
+	return Real
+end
+
+local function FindUIModules()
+	local PlayerGui = LocalPlayer:FindFirstChild("PlayerGui")
+	if not PlayerGui then return nil end
+	local MainUI = PlayerGui:FindFirstChild("MainUI")
+	if not MainUI then return nil end
+	local Initiator = MainUI:FindFirstChild("Initiator")
+	if not Initiator then return nil end
+	local Main_Game = Initiator:FindFirstChild("Main_Game")
+	if not Main_Game then return nil end
+	local RL = Main_Game:FindFirstChild("RemoteListener")
+	if not RL then return nil end
+	return RL:FindFirstChild("Modules")
+end
+
+local function FindEntityModules()
+	local ModulesClient = Services.ReplicatedStorage:FindFirstChild("ModulesClient") or Services.ReplicatedStorage:FindFirstChild("ClientModules")
+	if not ModulesClient then return nil end
+	return ModulesClient:FindFirstChild("EntityModules")
+end
+
+local function RenameModule(Folder, From, To)
+	if not Folder then return end
+	local Mod = Folder:FindFirstChild(From) or Folder:FindFirstChild(To)
+	if Mod then Mod.Name = To end
+end
+
+local function SyncEntityRemoval()
+	local UIModules = FindUIModules()
+	if Toggles.RemoveScreech.Value then
+		RenameModule(UIModules, "Screech", "Screech_Disabled")
+	else
+		RenameModule(UIModules, "Screech_Disabled", "Screech")
+	end
+	if Toggles.RemoveA90.Value then
+		RenameModule(UIModules, "A90", "A90_Disabled")
+	else
+		RenameModule(UIModules, "A90_Disabled", "A90")
+	end
+	if Toggles.RemoveDread.Value then
+		RenameModule(UIModules, "Dread", "Dread_Disabled")
+	else
+		RenameModule(UIModules, "Dread_Disabled", "Dread")
+	end
+	if Toggles.DisableTimothyJumpscare.Value then
+		RenameModule(UIModules, "SpiderJumpscare", "SpiderJumpscare_Disabled")
+	else
+		RenameModule(UIModules, "SpiderJumpscare_Disabled", "SpiderJumpscare")
+	end
+	local EM = FindEntityModules()
+	if Toggles.RemoveHalt.Value then
+		RenameModule(EM, "Shade", "Shade_Disabled")
+	else
+		RenameModule(EM, "Shade_Disabled", "Shade")
+	end
+	if Toggles.DisableGlitchJumpscare.Value then
+		RenameModule(EM, "Glitch", "Glitch_Disabled")
+	else
+		RenameModule(EM, "Glitch_Disabled", "Glitch")
+	end
+	if Toggles.DisableVoidJumpscare.Value then
+		RenameModule(EM, "Void", "Void_Disabled")
+	else
+		RenameModule(EM, "Void_Disabled", "Void")
+	end
+end
+
+local function RestoreAllModules()
+	local function RestoreFolder(Folder)
+		if not Folder then return end
+		for _, Child in Folder:GetChildren() do
+			if Child.Name:sub(-9) == "_Disabled" then
+				Child.Name = Child.Name:sub(1, -10)
+			end
+		end
+	end
+	if Globals.MainUI and Globals.MainUI.Initiator and Globals.MainUI.Initiator.Main_Game then
+		local RL = Globals.MainUI.Initiator.Main_Game:FindFirstChild("RemoteListener")
+		if RL then
+			local UIModules = RL:FindFirstChild("Modules")
+			if UIModules then RestoreFolder(UIModules) end
+		end
+	end
+	local ModulesClient = Services.ReplicatedStorage:FindFirstChild("ModulesClient") or Services.ReplicatedStorage:FindFirstChild("ClientModules")
+	if ModulesClient then
+		local EM = ModulesClient:FindFirstChild("EntityModules")
+		if EM then RestoreFolder(EM) end
+	end
+	local FloorReplicated = Services.ReplicatedStorage:FindFirstChild("FloorReplicated")
+	if FloorReplicated then RestoreFolder(FloorReplicated) end
+end
+
+Toggles.RemoveScreech:OnChanged(function() SyncEntityRemoval() end)
+Toggles.RemoveHalt:OnChanged(function() SyncEntityRemoval() end)
+Toggles.RemoveA90:OnChanged(function() SyncEntityRemoval() end)
+Toggles.RemoveDread:OnChanged(function() SyncEntityRemoval() end)
 
 Gb.Exploits_Audio = Tabs.Exploits:AddLeftGroupbox("Audio")
 Globals.JamMuffle = Services.SoundService:WaitForChild("Main"):FindFirstChild("Jamming") or Instance.new("EqualizerSoundEffect")
@@ -1983,7 +2158,6 @@ Toggles.DisableEntityJumpscares:OnChanged(function(Value)
 		end
 	end
 end)
-
 Gb.Visuals_RightTab     = Tabs.Visuals:AddRightTabbox("Entities / Settings")
 Gb.Visuals_Entities     = Gb.Visuals_RightTab:AddTab("Entities")
 Gb.Visuals_EntitySettings = Gb.Visuals_RightTab:AddTab("Settings")
@@ -3383,11 +3557,6 @@ Functions.HandleCharacter = function(NewCharacter)
 	Modules.Screech         = UIModules.Screech
 	Modules.Dread           = UIModules:FindFirstChild("Dread")
 	Modules.SpiderJumpscare = UIModules.SpiderJumpscare
-
-	if Toggles.RemoveScreech.Value    then Modules.Screech.Name = "Screech_Disabled" end
-	if Toggles.RemoveA90.Value and Modules.A90   then Modules.A90.Name = "A90_Disabled" end
-	if Toggles.RemoveDread.Value and Modules.Dread then Modules.Dread.Name = "Dread_Disabled" end
-	if Toggles.DisableTimothyJumpscare.Value then Modules.SpiderJumpscare.Name = "SpiderJumpscare_Disabled" end
 
 	if Toggles.DisableHideVignette.Value then
 		local Vignette = Globals.MainUI:FindFirstChild("HideVignette") or Globals.MainUI.MainFrame:FindFirstChild("HideVignette")
@@ -4922,21 +5091,6 @@ end)
 Con.FloorReplicatedHandler = FloorReplicated.DescendantAdded:Connect(function(Object)
 	if Object.Name == "GlitchScreech" then
 		Modules.GlitchScreech = Object
-		if Toggles.RemoveScreech.Value then Object.Name = "GlitchScreech_Disabled" end
-	end
-	if Object.Name:find("Jumpscare") and Object:IsA("ModuleScript")
-		and not Object.Name:find("Eyestalk") and not Object.Name:find("Groundskeeper") and not Object.Name:find("Monument")
-	then
-		Object:SetAttribute("OriginalName", Object.Name)
-		if Toggles.DisableEntityJumpscares.Value then Object.Name = Object.Name .. "_Disabled" end
-		table.insert(Objects.JumpscareModules, Object)
-	end
-end)
-
-Con.FloorReplicatedHandler = FloorReplicated.DescendantAdded:Connect(function(Object)
-	if Object.Name == "GlitchScreech" then
-		Modules.GlitchScreech = Object
-		if Toggles.RemoveScreech.Value then Object.Name = "GlitchScreech_Disabled" end
 	end
 	if Object.Name:find("Jumpscare") and Object:IsA("ModuleScript")
 		and not Object.Name:find("Eyestalk") and not Object.Name:find("Groundskeeper") and not Object.Name:find("Monument")
