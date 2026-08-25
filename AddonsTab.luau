@@ -106,11 +106,9 @@ local AddonsModule = function(Window)
                     local runSuccess, runErr = pcall(func)
                     
                     if not runSuccess then
-                        -- Bẫy lỗi Runtime (Ví dụ: Gọi hàm không tồn tại khi đang chạy)
                         notifyError(addonLogName, tostring(runErr))
                     end
                 else
-                    -- Bẫy lỗi cú pháp Compile (Ví dụ: Thiếu dấu ngoặc, sai chữ)
                     notifyError(addonLogName, tostring(compileErr))
                 end
             end
