@@ -1,20 +1,19 @@
 local BaseUrl = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/"
 
 local placeToFile = {
-    [15722706376] = "Game.luau",
     [137519142947486] = "Game.luau",
     [92934548952604] = "Game.luau",
     [131351567799504] = "Game.luau",
     [104289811284920] = "Game.luau",
     [6839171747] = "Game.luau",
-    [6516141723] = "Lobby.luau",
-    [107838858975205] = "Lobby.luau",
-    [74871629393921] = "Lobby.luau",
+    [2440500124] = "Game.luau",
+    [87716067947993] = "Lobby.luau",
+    [110258689672367] = "Lobby.luau",
+    [15722706376] = "Lobby.luau",
 }
 
 local filename = placeToFile[game.PlaceId]
 if filename then
-    -- protect network call and execution
     local ok, bodyOrErr = pcall(function()
         return game:HttpGet(BaseUrl .. filename)
     end)
