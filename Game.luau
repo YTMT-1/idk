@@ -485,6 +485,7 @@ FakeEvents.Screech.Name  = "Screech"
 FakeEvents.Shade.Name    = "ShadeResult"
 FakeEvents.A90.Name      = "A90"
 FakeEvents.Surge.Name    = "SurgeRemote"
+FakeEvents.Figure.Name = "FootstepRemoteThatWeNeed"
 
 FakeEvents.Screech_Real = RemotesFolder:WaitForChild("Screech")
 FakeEvents.Shade_Real   = RemotesFolder:WaitForChild("ShadeResult")
@@ -5145,6 +5146,11 @@ Library:OnUnload(function()
 	if FakeEvents.Surge_Real then
 		FakeEvents.Surge:Destroy()
 		FakeEvents.Surge_Real.Parent = RemotesFolder
+	end
+
+	if FakeEvents.Figure_Real then
+		FakeEvents.Figure:Destroy()
+		FakeEvents.Figure_Real.Parent = RemotesFolder
 	end
 
 	Globals.SeekNodesFolder:Destroy()
