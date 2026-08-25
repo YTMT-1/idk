@@ -2118,16 +2118,9 @@ Gb.Visuals_Effects:AddDivider()
 Gb.Visuals_Effects:AddToggle("DisableHideVignette",      { Text = "Disable Hide Vignette",      Default = false, Tooltip = "Disables the hiding screen effect." })
 Gb.Visuals_Effects:AddToggle("DisableFiredampEffect",    { Text = "Disable Firedamp Effect",    Default = false, Tooltip = "Disables the firedamp screen effect." })
 Gb.Visuals_Effects:AddToggle("DisableEntityJumpscares",  { Text = "Disable Entity Jumpscares",  Default = false, Tooltip = "Disables jumpscares from entities like Rush and Ambush." })
-
-Toggles.DisableGlitchJumpscare:OnChanged(function(Value)
-	Modules.Glitch.Name = Value and "Glitch_Disabled" or "Glitch"
-end)
-Toggles.DisableTimothyJumpscare:OnChanged(function(Value)
-	Modules.SpiderJumpscare.Name = Value and "SpiderJumpscare_Disabled" or "SpiderJumpscare"
-end)
-Toggles.DisableVoidJumpscare:OnChanged(function(Value)
-	if Modules.Void then Modules.Void.Name = Value and "Void_Disabled" or "Void" end
-end)
+Toggles.DisableGlitchJumpscare:OnChanged(function() SyncEntityRemoval() end)
+Toggles.DisableTimothyJumpscare:OnChanged(function() SyncEntityRemoval() end)
+Toggles.DisableVoidJumpscare:OnChanged(function() SyncEntityRemoval() end)
 Toggles.DisableHideVignette:OnChanged(function(Value)
 	local Vignette = Globals.MainUI:FindFirstChild("HideVignette") or Globals.MainUI.MainFrame:FindFirstChild("HideVignette")
 	if Vignette then Vignette.Image = Value and "Disabled" or "rbxassetid://6100076320" end
@@ -5371,10 +5364,11 @@ end)
 
 while not Globals.MainUI do task.wait() end
 YT_MT.Interface.ApplySettingsTab(Window)
+
 local success, AddonsTab = pcall(function()
     return loadstring(game:HttpGet("https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/AddonsTab.luau"))()
 end)
-
+SyncEntityRemoval()
 if success and type(AddonsTab) == "function" then
     pcall(function()
         AddonsTab(Window)
