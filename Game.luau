@@ -1471,7 +1471,7 @@ Exploits_Troll:AddToggle("LoopTriggerFigure", {
 	Tooltip = "Triggers Figure.",
 	Risky = true,
 	--Disabled = (not getgenv().it),
-	DisabledTooltip = Global.IncompatibleMessage
+	DisabledTooltip = Globals.IncompatibleMessage
 })
 Exploits_Troll:AddDivider()
 Exploits_Troll:AddDropdown("PlayerListToTrigger", {
