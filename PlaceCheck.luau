@@ -1,6 +1,37 @@
 local BaseUrl = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/"
-if game.PlaceId == 15722706376 or game.PlaceId == 137519142947486 or game.PlaceId == 92934548952604 or game.PlaceId == 131351567799504 or game.PlaceId == 104289811284920 or game.PlaceId == 6839171747 or game.PlaceId == 2440500124 or game.PlaceId == 87716067947993 or game.PlaceId == 10549820578 or game.PlaceId == 110258689672367 or game.PlaceId == 110427999978340 then
-    loadstring(game:HttpGet(BaseUrl .. "Game.luau"))()
-elseif game.PlaceId == 6516141723 or game.PlaceId == 107838858975205 or game.PlaceId == 74871629393921 then
-    loadstring(game:HttpGet(BaseUrl .. "Lobby.luau"))()
+
+local placeToFile = {
+    [15722706376] = "Game.luau",
+    [137519142947486] = "Game.luau",
+    [92934548952604] = "Game.luau",
+    [131351567799504] = "Game.luau",
+    [104289811284920] = "Game.luau",
+    [6839171747] = "Game.luau",
+    [6516141723] = "Lobby.luau",
+    [107838858975205] = "Lobby.luau",
+    [74871629393921] = "Lobby.luau",
+}
+
+local filename = placeToFile[game.PlaceId]
+if filename then
+    -- protect network call and execution
+    local ok, bodyOrErr = pcall(function()
+        return game:HttpGet(BaseUrl .. filename)
+    end)
+
+    if not ok then
+        warn("HttpGet failed:", bodyOrErr)
+        return
+    end
+
+    local chunk, loadErr = loadstring(bodyOrErr)
+    if not chunk then
+        warn("loadstring error:", loadErr)
+        return
+    end
+
+    local success, runErr = pcall(chunk)
+    if not success then
+        warn("error running loaded code:", runErr)
+    end
 end
