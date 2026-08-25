@@ -260,7 +260,7 @@ local GameData        = Services.ReplicatedStorage:WaitForChild("GameData")
 local Floor           = GameData:WaitForChild("Floor").Value
 local LatestRoom      = GameData:WaitForChild("LatestRoom")
 local FinishedLoadingRoom = GameData:FindFirstChild("FinishedLoadingRoom")
-local Workspace = Services.Workspace
+local Workspace = game.Workspace
 local TweenService = game:GetService("TweenService")
 if FinishedLoadingRoom then
 	FinishedLoadingRoom:Destroy()
@@ -487,13 +487,13 @@ FakeEvents.Screech.Name  = "Screech"
 FakeEvents.Shade.Name    = "ShadeResult"
 FakeEvents.A90.Name      = "A90"
 FakeEvents.Surge.Name    = "SurgeRemote"
-FakeEvents.Figure.Name = "FootstepRemoteThatWeNeed"
+FakeEvents.Figure.Name	 = "FootstepRemoteThatWeNeed"
 
 FakeEvents.Screech_Real = RemotesFolder:WaitForChild("Screech")
 FakeEvents.Shade_Real   = RemotesFolder:WaitForChild("ShadeResult")
 FakeEvents.A90_Real     = RemotesFolder:FindFirstChild("A90")
 FakeEvents.Surge_Real   = RemotesFolder:FindFirstChild("SurgeRemote")
-FakeEvents.Figure_Real = RemotesFolder:FindFirstChild("FootstepRemoteThatWeNeed")
+FakeEvents.Figure_Real 	= RemotesFolder:FindFirstChild("FootstepRemoteThatWeNeed")
 
 if not Workspace:FindFirstChild("My_Folder") then
 local MyFolderRemotes = Instance.new("Folder")
@@ -1587,6 +1587,45 @@ Toggles.LoopTriggerFigure:OnChanged(function(Value)
 	end
 end)
 
+Gb.Exploits_Troll:AddToggle("BreakDoorsAnims", {
+	Text = "Break Doors Animation (FE)",
+	Default = false,
+	Tooltip = "Breaks Doors that are opened.",
+	DisabledTooltip = Globals.IncompatibleMessage
+})
+
+local BreakDoorsLooping = false
+
+Toggles.BreakDoorsAnims:OnChanged(function(Value)
+	if Value then
+		if BreakDoorsLooping then return end
+		BreakDoorsLooping = true
+
+		task.spawn(function()
+			while BreakDoorsLooping do
+				local RoomNumber = tostring(LatestRoom.Value - 1)
+				local Room = CurrentRooms:FindFirstChild(RoomNumber)
+				local Door = Room and Room:FindFirstChild("Door") and Room.Door:FindFirstChild("Door")
+
+				if Door then
+					local BV = Door:FindFirstChild("BodyVelocity")
+					if not BV then
+						BV = Instance.new("BodyVelocity")
+						BV.Parent = Door
+					end
+					BV.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+					BV.Velocity = Vector3.new(0, 100, 0)
+				end
+
+				task.wait(0.2)
+			end
+			BreakDoorsLooping = false
+		end)
+	else
+		BreakDoorsLooping = false
+	end
+end)
+
 Gb.Exploits_Troll:AddToggle("TwerkDance", { 
     Text = "Twerk", 
     Default = false, 
@@ -1857,15 +1896,15 @@ end)
 
 local Modules = {}
 
-local DISABLED_HOLDER_NAME = "BlackKingDisabledModules"
-local DECOY_ATTR = "BlackKingDecoy"
+local DISABLED_HOLDER_NAME = "DisabledModules"
+local DECOY_ATTR = "Decoy"
 local DisabledModuleDummy
 local OriginalRequire
 local RequireHookInstalled = false
 
 local function EnsureRequireHook()
 	if RequireHookInstalled then return end
-	local Env = BlackKing and BlackKing.Environment
+	local Env = YT_MT and YT_MT.Environment
 	if not (Env and Env.hookfunction and Env.newcclosure) then return end
 	DisabledModuleDummy = DisabledModuleDummy or setmetatable({}, {
 		__call = function() end,
@@ -1887,7 +1926,7 @@ end
 
 local function RestoreRequireHook()
 	if RequireHookInstalled and OriginalRequire then
-		local Env = BlackKing and BlackKing.Environment
+		local Env = YT_MT and YT_MT.Environment
 		if Env and Env.hookfunction then
 			pcall(Env.hookfunction, require, OriginalRequire)
 		end
@@ -5300,6 +5339,10 @@ Library:OnUnload(function()
 	if FakeEvents.Figure_Real then
 		FakeEvents.Figure:Destroy()
 		FakeEvents.Figure_Real.Parent = RemotesFolder
+	end
+	
+	if HiddenRemotes then
+		HiddenRemotes:Destroy()
 	end
 
 	Globals.SeekNodesFolder:Destroy()
