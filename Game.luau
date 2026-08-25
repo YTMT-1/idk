@@ -479,6 +479,7 @@ local FakeEvents = {
 	Shade   = Instance.new("RemoteEvent"),
 	A90     = Instance.new("RemoteEvent"),
 	Surge   = Instance.new("RemoteEvent"),
+	Figure = Instance.new("RemoteEvent"),
 }
 
 FakeEvents.Screech.Name  = "Screech"
