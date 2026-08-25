@@ -489,6 +489,12 @@ FakeEvents.Screech_Real = RemotesFolder:WaitForChild("Screech")
 FakeEvents.Shade_Real   = RemotesFolder:WaitForChild("ShadeResult")
 FakeEvents.A90_Real     = RemotesFolder:FindFirstChild("A90")
 FakeEvents.Surge_Real   = RemotesFolder:FindFirstChild("SurgeRemote")
+FakeEvents.Figure_Real = RemotesFolder:FindFirstChild("FootstepRemoteThatWeNeed")
+
+if not Workspace:FindFirstChild("My_Folder") then
+local MyFolderRemotes = Instance.new("Folder", game.Workspace)
+MyFolderRemotes.Name = "My_Folder"
+end
 
 Globals.FogInstances = {}
 Globals.OldFog = Services.Lighting.FogEnd
@@ -1326,26 +1332,23 @@ Gb.Exploits_Bypass:AddToggle("BypassMandrake", {
 })
 
 Toggles.BypassMandrake:OnChanged(function(Value)
-    for _, Object in Objects.Entities do
-        if Object.Name == "Root" and Object:IsA("BasePart") then
-
-            local BF = Object:FindFirstChild("AntiMandrakeForce")
-
-            if Value then
-                if not BF then
-                    BF = Instance.new("BodyForce")
-                    BF.Name = "AntiMandrakeForce"
-                    BF.Parent = Object
-                end
-
-                BF.Force = Vector3.new(100000, -99999999, 100000)
-            else
-                if BF then
-                    BF:Destroy()
-                end
-            end
-        end
-    end
+	for _, Object in Objects.Entities do
+		if Object.Name == "Root" and Object:IsA("BasePart") then
+			local BF = Object:FindFirstChild("AntiMandrakeForce")
+			if Value then
+				if not BF then
+					BF = Instance.new("BodyForce")
+					BF.Name = "AntiMandrakeForce"
+					BF.Parent = Object
+				end
+				BF.Force = Vector3.new(0, -100000, 0)
+			else
+				if BF then
+					BF:Destroy()
+				end
+			end
+		end
+	end
 end)
 
 Toggles.BypassGiggle:OnChanged(function(Value)
@@ -1458,6 +1461,127 @@ Toggles.BypassJeff:OnChanged(function(Value)
 end)
 
 Gb.Exploits_Troll = Tabs.Exploits:AddRightGroupbox("Troll/Others")
+local TriggerFigureLooping = false
+local TriggerFigureThread
+local PlayersService = game:GetService("Players")
+
+Exploits_Troll:AddToggle("LoopTriggerFigure", {
+	Text = "Trigger Figure",
+	Default = false,
+	Tooltip = "Triggers Figure.",
+	Risky = true,
+	--Disabled = (not getgenv().it),
+	DisabledTooltip = Global.IncompatibleMessage
+})
+Exploits_Troll:AddDivider()
+Exploits_Troll:AddDropdown("PlayerListToTrigger", {
+	Text = "Players",
+	Values = {},
+	Default = 0,
+	Multi = true,
+})
+
+local function GetSelectedNames()
+	local Selected = Options.PlayerListToTrigger.Value
+	local Names = {}
+	if type(Selected) == "table" then
+		for Name in pairs(Selected) do table.insert(Names, Name) end
+	elseif type(Selected) == "string" and Selected ~= "" then
+		table.insert(Names, Selected)
+	end
+	return Names
+end
+
+Toggles.LoopTriggerFigure:AddKeyPicker("LoopTriggerFigureKeyPicker", {
+	Text = "Trigger Figure", Default = "K", Mode = "Toggle", SyncToggleState = true
+})
+
+local function UpdatePlayerList()
+	local Names = {}
+	for _, Player in ipairs(PlayersService:GetPlayers()) do
+		local Character = Player.Character
+		if Character and Character:GetAttribute("Alive") == true then
+			table.insert(Names, Player.Name)
+		end
+	end
+
+	local Dropdown = Options.PlayerListToTrigger
+	if not Dropdown then return end
+
+	if Dropdown.SetValues then
+		pcall(function() Dropdown:SetValues(Names) end)
+	elseif Dropdown.UpdateOptions then
+		pcall(function() Dropdown:UpdateOptions(Names) end)
+	elseif Dropdown.Refresh then
+		pcall(function() Dropdown:Refresh(Names) end)
+	end
+end
+
+task.spawn(function()
+	while true do
+		UpdatePlayerList()
+		task.wait(1)
+	end
+end)
+
+local HiddenRemotes = game.Workspace:FindFirstChild("My_Folder")
+local TriggerFigureEvent = RemotesFolder:FindFirstChild("FootstepRemoteThatWeNeed")
+	or (HiddenRemotes and HiddenRemotes:FindFirstChild("FootstepRemoteThatWeNeed"))
+
+Toggles.LoopTriggerFigure:OnChanged(function(Value)
+	if Value then
+		if TriggerFigureLooping then return end
+		TriggerFigureLooping = true
+
+		if Floor ~= "Hotel" and Floor ~= "Mines" then
+			Functions.Notify({ Title = "Trigger Figure", Body = "This feature isn’t supported on this floor due to the absence of the required remote."})
+		else
+			Functions.Notify({ Title = "Trigger Figure", Body = "You can get banned from using this feature, its not our fault if you get banned."})
+		end
+
+		TriggerFigureThread = task.spawn(function()
+			local FireTimer = 0
+
+			while TriggerFigureLooping do
+				local Selected = Options.PlayerListToTrigger.Value
+				local Names = {}
+				if type(Selected) == "table" then
+					for Name in pairs(Selected) do table.insert(Names, Name) end
+				elseif type(Selected) == "string" and Selected ~= "" then
+					table.insert(Names, Selected)
+				end
+
+				local Character = PlayersService.LocalPlayer.Character
+				local MyHRP = Character and Character:FindFirstChild("HumanoidRootPart")
+
+				FireTimer += 1
+				if FireTimer >= 10 then
+					FireTimer = 0
+					if TriggerFigureEvent then
+						TriggerFigureEvent:FireServer()
+					end
+				end
+
+				for _, PlayerName in ipairs(Names) do
+					local Player = PlayersService:FindFirstChild(PlayerName)
+					if Player ~= PlayersService.LocalPlayer then
+						local HRP = Player and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+						if HRP and MyHRP then
+							MyHRP.CFrame = HRP.CFrame + Vector3.new(0, 11, 0)
+							MyHRP.AssemblyLinearVelocity = Vector3.zero
+						end
+					end
+				end
+
+				task.wait()
+			end
+		end)
+	else
+		TriggerFigureLooping = false
+		TriggerFigureThread = nil
+	end
+end)
+
 Gb.Exploits_Troll:AddToggle("TwerkDance", { 
     Text = "Twerk", 
     Default = false, 
@@ -1643,26 +1767,13 @@ end)
 Con.AntiFHLoop = nil
 
 Toggles.AntiFH:OnChanged(function(Value)
-    -- Pokud je vypnuto → zastavit loop
-    if not Value then
-        if Con.AntiFHLoop then
-            Con.AntiFHLoop:Disconnect()
-            Con.AntiFHLoop = nil
-        end
-        return
-    end
-
-    -- Pokud je zapnuto → jednorázově spoofnout
-    if RemotesFolder:FindFirstChild("Crouch") then
-        RemotesFolder.Crouch:FireServer(true)
-    end
-
-    -- Spustit loop jen když je toggle ON
-    Con.AntiFHLoop = game:GetService("RunService").Heartbeat:Connect(function()
-        if Toggles.AntiFH.Value and RemotesFolder:FindFirstChild("Crouch") then
-            RemotesFolder.Crouch:FireServer(true)
-        end
-    end)
+	if Value then
+		FakeEvents.Figure.Parent = RemotesFolder
+		FakeEvents.Figure_Real.Parent = Workspace.My_Folder
+	else
+		FakeEvents.Figure_Real.Parent = RemotesFolder
+		FakeEvents.Figure.Parent = Workspace.My_Folder
+	end
 end)
 
 Toggles.PositionSpoof:OnChanged(function(Value)
@@ -1695,29 +1806,29 @@ Gb.Exploits_Remove:AddToggle("NoSurgeDamage",   { Text = "No Surge Damage",   De
 Toggles.NoScreechDamage:OnChanged(function(Value)
 	if Value then
 		FakeEvents.Screech.Parent = RemotesFolder
-		FakeEvents.Screech_Real.Parent = nil
+		FakeEvents.Screech_Real.Parent = Workspace.My_Folder
 	else
 		FakeEvents.Screech_Real.Parent = RemotesFolder
-		FakeEvents.Screech.Parent = nil
+		FakeEvents.Screech.Parent = Workspace.My_Folder
 	end
 end)
 Toggles.NoHaltDamage:OnChanged(function(Value)
 	if Value then
 		FakeEvents.Shade.Parent = RemotesFolder
-		FakeEvents.Shade_Real.Parent = nil
+		FakeEvents.Shade_Real.Parent = Workspace.My_Folder
 	else
 		FakeEvents.Shade_Real.Parent = RemotesFolder
-		FakeEvents.Shade.Parent = nil
+		FakeEvents.Shade.Parent = Workspace.My_Folder
 	end
 end)
 Toggles.NoA90Damage:OnChanged(function(Value)
 	if RemotesFolder:FindFirstChild("A90") then
 		if Value then
 			FakeEvents.A90.Parent = RemotesFolder
-			FakeEvents.A90_Real.Parent = nil
+			FakeEvents.A90_Real.Parent = Workspace.My_Folder
 		else
 			FakeEvents.A90_Real.Parent = RemotesFolder
-			FakeEvents.A90.Parent = nil
+			FakeEvents.A90.Parent = Workspace.My_Folder
 		end
 	end
 end)
@@ -1725,10 +1836,10 @@ Toggles.NoSurgeDamage:OnChanged(function(Value)
 	if RemotesFolder:FindFirstChild("SurgeRemote") then
 		if Value then
 			FakeEvents.Surge.Parent = RemotesFolder
-			FakeEvents.Surge_Real.Parent = nil
+			FakeEvents.Surge_Real.Parent = Workspace.My_Folder
 		else
 			FakeEvents.Surge_Real.Parent = RemotesFolder
-			FakeEvents.Surge.Parent = nil
+			FakeEvents.Surge.Parent = Workspace.My_Folder
 		end
 	end
 end)
@@ -3788,10 +3899,10 @@ Functions.HandleObject = function(Object)
 						BF.Name = "AntiMandrakeForce"
 						BF.Parent = Root
 					end
-					BF.Force = Vector3.new(100000, -99999999, 100000)
+					BF.Force = Vector3.new(-49999, -49999, -49999)
 				end
 			end
-	end
+		end
 	elseif Name == "MinesGenerator" then
 		task.spawn(function()
 			task.wait(0.75)
@@ -4687,6 +4798,87 @@ Connections.AutoInteract = Services.RunService.Heartbeat:Connect(function()
 		end
 	end
     Globals.LastAutoInteractFire = tick()
+end)
+
+InfCrucifixRange = {
+	["RushMoving"] = 49,
+	["AmbushMoving"] = 50,
+	["A60"] = 49
+}
+
+local function DrawBeamBetween(A, B)
+	local dist = (A - B).Magnitude
+	if dist <= 0 then return end
+	local bar = Instance.new("Part")
+	bar.Anchored = true
+	bar.CanCollide = false bar.CanQuery = false
+	bar.Material = Enum.Material.Neon
+	bar.Color = Color3.fromRGB(255, 0, 0)
+	bar.Size = Vector3.new(0.2, 0.2, dist)
+	bar.CFrame = CFrame.lookAt(A, B) * CFrame.new(0, 0, -dist / 2)
+	bar.Parent = workspace
+	local tw = TweenService:Create(bar, TweenInfo.new(1.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Transparency = 1 })
+	tw:Play()
+	tw.Completed:Once(function() bar:Destroy() end)
+end
+
+local function ScanForTargetEntity()
+	for tag in pairs(InfCrucifixRange) do
+		local obj = workspace:FindFirstChild(tag) or workspace:FindFirstChild(tag, true)
+		if obj and (obj:IsA("BasePart") or obj:IsA("Model")) then
+			return obj, tag
+		end
+	end
+end
+
+local function IsTargetInRange()
+	local ent, tag = ScanForTargetEntity()
+	local hrp = Character and Character:FindFirstChild("HumanoidRootPart")
+	if not ent or not hrp then return false end
+	return (ent:GetPivot().Position - hrp.Position).Magnitude < InfCrucifixRange[tag]
+end
+
+local function LocateDroppedCrucifix(hrp)
+	for _, obj in Drops:GetChildren() do
+		if obj.Name == "Crucifix" then return obj end
+	end
+	for _, obj in workspace:GetDescendants() do
+		if obj:IsA("Model") and obj.Name == "Crucifix" and not obj:IsDescendantOf(Character) then
+			if (obj:GetPivot().Position - hrp.Position).Magnitude < 25 then return obj end
+		end
+	end
+end
+
+spawn(function()
+	while task.wait(0.1) do
+		local AnyTool = Character and Character:FindFirstChildOfClass("Tool")
+		if AnyTool and AnyTool.Name == "Crucifix"
+			and Toggles.InfiniteItemsToggle.Value
+			and Options.InfiniteItemsList.Value["Crucifix"]
+			and IsTargetInRange() then
+			local HRP = Character:FindFirstChild("HumanoidRootPart")
+			local Entity = ScanForTargetEntity()
+			if HRP and Entity and Floor ~= "Rooms" then
+				DrawBeamBetween(HRP.Position, Entity:GetPivot().Position)
+				Functions.Notify({ Title = "Infinite Items", Body = "Dropping Crucifix on the floor."})
+				RemotesFolder.DropItem:FireServer(AnyTool)
+				task.wait(0.1)
+				local Dropped = nil
+				for _ = 1, 40 do
+					Dropped = LocateDroppedCrucifix(HRP)
+					if Dropped then break end
+					task.wait(0.1)
+				end
+				if Dropped then
+					task.wait(0.4)
+					local Prompt = Dropped:FindFirstChildOfClass("ProximityPrompt", true)
+						or Dropped:FindFirstChild("ModulePrompt", true)
+					if Prompt then Functions.FirePrompt(Prompt) end
+				end
+			end
+			task.wait(2)
+		end
+	end
 end)
 
 Con.InfiniteItemsHandler = Services.ProximityPromptService.PromptTriggered:Connect(function(Object)
