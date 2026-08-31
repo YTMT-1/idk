@@ -103,13 +103,13 @@ local Entities = {
 		Name = "Groundskeeper",
 		NotifyMessage = { Title = "Entity 'Groundskeeper' has spawned.", Body = "Avoid stepping on the grass." }
 	},
-	["A60"] = {
-		Name = "A-60",
-		NotifyMessage = { Title = "Entity 'A-60' has spawned.", Body = "Find a hiding spot." }
+	["BashMoving"] = {
+		Name = "Bash",
+		NotifyMessage = { Title = "Entity 'Bash' has spawned.", Body = "Find a hiding spot." }
 	},
-	["A120"] = {
-		Name = "A-120",
-		NotifyMessage = { Title = "Entity 'A-120' has spawned.", Body = "Find a hiding spot." }
+	["Scribbles"] = {
+		Name = "Scribble",
+		NotifyMessage = { Title = "Entity 'Scribble' has spawned.", Body = "Find a hiding spot." }
 	},
 	["GloombatSwarm"] = {
 		Name = "Gloombat Swarm",
@@ -142,13 +142,17 @@ local Entities = {
 	["SallyMoving"] = {
 		Name = "Sally",
 		NotifyMessage = { Title = "Entity 'Sally' has spawned.", Body = "Drop an item for her." }
+	},
+	["DronesStampede"] = {
+		Name = "Stampede",
+		NotifyMessage = { Title = "Event 'Stampede' has been spawned.", Body = "Avoid the Drones way."}
 	}
 }
 
 local EntityIcons = {
 	["RushMoving"]      = "rbxassetid://10716032262",
 	["AmbushMoving"]    = "rbxassetid://10110576663",
-	["A60"]             = "rbxassetid://12571092295",
+	["BashMoving"]      = "rbxassetid://0",
 	["A120"]            = "rbxassetid://12711591665",
 	["BackdoorRush"]    = "rbxassetid://16602023490",
 	["Eyes"]            = "rbxassetid://10183704772",
@@ -161,11 +165,17 @@ local EntityIcons = {
 	["GlitchAmbush"]    = "rbxassetid://88369678433359",
 	["SallyMoving"]     = "rbxassetid://10840888070",
 	["MonumentEntity"]  = "rbxassetid://88933556873017",
-	["Groundskeeper"]   = "rbxassetid://114991380115557"
+	["Groundskeeper"]   = "rbxassetid://114991380115557",
+	["DronesStampede"]   = "rbxassetid://0" -- N/A Image
 }
 
 local ItemNames = {
 	["Lighter"]           = "Lighter",
+	["PaperPlane"]        = "Paper Plane",
+	["HoneyPot"]          = "Honey Pot",
+	["PaperPlanePickup"]  = "Paper Plane",
+	["FihFlakes"]         = "Fih Flakes",
+	["Pizza"]             = "Pizza",
 	["Flashlight"]        = "Flashlight",
 	["Lockpick"]          = "Lockpicks",
 	["Vitamins"]          = "Vitamins",
@@ -674,7 +684,7 @@ local Vim = game:GetService("VirtualInputManager")
 local EntityDistances = {
 	["RushMoving"]    = 100,
 	["AmbushMoving"]  = 160,
-	["A60"]           = 125,
+	["BashMoving"]    = 125,
 	["A120"]          = 100,
 	["GlitchRush"]    = 100,
 	["GlitchAmbush"]  = 175,
@@ -1226,11 +1236,11 @@ Toggles.AutoInteractToggle:AddKeyPicker("AutoInteractKeybind", {
 	SyncToggleState = true
 })
 Gb.Self_Automation:AddDropdown("AutoInteractIgnoreList", {
-	Text = "Ignore List",
-	Values = { "Glitch Fragments", "Jeff Items", "Dropped Items", "Currency", "Minecarts", "Locks" },
-	Default = { "Glitch Fragments", "Jeff Items", "Dropped Items" },
-	Multi = true, AllowNull = true
-})
+ 	Text = "Ignore List",
+ 	Values = { "Glitch Fragments", "Jeff Items", "Dropped Items", "Currency", "Minecarts", "Locks", "Chairs" },
+ 	Default = { "Glitch Fragments", "Jeff Items", "Dropped Items", "Minecarts", "Chairs" },
+ 	Multi = true, AllowNull = true
+ })
 
 Gb.Self_Automation:AddDivider()
 Gb.Self_Automation:AddToggle("AutoHeartbeatMinigame", { Text = "Auto Heartbeat Minigame", Default = false, Tooltip = "Prevents the 'Figure' minigame from ever failing.", Disabled = not Functions.CheckCompatability({"hookmetamethod", "newcclosure", "getnamecallmethod"}), DisabledTooltip = Globals.IncompatibleMessage })
@@ -1269,7 +1279,7 @@ Toggles.AutoClosetToggle:AddKeyPicker("AutoHideKeybind", {
 
 Gb.Self_Automation:AddDropdown("AutoClosetEntityList", {
     Text = "Ignore List",
-    Values = { "Rush", "Ambush", "Blitz", "A-60", "A-120", "AR0xMBUSH", "RNIUSHCG==","Figure" },
+    Values = { "Rush", "Ambush", "Blitz", "Bash", "Scribble", "AR0xMBUSH", "RNIUSHCG==","Figure" },
     Multi = true, 
     AllowNull = true,
     Tooltip = "Choose the monsters that you DO NOT want to automatically hide when you see them."
@@ -1328,13 +1338,54 @@ Gb.Exploits_Bypass:AddToggle("BypassVacuum",         { Text = "Bypass Vacuum",  
 Gb.Exploits_Bypass:AddToggle("BypassKillbricks",     { Text = "Bypass Killbricks",       Default = false, Tooltip = "Prevents 'Lava' from hurting you." })
 Gb.Exploits_Bypass:AddToggle("BypassSeekingWall",    { Text = "Bypass Seeking Wall",     Default = false, Tooltip = "Prevents 'ScaryWall' from hurting you." })
 Gb.Exploits_Bypass:AddToggle("BypassSnare",          { Text = "Bypass Snare",            Default = false, Tooltip = "Prevents 'Snare' from trapping you." })
+Gb.Exploits_Bypass:AddToggle("BypassDrones",         { Text = "Anti Drone",            	 Default = false, Tooltip = "Prevents 'Drones' from hurting you." })
 Gb.Exploits_Bypass:AddToggle("BypassBanana",         { Text = "Bypass Banana",           Default = false, Tooltip = "Prevents 'Banana Peel' from slipping you up (sometimes doesn't work)." })
 Gb.Exploits_Bypass:AddToggle("BypassJeff",           { Text = "Bypass Jeff",             Default = false, Tooltip = "Prevents 'Jeff the Killer' from stabbing you (sometimes doesn't work)." })
+Gb.Exploits_Bypass:AddToggle("AntiPuddle", {
+	Text = "Anti Puddle", Default = false, Tooltip = "Raises your HipHeight over the glass puddle and restores it when you leave."
+})
+local DefaultHipHeight = Humanoid and Humanoid.HipHeight or 2.396
+Con.AntiPuddle = Services.RunService.Heartbeat:Connect(function()
+	if Toggles.AntiPuddle.Value and not Toggles.PositionSpoof.Value then
+		if Humanoid.FloorMaterial == Enum.Material.Glass then
+			if Humanoid.HipHeight ~= 3 then Humanoid.HipHeight = 3 end
+		else
+			if Humanoid.HipHeight ~= 2.396 then Humanoid.HipHeight = 2.396 end
+		end
+	end
+end)
 Gb.Exploits_Bypass:AddToggle("BypassMandrake", {
     Text = "Anti Mandrake (FE)",
     Default = false,
     Tooltip = "Prevents 'Mandrake' from attacking you."
 })
+local function processDrone(object, shouldBypass)
+    if object.Name == "Drones" then
+        local walkedInto = object:FindFirstChild(shouldBypass and "WalkedInto" or "_WalkedInto")
+        if walkedInto then
+            walkedInto.Name = shouldBypass and "_WalkedInto" or "WalkedInto"
+        end
+	elseif object.Name == "DronesStampede" then
+		local walkedInto = object:FindFirstChild(shouldBypass and "Trampled" or "_Trampled")
+        if walkedInto then
+            walkedInto.Name = shouldBypass and "_Trampled" or "Trampled"
+        end
+    end
+end
+
+Toggles.BypassDrones:OnChanged(function(Value)
+    for _, Object in pairs(Objects.Entities) do
+        processDrone(Object, Value)
+    end
+end)
+
+workspace.ChildAdded:Connect(function(child)
+    if Toggles.BypassDrones.Value and child.Name == "Drones" then
+        processDrone(child, true)
+    end
+end)
+
+Gb.Exploits_Bypass:AddToggle("BypassScribbles",         { Text = "Anti Scribbles",        Default = false, Tooltip = "Blocks 'Scribbles' damage and position updates." })
 
 Toggles.BypassMandrake:OnChanged(function(Value)
 	for _, Object in Objects.Entities do
@@ -1845,8 +1896,9 @@ Toggles.PositionSpoof:AddKeyPicker("PositionSpoof", {
 Gb.Exploits_Remove = Tabs.Exploits:AddRightGroupbox("Remove")
 Gb.Exploits_Remove:AddToggle("RemoveScreech", { Text = "Remove Screech",  Default = false, Tooltip = "Prevents 'Screech' from spawning." })
 Gb.Exploits_Remove:AddToggle("RemoveHalt",    { Text = "Remove Halt",     Default = false, Tooltip = "Prevents 'Halt' from spawning." })
-Gb.Exploits_Remove:AddToggle("RemoveA90",     { Text = "Remove A-90",     Default = false, Tooltip = "Prevents 'A-90' from spawning." })
+Gb.Exploits_Remove:AddToggle("RemoveA90",     { Text = "Remove A-90/Ransom",     Default = false, Tooltip = "Prevents 'A-90' or 'Ransom' from spawning." })
 Gb.Exploits_Remove:AddToggle("RemoveDread",   { Text = "Remove Dread",    Default = false, Tooltip = "Prevents 'Dread' from spawning." })
+Gb.Exploits_Remove:AddToggle("RemoveAlma",    { Text = "Remove Alma",     Default = false, Tooltip = "Prevents 'Alma' from spawning." })
 Gb.Exploits_Remove:AddDivider()
 Gb.Exploits_Remove:AddToggle("NoScreechDamage", { Text = "No Screech Damage", Default = false, Tooltip = "Prevents 'Screech' from hurting you." })
 Gb.Exploits_Remove:AddToggle("NoHaltDamage",    { Text = "No Halt Damage",    Default = false, Tooltip = "Prevents 'Halt' from hurting you." })
@@ -2001,11 +2053,35 @@ local function SyncEntityRemoval()
 	else
 		RenameModule(UIModules, "Screech_Disabled", "Screech")
 	end
-	if Toggles.RemoveA90.Value then
-		RenameModule(UIModules, "A90", "A90_Disabled")
-	else
-		RenameModule(UIModules, "A90_Disabled", "A90")
+	local FloorReplicated = game:GetService("ReplicatedStorage"):WaitForChild("FloorReplicated")
+	local ClientRemote = FloorReplicated:WaitForChild("ClientRemote")
+
+	local function processRansom(Value)
+		if Value then
+			RenameModule(ClientRemote, "RansomInfect", "RansomInfect_Disabled")
+			local ransom = ClientRemote:FindFirstChild("RansomInfect_Disabled")
+			if ransom then
+				ransom.Parent = My_Folder
+			end
+		else
+			local ransom = My_Folder:FindFirstChild("RansomInfect_Disabled")
+			if ransom then
+				ransom.Parent = ClientRemote
+			end
+			RenameModule(ClientRemote, "RansomInfect_Disabled", "RansomInfect")
+		end
 	end
+
+	Toggles.RemoveA90:OnChanged(function(Value)
+		processRansom(Value)
+	end)
+
+	ClientRemote.ChildAdded:Connect(function(child)
+		if Toggles.RemoveA90.Value and child.Name == "RansomInfect" then
+			RenameModule(ClientRemote, "RansomInfect", "RansomInfect_Disabled")
+			child.Parent = My_Folder
+		end
+	end)
 	if Toggles.RemoveDread.Value then
 		RenameModule(UIModules, "Dread", "Dread_Disabled")
 	else
@@ -2027,6 +2103,35 @@ local function SyncEntityRemoval()
 	else
 		RenameModule(EM, "Glitch_Disabled", "Glitch")
 	end
+	local FloorReplicated = Services.("ReplicatedStorage"):WaitForChild("FloorReplicated")
+	local ClientRemote = FloorReplicated:WaitForChild("ClientRemote")
+
+	local function processAlma(Value)
+		if Value then
+			RenameModule(ClientRemote, "AlmaClient", "AlmaClient_Disabled")
+			local alma = ClientRemote:FindFirstChild("AlmaClient_Disabled")
+			if alma then
+				alma.Parent = My_Folder
+			end
+		else
+			local alma = My_Folder:FindFirstChild("AlmaClient_Disabled")
+			if alma then
+				alma.Parent = ClientRemote
+			end
+			RenameModule(ClientRemote, "AlmaClient_Disabled", "AlmaClient")
+		end
+	end
+
+	Toggles.RemoveAlma:OnChanged(function(Value)
+		processAlma(Value)
+	end)
+
+	ClientRemote.ChildAdded:Connect(function(child)
+		if Toggles.RemoveAlma.Value and child.Name == "AlmaClient" then
+			RenameModule(ClientRemote, "AlmaClient", "AlmaClient_Disabled")
+			child.Parent = My_Folder
+		end
+	end)
 	if Toggles.DisableVoidJumpscare.Value then
 		RenameModule(EM, "Void", "Void_Disabled")
 	else
@@ -2196,7 +2301,7 @@ Gb.Visuals_EntitySettings = Gb.Visuals_RightTab:AddTab("Settings")
 
 Gb.Visuals_Entities:AddDropdown("EntityList", {
 	Text = "Entity List",
-	Values = { "Rush","Ambush","Eyes","Halt","Blitz","Lookman","Gloombat Swarm","A-60","A-120","Sally","Jeff the Killer","Groundskeeper","Monument","AR0xMBUSH","RNIUSHCG==" },
+	Values = { "Rush","Ambush","Eyes","Halt","Blitz","Lookman","Gloombat Swarm","Bash","Scribble","Sally","Jeff the Killer","Groundskeeper","Monument","AR0xMBUSH","RNIUSHCG==","Stampede"},
 	Multi = true, AllowNull = true
 })
 Gb.Visuals_Entities:AddToggle("NotifyEntities",    { Text = "Notify Entities",    Default = false, Tooltip = "Sends a notification when an entity spawns." })
@@ -2308,7 +2413,7 @@ Gb.Visuals_ESP_Toggles:AddToggle("LadderESPToggle",     { Text = "Ladders",     
 Gb.Visuals_ESP_Toggles:AddDivider()
 Gb.Visuals_ESP_Toggles:AddDropdown("EntityESPOptions",     { 
 	Text = "Entity List",
-	Values = { "Rush","Ambush","Eyes","Dupe","Figure","Blitz","Lookman","Snare","Giggle","Gloombat Eggs","Grumble","A-60","A-120","Sally","Jeff the Killer","Groundskeeper","Mandrake Hole","Monument","Bramble","AR0xMBUSH","RNIUSHCG=="},
+	Values = { "Rush","Ambush","Drones","Eyes","Dupe","Figure","Blitz","Lookman","Snare","Giggle","Gloombat Eggs","Grumble","Bash","A-120","Sally","Jeff the Killer","Groundskeeper","Mandrake Hole","Monument","Bramble","AR0xMBUSH","RNIUSHCG==","Stampede"},
 	Multi = true,
 	AllowNull = true
 })
@@ -2327,7 +2432,8 @@ local HidingSpotLabels = {
 	Wardrobe = "Closet", ["Backdoor_Wardrobe"] = "Closet", Toolshed = "Closet",
 	RetroWardrobe = "Closet", ["Wardrobe-FOOLS26"] = "Closet",
 	Locker_Large = "Locker", Rooms_Locker = "Locker", Rooms_Locker_Fridge = "Locker",
-	Bed = "Bed", Double_Bed = "Double Bed", CircularVent = "Vent", Dumpster = "Dumpster"
+	Bed = "Bed", Double_Bed = "Double Bed", CircularVent = "Vent", Dumpster = "Dumpster", HidingSpot3 = "Closet",
+	HidingSpot1 = "Closet", HidingSpot2 = "Closet", 
 }
 local ChestLabels = {
 	ChestBox = true, ChestBoxLocked = true, Toolbox = true, Toolbox_Locked = true,
@@ -2335,14 +2441,15 @@ local ChestLabels = {
 }
 local EntityESPLabels = {
 	JeffTheKiller = "Jeff the Killer", GiggleCeiling = "Giggle",
-	Snare = "Snare", GrumbleRig = "Grumble",
+	Snare = "Snare", GrumbleRig = "Grumble",  TellerRig = "Teller",
+	Drones = "Drones",
 	Drakobloxxer = "Drakobloxxer", Hole = "Mandrake Hole", Groundskeeper = "Groundskeeper",
 	LiveEntityBramble = "Bramble", Figure = "Figure", FigureRig = "Figure", FigureRagdoll = "Figure",
-	FakeDoor = "Dupe", DoorFake = "Dupe"
+	FakeDoor = "Dupe", DoorFake = "Dupe",
 }
 
 local NodeEntities = {
-	Rush = true, Ambush = true, Eyes = true, Blitz = true, Lookman = true, ["A-60"] = true, ["A-120"] = true, Sally = true, ["Jeff The Killer"] = true, Monument = true, ["AR0xMBUSH"] = true, ["RNIUSHCG=="] = true
+	Rush = true, Ambush = true, Eyes = true, Blitz = true, Lookman = true, ["Bash"] = true, ["Scribble"] = true, Sally = true, ["Jeff The Killer"] = true, Monument = true, ["AR0xMBUSH"] = true, ["RNIUSHCG=="] = true, ["Stampede"] = true,
 }
 
 Toggles.DoorESPToggle:OnChanged(function(Value)
@@ -2600,7 +2707,7 @@ Functions.RoomsAutoWalk.GetNearestHidingSpot = function()
 	return Nearest.Object
 end
 
-local RoomsEntityList = { "RushMoving","AmbushMoving","BackdoorRush","A60","A120","CustomEntity","GlitchRush","GlitchAmbush" }
+local RoomsEntityList = { "RushMoving","AmbushMoving","BackdoorRush","BashMoving","A120","CustomEntity","GlitchRush","GlitchAmbush" }
 Functions.RoomsAutoWalk.GetPathfindTarget = function()
 	for _, Object in Services.Workspace:GetChildren() do
 		if table.find(RoomsEntityList, Object.Name) and Object.PrimaryPart then
@@ -3543,6 +3650,15 @@ Functions.HandleCharacter = function(NewCharacter)
 	if Main_Game and Toggles.RemoveCameraBobbing.Value then
 		Main_Game.spring.Speed = 9e9
 	end
+	local RL = Globals.MainUI.Initiator.Main_Game:FindFirstChild("RemoteListener")
+	local UIModules = RL and RL:FindFirstChild("Modules")
+	local Holder = RL and RL:FindFirstChild(DISABLED_HOLDER_NAME)
+	Modules.A90             = FindRealModule(UIModules, Holder, "A90")
+	Modules.Screech         = FindRealModule(UIModules, Holder, "Screech")
+	Modules.Dread           = FindRealModule(UIModules, Holder, "Dread")
+	Modules.SpiderJumpscare = FindRealModule(UIModules, Holder, "SpiderJumpscare")
+
+	SyncEntityRemoval()
 	
 	if Main_Game and Functions.CC({"require"}) then
 		local Controls = require(LocalPlayer.PlayerScripts.PlayerModule):GetControls()
@@ -3583,12 +3699,6 @@ Functions.HandleCharacter = function(NewCharacter)
 
 
 	Globals.AnticheatDisabled = false
-
-	local UIModules = Globals.MainUI.Initiator.Main_Game.RemoteListener.Modules
-	Modules.A90             = UIModules:FindFirstChild("A90")
-	Modules.Screech         = UIModules.Screech
-	Modules.Dread           = UIModules:FindFirstChild("Dread")
-	Modules.SpiderJumpscare = UIModules.SpiderJumpscare
 
 	if Toggles.DisableHideVignette.Value then
 		local Vignette = Globals.MainUI:FindFirstChild("HideVignette") or Globals.MainUI.MainFrame:FindFirstChild("HideVignette")
@@ -4185,7 +4295,15 @@ Functions.HandleObject = function(Object)
 			DoorConn:Disconnect()
 		end)
 		table.insert(Con, DoorConn)
-
+	elseif Name == "ForgetMeNotVineDoors" then
+		local DoorParent = Object.Parent
+		if DoorParent and DoorParent.Name == LocalPlayer.Name then
+			local Base = Object:FindFirstChild("Base")
+			if Base and Base:GetAttribute("BaseDirection") then
+				if Toggles.ObjectiveESPToggle.Value then Functions.AddESP({ Object = Base, Text = "Wrong Door", Color = Options.ObjectiveESPColor.Value }, true) end
+				table.insert(Objects.Objectives, Base)
+			end
+		end
 	elseif Name == "PathLights" then
 		local ObjectsToHighlight = {}
 		local PLConn = Object.ChildAdded:Connect(function(Child)
@@ -4381,7 +4499,10 @@ Functions.HandleObject = function(Object)
 		end
 
 		table.insert(Objects.Items, Object)
-	elseif Name == "Green_Herb" then
+	elseif (Name == "PaperPlanePickup" or Name == "PaperPlane") and not IsHeldItem(Object) then
+		if Toggles.ItemESPToggle.Value then Functions.AddESP({ Object = Object, Text = "Paper Plane", Color = Options.ItemESPColor.Value }, Object:GetAttribute("ParentRoom") ~= nil) end
+		table.insert(Objects.Items, Object)
+	elseif Name == "Green_Herb" and not IsHeldItem(Object) then
 		if Toggles.ItemESPToggle.Value then Functions.AddESP({ Object = Object, Text = "Green Herb", Color = Options.ItemESPColor.Value }, true) end
 		table.insert(Objects.Items, Object)
 	elseif Name == "GoldPile" and Object:GetAttribute("GoldValue") then
@@ -4393,6 +4514,34 @@ Functions.HandleObject = function(Object)
 	elseif Name == "GiggleCeiling" then
 		if Toggles.EntityESPToggle.Value and Options.EntityESPOptions.Value["Giggle"] then Functions.AddESP({ Object = Object, Text = "Giggle", Color = Options.EntityESPColor.Value }, true) end
 		if Toggles.BypassGiggle.Value then Object:WaitForChild("Hitbox").CanTouch = false end
+		table.insert(Objects.Entities, Object)
+	elseif Name == "Drones" then
+		if Toggles.BypassDrones.Value then
+			local WalkedInto = Object:FindFirstChild("WalkedInto")
+			if WalkedInto then WalkedInto.Name = "_WalkedInto" end
+		end
+		local DroneConnection = Object.DescendantAdded:Connect(function(Part)
+			if Part.Name == "WalkedInto" and Toggles.BypassDrones.Value then
+				Part.Name = "_WalkedInto"
+			end
+		end)
+		table.insert(Con, DroneConnection)
+		Object.Destroying:Once(function()
+			if DroneConnection then DroneConnection:Disconnect() end
+		end)
+		if not Object:FindFirstChildOfClass("Humanoid") then
+			Instance.new("Humanoid", Object).Name = "HighlightHumanoid"
+		end
+		local Root = Object:FindFirstChild("Root") or Object.PrimaryPart or Object:FindFirstChildWhichIsA("BasePart")
+		if Root then
+			Object.PrimaryPart = Root
+			Root.Transparency = 0.999
+			Root.Material = Enum.Material.Plastic
+			Root:SetAttribute("ParentRoom", Object:GetAttribute("SpawnRoom"))
+			if Toggles.EntityESPToggle.Value and Options.EntityESPOptions.Value["Drones"] then
+				Functions.AddESP({ Object = Root, Text = "Drones", Color = Options.EntityESPColor.Value }, true)
+			end
+		end
 		table.insert(Objects.Entities, Object)
 	elseif Name == "GloomPile" then
 		if Toggles.BypassGloombatEggs.Value then
@@ -4518,6 +4667,13 @@ Functions.HandleObject = function(Object)
 			Functions.Notify({ Title = ED.NotifyMessage.Title, Body = ED.NotifyMessage.Body, Image = EntityIcons["Groundskeeper"] })
 		end
 		table.insert(Objects.Entities, Object)
+	elseif Name == "DronesStampede" then
+		if Toggles.EntityESPToggle.Value and Options.EntityESPOptions.Value["Stampede"] then Functions.AddESP({ Object = Object, Text = "Stampede", Color = Options.EntityESPColor.Value }, true) end
+		if Toggles.NotifyEntities.Value and Options.EntityList.Value["Stampede"] then
+			local ED = Entities["Stampede"]
+			Functions.Notify({ Title = ED.NotifyMessage.Title, Body = ED.NotifyMessage.Body, Image = EntityIcons["Stampede"] })
+		end
+		table.insert(Objects.Entities, Object)		
 	elseif Name == "Figure" or Name == "FigureRig" or Name == "FigureRagdoll" then
 		for _, Part in Object:GetDescendants() do
 			if Part:IsA("BasePart") then
@@ -4703,23 +4859,24 @@ end)
 
 Globals.ObjectQueue = {}
 local AllowedInstances = {
-	Lava=true, GoldPile=true, KeyObtain=true, Drakobloxxer=true, FuseObtain=true,
+	Lava=true, GoldPile=true, KeyObtain=true, ArchivesTerminal = true, Drakobloxxer=true, FuseObtain=true,
 	MinesGenerator=true, JeffTheKiller=true, Snare=true, FakeDoor=true, DoorFake=true, SideroomSpace=true,
 	ChestBox=true, ChestBoxLocked=true, Chest_Vine=true, Locker_Small_Locked=true, Toolbox=true,
-	Toolbox_Locked=true, Wardrobe=true, ["Wardrobe-FOOLS26"]=true, Toolshed=true, Toolshed_Small=true,
+	Toolbox_Locked=true, Wardrobe=true, HidingSpot1 = true, HidingSpot2 = true, HidingSpot3 = true, ["Wardrobe-FOOLS26"]=true, Toolshed=true, Toolshed_Small=true,
 	Bed=true, MinesAnchor=true, Double_Bed=true, RetroWardrobe=true, Backdoor_Wardrobe=true,
 	Rooms_Locker=true, Rooms_Locker_Fridge=true, Locker_Large=true, FigureRig=true, FigureRagdoll=true,
 	TimerLever=true, Lever=true, Seek_Arm=true, ChandelierObstruction=true, ScaryWall=true, Ladder=true,
-	CircularVent=true, Dumpster=true, SquareGrate=true, TriggerEventCollision=true, GrumbleRig=true,
+	CircularVent=true, Dumpster=true, SquareGrate=true, TriggerEventCollision=true, GrumbleRig=true, TellerRig=true,
 	GiggleCeiling=true, MinesGateButton=true, ElectricalKeyObtain=true, LibraryHintPaper=true,
 	WaterPump=true, CringlePresent=true, Wheel=true, PickupItem=true, LiveHintBook=true,
 	LiveBreakerPolePickup=true, LeverForGate=true, GloomPile=true, SeekFloodline=true, Door=true,
 	Green_Herb=true, Bridge=true, MouseHole=true, BananaPeel=true, NannerPeel=true, PowerupPad=true,
 	IndustrialGate=true, CollisionFloor=true, ElevatorCar=true, Wax_Door=true, ThingToOpen=true,
-	MovingDoor=true, StardustPickup=true, Hole=true, Groundskeeper=true, MandrakeLive=true,
-	GardenGateButton=true, LotusPetalPickup=true, VineGuillotine=true, LiveEntityBramble=true,
+	MovingDoor=true, StardustPickup=true, Hole=true, Groundskeeper=true, MandrakeLive=true, DronesStampede=true,
+	GardenGateButton=true, LotusPetalPickup=true, VineGuillotine=true, LiveEntityBramble=true, Drones=true,
 	RiftSpawn=true, ElevatorBreaker=true, RunnerNodes=true, PathLights=true, DuckBoard=true,
-	Padlock=true, EyestalkEndCutscene=true, MinecartRig=true, SeekMovingNewClone=true
+	Padlock=true, EyestalkEndCutscene=true, MinecartRig=true, SeekMovingNewClone=true,
+	ForgetMeNotVineDoors=true
 }
 
 Functions.QueueObject = function(Object)
@@ -4924,6 +5081,7 @@ Functions.TriggerPrompt = function(Prompt)
 	if Prompt.Parent:GetAttribute("JeffShop") and Options.AutoInteractIgnoreList.Value["Jeff Items"] then return end
 	if Prompt:GetAttribute("AutoInteractIgnore") then return end
 	if Prompt.Name == "PushPrompt" and Options.AutoInteractIgnoreList.Value["Minecarts"] then return end
+	if Prompt.Name == "SeatPrompt" and Prompt.Name == "CartPrompt" and Options.AutoInteractIgnoreList.Value["Chairs"] then return end
 	if (Prompt.Parent.Name == "GoldPile" or Prompt.Parent.Name == "StardustPickup") and Options.AutoInteractIgnoreList.Value["Currency"] then return end
 
 	if Prompt.Parent.Name == "Bandage" then
@@ -5162,7 +5320,7 @@ Con.FogHandler2 = Services.Lighting.DescendantAdded:Connect(function(Object)
 	table.insert(Globals.FogInstances, Object)
 end)
 
-local RusherNamees = { Rush=true, Ambush=true, Eyes=true, Lookman=true, Blitz=true, ["A-60"]=true, ["A-120"]=true, AR0xMBUSH=true, ["RNIUSHCG=="]=true, ["Custom Entity"]=true }
+local RusherNamees = { Rush=true, Ambush=true, Eyes=true, Lookman=true, Blitz=true, ["Bash"]=true, ["Scribble"]=true, AR0xMBUSH=true, ["RNIUSHCG=="]=true, ["Custom Entity"]=true, }
 
 Con.EntityHandler = Services.Workspace.ChildAdded:Connect(function(Entity)
 	local EntityData = Entities[Entity.Name]
