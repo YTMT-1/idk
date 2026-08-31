@@ -261,6 +261,8 @@ local CollisionPartClone
 local Camera
 local LocalPlayer = Services.Players.LocalPlayer
 
+local FloorReplicated = Services.ReplicatedStorage:WaitForChild("FloorReplicated")
+local ClientRemote = FloorReplicated:WaitForChild("ClientRemote")
 local RemotesFolder   = Services.ReplicatedStorage:FindFirstChild("RemotesFolder")
 local LiveModifiers   = Services.ReplicatedStorage:FindFirstChild("LiveModifiers")
 local FloorReplicated = Services.ReplicatedStorage:FindFirstChild("FloorReplicated")
@@ -2103,8 +2105,7 @@ local function SyncEntityRemoval()
 	else
 		RenameModule(EM, "Glitch_Disabled", "Glitch")
 	end
-	local FloorReplicated = Services("ReplicatedStorage"):WaitForChild("FloorReplicated")
-	local ClientRemote = FloorReplicated:WaitForChild("ClientRemote")
+
 
 	local function processAlma(Value)
 		if Value then
