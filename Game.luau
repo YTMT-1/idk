@@ -262,7 +262,7 @@ local Camera
 local LocalPlayer = Services.Players.LocalPlayer
 
 local FloorReplicated = Services.ReplicatedStorage:WaitForChild("FloorReplicated")
-local ClientRemote = FloorReplicated:WaitForChild("ClientRemote")
+local ClientRemote 	  = FloorReplicated:WaitForChild("ClientRemote")
 local RemotesFolder   = Services.ReplicatedStorage:FindFirstChild("RemotesFolder")
 local LiveModifiers   = Services.ReplicatedStorage:FindFirstChild("LiveModifiers")
 local FloorReplicated = Services.ReplicatedStorage:FindFirstChild("FloorReplicated")
@@ -2063,10 +2063,10 @@ local function SyncEntityRemoval()
 			RenameModule(ClientRemote, "RansomInfect", "RansomInfect_Disabled")
 			local ransom = ClientRemote:FindFirstChild("RansomInfect_Disabled")
 			if ransom then
-				ransom.Parent = MyFolderRemotes
+				ransom.Parent = Workspace.My_Folder
 			end
 		else
-			local ransom = MyFolderRemotes:FindFirstChild("RansomInfect_Disabled")
+			local ransom = Workspace.My_Folder:FindFirstChild("RansomInfect_Disabled")
 			if ransom then
 				ransom.Parent = ClientRemote
 			end
@@ -2081,7 +2081,7 @@ local function SyncEntityRemoval()
 	ClientRemote.ChildAdded:Connect(function(child)
 		if Toggles.RemoveA90.Value and child.Name == "RansomInfect" then
 			RenameModule(ClientRemote, "RansomInfect", "RansomInfect_Disabled")
-			child.Parent = MyFolderRemotes
+			child.Parent = Workspace.My_Folder
 		end
 	end)
 	if Toggles.RemoveDread.Value then
@@ -2110,10 +2110,10 @@ local function SyncEntityRemoval()
 			RenameModule(ClientRemote, "AlmaClient", "AlmaClient_Disabled")
 			local alma = ClientRemote:FindFirstChild("AlmaClient_Disabled")
 			if alma then
-				alma.Parent = MyFolderRemotes
+				alma.Parent = Workspace.My_Folder
 			end
 		else
-			local alma = MyFolderRemotes:FindFirstChild("AlmaClient_Disabled")
+			local alma = Workspace.My_Folder:FindFirstChild("AlmaClient_Disabled")
 			if alma then
 				alma.Parent = ClientRemote
 			end
@@ -2128,7 +2128,7 @@ local function SyncEntityRemoval()
 	ClientRemote.ChildAdded:Connect(function(child)
 		if Toggles.RemoveAlma.Value and child.Name == "AlmaClient" then
 			RenameModule(ClientRemote, "AlmaClient", "AlmaClient_Disabled")
-			child.Parent = MyFolderRemotes
+			child.Parent = Workspace.My_Folder
 		end
 	end)
 	if Toggles.DisableVoidJumpscare.Value then
