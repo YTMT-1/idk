@@ -1380,7 +1380,7 @@ Toggles.BypassDrones:OnChanged(function(Value)
 end)
 
 workspace.ChildAdded:Connect(function(child)
-    if Toggles.BypassDrones.Value and child.Name == "Drones" then
+    if Toggles.BypassDrones.Value and child.Name == "Drones" and child.Name == "DronesStampede" then
         processDrone(child, true)
     end
 end)
@@ -2103,7 +2103,7 @@ local function SyncEntityRemoval()
 	else
 		RenameModule(EM, "Glitch_Disabled", "Glitch")
 	end
-	local FloorReplicated = Services.("ReplicatedStorage"):WaitForChild("FloorReplicated")
+	local FloorReplicated = Services("ReplicatedStorage"):WaitForChild("FloorReplicated")
 	local ClientRemote = FloorReplicated:WaitForChild("ClientRemote")
 
 	local function processAlma(Value)
