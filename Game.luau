@@ -1252,8 +1252,8 @@ Toggles.AutoInteractToggle:AddKeyPicker("AutoInteractKeybind", {
 })
 Gb.Self_Automation:AddDropdown("AutoInteractIgnoreList", {
  	Text = "Ignore List",
- 	Values = { "Glitch Fragments", "Jeff Items", "Dropped Items", "Currency", "Minecarts", "Locks", "Chairs" },
- 	Default = { "Glitch Fragments", "Jeff Items", "Dropped Items", "Minecarts", "Chairs" },
+ 	Values = { "Glitch Fragments", "Jeff Items", "Dropped Items", "Currency", "Minecarts", "Locks", "Chairs", "Printer Scanner" },
+ 	Default = { "Glitch Fragments", "Jeff Items", "Dropped Items", "Minecarts", "Chairs", "Printer Scanner" },
  	Multi = true, AllowNull = true
  })
 
@@ -1380,18 +1380,22 @@ local function processDrone(object, shouldBypass)
         if walkedInto then
             walkedInto.Name = shouldBypass and "_WalkedInto" or "WalkedInto"
         end
-	elseif object.Name == "DronesStampede" then
+	end
+end
+local function processStampede(object, shouldBypass)
+	if object.Name == "DronesStampede" then
 		local walkedInto = object:FindFirstChild(shouldBypass and "Trampled" or "_Trampled")
         if walkedInto then
             walkedInto.Name = shouldBypass and "_Trampled" or "Trampled"
         end
     end
 end
-
 Toggles.BypassDrones:OnChanged(function(Value)
     for _, Object in pairs(Objects.Entities) do
         processDrone(Object, Value)
     end
+	for _, Object in pairs(Objects.Entities) do
+		processStampede(Object, Value)
 end)
 
 workspace.ChildAdded:Connect(function(child)
@@ -2073,17 +2077,7 @@ local function SyncEntityRemoval()
 
 	local function processRansom(Value)
 		if Value then
-			RenameModule(ClientRemote, "RansomInfect", "RansomInfect_Disabled")
-			local ransom = ClientRemote:FindFirstChild("RansomInfect_Disabled")
-			if ransom then
-				ransom.Parent = Workspace.My_Folder
-			end
-		else
-			local ransom = Workspace.My_Folder:FindFirstChild("RansomInfect_Disabled")
-			if ransom then
-				ransom.Parent = ClientRemote
-			end
-			RenameModule(ClientRemote, "RansomInfect_Disabled", "RansomInfect")
+			ClientRemote:FindFirstChild("RansomInfect"):Destory()
 		end
 	end
 
@@ -2093,8 +2087,7 @@ local function SyncEntityRemoval()
 
 	ClientRemote.ChildAdded:Connect(function(child)
 		if Toggles.RemoveA90.Value and child.Name == "RansomInfect" then
-			RenameModule(ClientRemote, "RansomInfect", "RansomInfect_Disabled")
-			child.Parent = Workspace.My_Folder
+			ClientRemote:FindFirstChild("RansomInfect"):Destory()
 		end
 	end)
 	if Toggles.RemoveDread.Value then
@@ -2456,6 +2449,7 @@ local EntityESPLabels = {
 	JeffTheKiller = "Jeff the Killer", GiggleCeiling = "Giggle",
 	Snare = "Snare", GrumbleRig = "Grumble",  TellerRig = "Teller",
 	Drones = "Drones",
+	DronesStampede = "Stampede"
 	Drakobloxxer = "Drakobloxxer", Hole = "Mandrake Hole", Groundskeeper = "Groundskeeper",
 	LiveEntityBramble = "Bramble", Figure = "Figure", FigureRig = "Figure", FigureRagdoll = "Figure",
 	FakeDoor = "Dupe", DoorFake = "Dupe",
@@ -5088,7 +5082,7 @@ Functions.TriggerPrompt = function(Prompt)
 		or (Prompt.Parent.Name == "ElectricalKeyObtain" and Functions.HasItem("KeyElectrical"))
 	then return end
 
-	if (Prompt:IsDescendantOf(Drops) or Prompt.Parent.Name == "PaperPlanePickup") and Options.AutoInteractIgnoreList.Value["Dropped Items"] then return end
+	if (Prompt:IsDescendantOf(Drops) or Prompt.Parent.Name == "PaperPlanePickup" or Prompt.Parent.Name == "PaperPlane") and Options.AutoInteractIgnoreList.Value["Dropped Items"] then return end
 	if Prompt.Parent.Name == "TrackLever" then return end
 	if Prompt.Name == "ActivateEventPrompt" and (Prompt.ActionText == "Close"
 		or Prompt.Parent.Name == "ElevatorBreaker"
@@ -5101,6 +5095,7 @@ Functions.TriggerPrompt = function(Prompt)
 	if Prompt:GetAttribute("AutoInteractIgnore") then return end
 	if Prompt.Name == "PushPrompt" and Options.AutoInteractIgnoreList.Value["Minecarts"] then return end
 	if (Prompt.Name == "SeatPrompt" or Prompt.Name == "CartPrompt") and Options.AutoInteractIgnoreList.Value["Chairs"] then return end
+	if (Prompt.Parent.Parent.Name == "ArchivesLargePrinter" or Prompt.Name == "CartPrompt") and Options.AutoInteractIgnoreList.Value["Printer Scanner"] then return end
 	if (Prompt.Parent.Name == "GoldPile" or Prompt.Parent.Name == "StardustPickup") and Options.AutoInteractIgnoreList.Value["Currency"] then return end
 
 	if Prompt.Parent.Name == "Bandage" then
