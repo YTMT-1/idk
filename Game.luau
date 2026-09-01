@@ -2448,7 +2448,7 @@ local EntityESPLabels = {
 	JeffTheKiller = "Jeff the Killer", GiggleCeiling = "Giggle",
 	Snare = "Snare", GrumbleRig = "Grumble",  TellerRig = "Teller",
 	Drones = "Drones",
-	DronesStampede = "Stampede"
+	DronesStampede = "Stampede",
 	Drakobloxxer = "Drakobloxxer", Hole = "Mandrake Hole", Groundskeeper = "Groundskeeper",
 	LiveEntityBramble = "Bramble", Figure = "Figure", FigureRig = "Figure", FigureRagdoll = "Figure",
 	FakeDoor = "Dupe", DoorFake = "Dupe",
