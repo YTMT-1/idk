@@ -67,7 +67,9 @@ return function(Window)
 	User:AddLabel(Greeting .. ", " .. LocalPlayer.Name .. ", Thanks For Using This Script Also You Executed This Script: " .. (YT_MT.TotalExecutions and tostring(YT_MT.TotalExecutions) or "N/A") .. " times.", true)
 	
 	User:AddImage("CustomAsset", {
-		Image = "rbxassetid://85133768635664"
+		Image = "rbxassetid://85133768635664",
+		Height = 50,
+		Transparency = 0,
 	})
 
 	User:AddDivider()
