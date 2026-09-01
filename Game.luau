@@ -5086,7 +5086,7 @@ Functions.TriggerPrompt = function(Prompt)
 	if Prompt.Parent:GetAttribute("JeffShop") and Options.AutoInteractIgnoreList.Value["Jeff Items"] then return end
 	if Prompt:GetAttribute("AutoInteractIgnore") then return end
 	if Prompt.Name == "PushPrompt" and Options.AutoInteractIgnoreList.Value["Minecarts"] then return end
-	if Prompt.Name == "SeatPrompt" and Prompt.Name == "CartPrompt" and Options.AutoInteractIgnoreList.Value["Chairs"] then return end
+	if (Prompt.Name == "SeatPrompt" or Prompt.Name == "CartPrompt") and Options.AutoInteractIgnoreList.Value["Chairs"] then return end
 	if (Prompt.Parent.Name == "GoldPile" or Prompt.Parent.Name == "StardustPickup") and Options.AutoInteractIgnoreList.Value["Currency"] then return end
 
 	if Prompt.Parent.Name == "Bandage" then
