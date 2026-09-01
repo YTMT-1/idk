@@ -17,29 +17,24 @@ local placeToFile = {
     [74871629393921] = "Lobby.luau",
 }
 
-local filename = placeToFile[game.PlaceId]
-if filename then
-    local ok, bodyOrErr = pcall(function()
-        return game:HttpGet(BaseUrl .. filename)
-    end)
-else
-    local ok, bodyOrErr = pcall(function()
-        return game:HttpGet(BaseUrl .."Universal.luau")
-    end)
+local filename = placeToFile[game.PlaceId] or "Universal.luau"
 
-    if not ok then
-        warn("HttpGet failed:", bodyOrErr)
-        return
-    end
+local ok, bodyOrErr = pcall(function()
+    return game:HttpGet(BaseUrl .. filename)
+end)
 
-    local chunk, loadErr = loadstring(bodyOrErr)
-    if not chunk then
-        warn("loadstring error:", loadErr)
-        return
-    end
+if not ok then
+    warn("HttpGet failed:", bodyOrErr)
+    return
+end
 
-    local success, runErr = pcall(chunk)
-    if not success then
-        warn("error running loaded code:", runErr)
-    end
+local chunk, loadErr = loadstring(bodyOrErr)
+if not chunk then
+    warn("loadstring error:", loadErr)
+    return
+end
+
+local success, runErr = pcall(chunk)
+if not success then
+    warn("error running loaded code:", runErr)
 end
