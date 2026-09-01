@@ -124,9 +124,9 @@ local Toggle = Gb.Exploits_Colors:AddToggle("FovCircleToggle", {
 Toggle:AddColorPicker("FOVCircleColor", {
 	Text = "FOV Circle Color", Default = Color3.fromRGB(255, 255, 255)
 })
-Gb.Exploits_Colors:AddColorPicker("TargetColor", {
+--[[Gb.Exploits_Colors:AddColorPicker("TargetColor", {
 	Text = "Current Target Color", Default = Color3.fromRGB(0, 255, 0)
-})
+})]]--
 
 Gb.Exploits_Settings = Tabs.Exploits:AddLeftGroupbox("Settings")
 Gb.Exploits_Settings:AddToggle("StickyAimbot", {
