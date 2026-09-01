@@ -1393,9 +1393,8 @@ end
 Toggles.BypassDrones:OnChanged(function(Value)
     for _, Object in pairs(Objects.Entities) do
         processDrone(Object, Value)
+        processStampede(Object, Value)
     end
-	for _, Object in pairs(Objects.Entities) do
-		processStampede(Object, Value)
 end)
 
 workspace.ChildAdded:Connect(function(child)
