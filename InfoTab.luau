@@ -67,10 +67,13 @@ return function(Window)
 	User:AddLabel(Greeting .. ", " .. LocalPlayer.Name .. ", Thanks For Using This Script Also You Executed This Script: " .. (YT_MT.TotalExecutions and tostring(YT_MT.TotalExecutions) or "N/A") .. " times.", true)
 	User:AddDivider()
 
-	local Changelog = InfoTab:AddRightGroupbox("Changelog")
-	for Index, Change in pairs(LatestChangelog) do
-		Changelog:AddLabel(Change, true)
-	end
+	InfoTab:UpdateWarningBox({
+		Title = "Changelogs",
+		Text = table.concat(LatestChangelog, "\n"),
+		IsNormal = true,
+		Visible = true,
+		LockSize = true,
+	})
 
 	local Name, Version = YT_MT.Environment.identifyexecutor()
 	local Executor = InfoTab:AddRightGroupbox("Executor Info")
