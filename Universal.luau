@@ -118,7 +118,7 @@ Gb.Main_Misc:AddButton({
 })
 
 Gb.Exploits_Colors = Tabs.Exploits:AddLeftGroupbox("Colors")
-Gb.Exploits_Colors:AddToggle("FovCircleToggle", {
+local Toggle = Gb.Exploits_Colors:AddToggle("FovCircleToggle", {
 	Text = "FOV Circle", Default = false
 })
 Toggle.FovCircleToggle:AddColorPicker("FOVCircleColor", {
