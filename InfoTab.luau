@@ -1,5 +1,11 @@
 return function(Window)
 	local LatestChangelog = {
+		"1/9/2026",
+		"<font color='rgb(0, 255, 0)'>+ Add Clock Notify.</font>",
+		"29/8/2026",
+		"<font color='rgb(0, 255, 0)'>+ Fixing Bypass Drones Not Work.</font>",
+		"27/8/2026",
+		"<font color='rgb(0, 255, 0)'>+ Archives Support.</font>",
 		"10/8/2026",
 		"<font color='rgb(0, 255, 0)'>+ Figure Old Supports.</font>",
 		"7/8/2026",
@@ -49,13 +55,13 @@ return function(Window)
 	
 	local Greeting
 	if Hour >= 5 and Hour < 12 then
-	    Greeting = "Good Morning"
+		Greeting = "Good Morning"
 	elseif Hour >= 12 and Hour < 17 then
-	    Greeting = "Good Afternoon"
+		Greeting = "Good Afternoon"
 	elseif Hour >= 17 and Hour < 21 then
-	    Greeting = "Good Evening"
+		Greeting = "Good Evening"
 	else
-	    Greeting = "Good Night"
+		Greeting = "Good Night"
 	end
 	
 	User:AddLabel(Greeting .. ", " .. LocalPlayer.Name .. ", Thanks For Using This Script Also You Executed This Script: " .. (YT_MT.TotalExecutions and tostring(YT_MT.TotalExecutions) or "N/A") .. " times.", true)
