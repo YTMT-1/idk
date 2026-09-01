@@ -22,6 +22,10 @@ if filename then
     local ok, bodyOrErr = pcall(function()
         return game:HttpGet(BaseUrl .. filename)
     end)
+else
+    local ok, bodyOrErr = pcall(function()
+        return game:HttpGet(BaseUrl .."Universal.luau")
+    end)
 
     if not ok then
         warn("HttpGet failed:", bodyOrErr)
