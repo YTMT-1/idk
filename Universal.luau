@@ -121,7 +121,7 @@ Gb.Exploits_Colors = Tabs.Exploits:AddLeftGroupbox("Colors")
 local Toggle = Gb.Exploits_Colors:AddToggle("FovCircleToggle", {
 	Text = "FOV Circle", Default = false
 })
-Toggle.FovCircleToggle:AddColorPicker("FOVCircleColor", {
+Toggle:AddColorPicker("FOVCircleColor", {
 	Text = "FOV Circle Color", Default = Color3.fromRGB(255, 255, 255)
 })
 Gb.Exploits_Colors:AddColorPicker("TargetColor", {
