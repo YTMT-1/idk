@@ -454,6 +454,19 @@ Functions.GetHasteTime = function()
 	return MinutesText .. ":" .. SecondsText
 end
 
+Functions.GetClockTime = function()
+    local TimeRemaining = GameData.ArchivesClockTime.Value
+    local TotalSeconds = math.floor(TimeRemaining)
+    
+    local Minutes = math.floor(TotalSeconds / 60)
+    local Seconds = TotalSeconds % 60
+    
+    local MinutesText = Minutes < 10 and ("0" .. tostring(Minutes)) or tostring(Minutes)
+    local SecondsText = Seconds < 10 and ("0" .. tostring(Seconds)) or tostring(Seconds)
+    
+    return MinutesText .. ":" .. SecondsText
+end
+
 Library.OldNotify = Library.Notify
 Library.Notify = function(Data, Body, Time)
 	Functions.Notify({ Title = Body, Time = Time or 5 })
@@ -2308,6 +2321,7 @@ Gb.Visuals_Entities:AddDivider()
 Gb.Visuals_Entities:AddToggle("NotifyLibraryCode", { Text = "Notify Library Code", Default = false, Tooltip = "Automatically solves the code for the library padlock." })
 Gb.Visuals_Entities:AddToggle("NotifyOxygen",      { Text = "Notify Oxygen Level", Default = false, Tooltip = "Shows how much oxygen you have remaining." })
 Gb.Visuals_Entities:AddToggle("NotifyHasteTime",   { Text = "Notify Haste Time",   Default = false, Tooltip = "Shows how much time you have remaining before 'Haste' spawns." })
+Gb.Visuals_Entities:AddToggle("NotifyClockTime",   { Text = "Notify Archives Clock Time",   Default = false, Tooltip = "Shows how much time in Archives" })
 
 Globals.LibraryCodeFound = false
 Toggles.NotifyLibraryCode:OnChanged(function(Value)
@@ -5074,7 +5088,7 @@ Functions.TriggerPrompt = function(Prompt)
 		or (Prompt.Parent.Name == "ElectricalKeyObtain" and Functions.HasItem("KeyElectrical"))
 	then return end
 
-	if Prompt:IsDescendantOf(Drops) and Options.AutoInteractIgnoreList.Value["Dropped Items"] then return end
+	if (Prompt:IsDescendantOf(Drops) or Prompt.Parent.Name == "PaperPlanePickup") and Options.AutoInteractIgnoreList.Value["Dropped Items"] then return end
 	if Prompt.Parent.Name == "TrackLever" then return end
 	if Prompt.Name == "ActivateEventPrompt" and (Prompt.ActionText == "Close"
 		or Prompt.Parent.Name == "ElevatorBreaker"
@@ -5299,6 +5313,12 @@ end)
 if FloorReplicated:FindFirstChild("DigitalTimer") then
 	Con.HasteTimerConnection = FloorReplicated.DigitalTimer:GetPropertyChangedSignal("Value"):Connect(function()
 		if Toggles.NotifyHasteTime.Value then Functions.Caption(Functions.GetHasteTime(), true) end
+	end)
+end
+
+if GameData:FindFirstChild("ArchivesClockTime") then
+	Con.ClockTimerConnection = GameData.ArchivesClockTime:GetPropertyChangedSignal("Value"):Connect(function()
+		if Toggles.NotifyClockTime.Value then Functions.Caption(Functions.GetClockTime(), true) end
 	end)
 end
 
