@@ -5595,3 +5595,48 @@ if success and type(AddonsTab) == "function" then
     end)
 end
 Functions.Notify({ Title = "YT_MT", Body = "YT_MT Hub Susscesfully loaded, orignal script by Geroge (Blackking Owner).", Image = YTMT})
+
+local Stats = game:GetService("Stats")
+local RunService = game:GetService("RunService")
+
+local DraggableLabel = Library:AddDraggableLabel("Status")
+DraggableLabel:SetVisible(true)
+
+local function GetGreeting()
+    local Hour = os.date("*t").hour
+    if Hour >= 5 and Hour < 12 then
+        return "Good Morning"
+    elseif Hour >= 12 and Hour < 17 then
+        return "Good Afternoon"
+    elseif Hour >= 17 and Hour < 21 then
+        return "Good Evening"
+    else
+        return "Good Night"
+    end
+end
+
+local FrameTimer = tick()
+local FrameCounter = 0
+local FPS = 60
+
+local WatermarkConnection = RunService.RenderStepped:Connect(function()
+    FrameCounter += 1
+
+    if (tick() - FrameTimer) >= 1 then
+        FPS = FrameCounter
+        FrameTimer = tick()
+        FrameCounter = 0
+    end
+
+    local Greeting = GetGreeting()
+    local Ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
+    local Username = LocalPlayer and LocalPlayer.Name or "User"
+
+    DraggableLabel:SetText(("%s | %s, %s | %s ms | %s fps"):format(
+        "YT_MT Hub",
+        Greeting,
+        Username,
+        Ping,
+        math.floor(FPS)
+    ))
+end)
