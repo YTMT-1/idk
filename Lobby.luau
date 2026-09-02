@@ -1,625 +1,130 @@
-local LoadStart = tick()
-YT_MT.SavePath = "Doors/Lobby"
-YTMT = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/YT_MT%20Image.png"
+return function(Window)
+	local LatestChangelog = {
+		"10/8/2026",
+		"<font color='rgb(0, 255, 0)'>+ Figure Old Supports.</font>",
+		"7/8/2026",
+		"<font color='rgb(0, 255, 0)'>+ Anti Mandrake.</font>",
+		"<font color='rgb(0, 255, 0)'>+ Auto Complete Maze (Outdoors).</font>",
+		"<font color='rgb(0, 255, 0)'>+ Lobby Support.</font>",
+		"<font color='rgb(0, 255, 0)'>+ Fixed Bugs.</font>",
+	}
 
-local Library = YT_MT.Interface.Library
-local SaveManager = YT_MT.Interface.SaveManager
-local ThemeManager = YT_MT.Interface.ThemeManager
+	local function CloneReference(Object)
+		if YT_MT and YT_MT.Environment.cloneref then
+			return YT_MT.Environment.cloneref(Object)
+		else
+			return Object
+		end
+	end
 
-local Toggles = Library.Toggles
-local Options = Library.Options
+	local Services = setmetatable({}, {
+		__index = function(self, Name)
+			return CloneReference(game:GetService(Name))
+		end
+	})
 
-local function CloneReference(Object)
-    if YT_MT and YT_MT.Environment.cloneref then
-        return YT_MT.Environment.cloneref(Object)
-    else
-        return Object
-    end
-end
+	local Library = YT_MT.Interface.Library
+	local SaveManager = YT_MT.Interface.SaveManager
+	local ThemeManager = YT_MT.Interface.ThemeManager
 
-local Services = setmetatable({}, {
-    __index = function(self, Name)
-        return CloneReference(game:GetService(Name))
-    end
-})
+	local Toggles = Library.Toggles
+	local Options = Library.Options
 
-local Gb = {}
-local Globals = {}
-local Con = {}
-local Functions = {}
+	local LocalPlayer = Services.Players.LocalPlayer
+	local InfoTab = Window:AddTab("Info", "door-closed")
 
-local LocalPlayer = Services.Players.LocalPlayer
-local RemotesFolder = Services.ReplicatedStorage:WaitForChild("RemotesFolder")
+	local User = InfoTab:AddLeftGroupbox("User Info")
 
-while not LocalPlayer.Character do
-    task.wait()
-end
-task.wait(1)
+	local ImageSize = Enum.ThumbnailSize.Size420x420
+	local ImageType = Enum.ThumbnailType.HeadShot
 
-local Window = Library:CreateWindow({
-	Title = "YT_MT Hub",
-	Icon = YTMT,
-	Footer = "Modify by YT_MT(manhtien_yt.) in Discord, Orignal Script By Geroge Join Blackking Discord dsc.gg/BlackKing",
-	NotifySide = "Right",
-	ShowCustomCursor = false,
-	AutoShow = true,
-	Center = true,
-	TabPadding = 3,
-	MenuFadeTime = 0,
-	CornerRadius = 5,
-})
+	local Content = Services.Players:GetUserThumbnailAsync(LocalPlayer.UserId, ImageType, ImageSize)
 
-YT_MT.Interface.ApplyInfoTab(Window)
-local Tabs = {
-    General = Window:AddTab("General", "house"),
-}
+	User:AddImage("UserIcon", {
+		Image = Content
+	})
 
-Functions.CheckCompatability = function(Array)
-    local Valid = true
-    for Index, Name in pairs(Array) do
-        if not YT_MT.Environment[Name] then
-            Valid = false
-        end
-    end
-    return Valid
-end
-
-local function GetHiddenContainer()
-	if Functions.CheckCompatability({"gethui"}) then
-		return YT_MT.Environment.gethui()
+	local CurrentTime = os.date("*t")
+	local Hour = CurrentTime.hour
+	
+	local Greeting
+	if Hour >= 5 and Hour < 12 then
+	    Greeting = "Good Morning"
+	elseif Hour >= 12 and Hour < 17 then
+	    Greeting = "Good Afternoon"
+	elseif Hour >= 17 and Hour < 21 then
+	    Greeting = "Good Evening"
 	else
-		return Services.CoreGui
+	    Greeting = "Good Night"
 	end
-end
+	
+	User:AddLabel(Greeting .. ", " .. LocalPlayer.Name .. ", Thanks For Using This Script Also You Executed This Script: " .. (YT_MT.TotalExecutions and tostring(YT_MT.TotalExecutions) or "N/A") .. " times.", true)
+	User:AddDivider()
 
-Functions.Notify = function(Settings)
-    local ObsidianObj = getgenv().Library or getgenv().Obsidian or _G.Library
-    if ObsidianObj and type(ObsidianObj.Notify) == "function" then
-        ObsidianObj:Notify({
-            Title = Settings.Title,
-            Content = Settings.Body,
-            Duration = Settings.Time or 5
-        })
-    end
-end
-
-Functions.Caption = function(Text, PlaySound)
-	if typeof(PlaySound) ~= "boolean" then
-		PlaySound = true
-	end
-	local CaptionValue = Instance.new("NumberValue")
-	local Caption = Globals.MainUI:WaitForChild("MainFrame"):WaitForChild("Caption"):Clone()
-	local CaptionSound = Globals.MainUI:WaitForChild("Initiator"):WaitForChild("Main_Game"):WaitForChild("Reminder"):WaitForChild("Caption")
-	local CaptionSoundClone = CaptionSound:Clone()
-	CaptionSoundClone.Parent = CaptionSound.Parent
-	CaptionSoundClone.Volume = 0.1
-
-	Caption.Destroying:Connect(function()
-		CaptionValue:Destroy()
-	end)
-
-	for _, Child in Globals.MainUI:GetChildren() do
-		if Child.Name == "LiveCaption" then
-			Child:Destroy()
-		end
+	local Changelog = InfoTab:AddRightGroupbox("Changelog")
+	for Index, Change in pairs(LatestChangelog) do
+		Changelog:AddLabel(Change, true)
 	end
 
-	Caption.Parent = Globals.MainUI
-	Caption.Visible = true
-	Caption.Name = "LiveCaption"
-	Caption.Text = Text
+	local Name, Version = YT_MT.Environment.identifyexecutor()
+	local Executor = InfoTab:AddRightGroupbox("Executor Info")
 
-	if PlaySound then
-		CaptionSoundClone:Play()
+	for Index, Result in pairs(YT_MT.Environment.Results) do
+		-- fix for veloshitty 💔
+		Result = Result:gsub("<", "(")
+		Result = Result:gsub(">", ")")
+
+		Executor:AddLabel(Result, true)
 	end
 
-	Services.Debris:AddItem(CaptionSoundClone, 5)
-
-	local HolderTween = Services.TweenService:Create(CaptionValue, TweenInfo.new(3), { Value = 100 })
-	HolderTween:Play()
-	HolderTween.Completed:Connect(function()
-		CaptionValue:Destroy()
-		Services.TweenService:Create(Caption, TweenInfo.new(4, Enum.EasingStyle.Linear), { TextTransparency = 1 }):Play()
-		Services.TweenService:Create(Caption, TweenInfo.new(4, Enum.EasingStyle.Linear), { TextStrokeTransparency = 1 }):Play()
+	local Community = InfoTab:AddLeftGroupbox("Community")
+	Community:AddButton("Copy Discord Invite", function()
+		toclipboard("https://dsc.gg/gUsPTPYArx")
+		Library:Notify("Discord invite copied.")
 	end)
 end
 
-Functions.GetHasteTime = function()
-	local TimeRemaining = FloorReplicated.DigitalTimer.Value
-	local Minutes = math.floor(TimeRemaining / 60)
-	local Seconds = TimeRemaining - (Minutes * 60)
-	local MinutesText = Minutes < 10 and ("0" .. tostring(Minutes)) or tostring(Minutes)
-	local SecondsText = Seconds < 10 and ("0" .. tostring(Seconds)) or tostring(Seconds)
-	return MinutesText .. ":" .. SecondsText
-end
+local Stats = game:GetService("Stats")
+local RunService = game:GetService("RunService")
 
-Functions.CheckElevators = function()
-    local TargetFound = false
-	if not Toggles.AutoJoinElevator.Value then
-		return
-	end
-	local TargetCharacter
-	if typeof(Options.AutoJoinElevatorTarget.Value) == "Instance" then
-		TargetCharacter = Options.AutoJoinElevatorTarget.Value.Character
-	elseif typeof(Options.AutoJoinElevatorTarget.Value) == "string" then
-		TargetCharacter = Services.Players:FindFirstChild(Options.AutoJoinElevatorTarget.Value).Character
-	end
+local DraggableLabel = Library:AddDraggableLabel("Status")
+DraggableLabel:SetVisible(true)
 
-	for Index, Elevator in pairs(Services.Workspace.Lobby.LobbyElevators:GetChildren()) do
-		if TargetCharacter and Elevator and TargetCharacter:GetAttribute("InGameElevator") and Elevator:GetAttribute("ID") and Elevator:GetAttribute("ID") == TargetCharacter:GetAttribute("InGameElevator") then
-			TargetFound = true
-			RemotesFolder.ElevatorJoin:FireServer(Elevator)
-        end
-    end
-	if TargetFound == false then
-		RemotesFolder.ElevatorExit:FireServer()
-	end
-end
-
-Globals.RedeemingCodes = false
-Globals.CodesList = {
-    "67",
-	"54",
-	"41",
-	"CHEDDAR BALLS",
-	"XQC",
-	"PENGUINZ0",
-	"KREEKCRAFT",
-	"ISHOWSPEED",
-	"DANTDM",
-	"KUBZ SCOUTS",
-	"FIND THE TROLLFACES",
-	"THINKNOODLES",
-	"W",
-	"RAGDOLL UNIVERSE",
-	"RAGDOLL MAYHEM",
-	"BIJUU MIKE",
-	"8BITRYAN",
-	"SCREECHSUCKS",
-	"LORE",
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-	"FIND THE TROLLFACES",
-	"3rd",
-	"LAZYDEVS",
-	"RAGDOLL COMBAT",
-	"VOCAB HAVOC",
-	"PATHSWAP",
-	"JUMP OVER THE BRICK"
-}
-Globals.UnlockedBadges = {}
-
-Gb.General_Self = Tabs.General:AddLeftGroupbox("Self")
-
-Gb.General_Self:AddToggle("AutoJoinElevator", {
-    Text = "Auto Join Elevator",
-    Default = false,
-    Tooltip = "Automatically joins the selected player's elevator."
-})
-
-Gb.General_Self:AddDropdown("AutoJoinElevatorTarget", {
-    Text = "Target",
-    SpecialType = "Player",
-    ExcludeLocalPlayer = true,
-    Searchable = true
-})
-Gb.General_Self:AddDivider()
-Gb.General_Self:AddToggle("TwerkDance", { 
-    Text = "Twerk", 
-    Default = false, 
-    Tooltip = "just Twerk." 
-})
-local track
-
-Toggles.TwerkDance:OnChanged(function(Value)
-    if Value then
-        local char = LocalPlayer.Character
-        if not char then return end
-        
-        local hum = char:FindFirstChildOfClass("Humanoid")
-        if not hum then return end
-        
-        local anim = Instance.new("Animation")
-        anim.AnimationId = "rbxassetid://12874447851"
-        
-        track = hum:LoadAnimation(anim)
-        track.Looped = true
-        track:Play()
+local function GetGreeting()
+    local Hour = os.date("*t").hour
+    if Hour >= 5 and Hour < 12 then
+        return "Good Morning"
+    elseif Hour >= 12 and Hour < 17 then
+        return "Good Afternoon"
+    elseif Hour >= 17 and Hour < 21 then
+        return "Good Evening"
     else
-        if track then
-            track:Stop()
-        end
+        return "Good Night"
     end
-end)
-
-Gb.General_Automation = Tabs.General:AddLeftGroupbox("Automation")
-
-Gb.General_Automation:AddToggle("CycleAchievements", {
-    Text = "Cycle Achievements",
-    Default = false,
-    Tooltip = "Rapidly equips a random badge."
-})
-
-Gb.General_Automation:AddSlider("CycleAchievementsDelay", {
-    Text = "Cycle Delay",
-    Min = 0,
-    Max = 1,
-    Default = 0.1,
-    Rounding = 2,
-    Compact = true
-})
-
-Gb.General_Automation:AddDivider()
-
-Gb.General_Automation:AddButton("Redeem All Codes", function()
-    if Globals.RedeemingCodes then
-        return
-    end
-
-    Functions.Notify({Title = "Redeeming " .. #Globals.CodesList .. " codes.", Body = "Please wait."})
-    Globals.RedeemingCodes = true
-    for Index, Code in pairs(Globals.CodesList) do
-        RemotesFolder.ShopCode:FireServer(Code)
-        task.wait(5.1)
-    end
-end)
-
-for Index, Frame in pairs(LocalPlayer.PlayerGui.MainUI.LobbyFrame.Achievements.List:GetChildren()) do
-	if Frame:IsA("ImageButton") and Frame.ImageTransparency == 0 then
-		table.insert(Globals.UnlockedBadges, Frame.Name)
-	end
 end
 
-Con.BadgeAddedConnection = LocalPlayer.PlayerGui.MainUI.LobbyFrame.Achievements.List.ChildAdded:Connect(function(Frame)
-	Services.RunService.Heartbeat:Wait()
-	if Frame:IsA("ImageButton") and Frame.ImageTransparency == 0 then
-		table.insert(Globals.UnlockedBadges, Frame.Name)
-	end
+local FrameTimer = tick()
+local FrameCounter = 0
+local FPS = 60
+
+local WatermarkConnection = RunService.RenderStepped:Connect(function()
+    FrameCounter += 1
+
+    if (tick() - FrameTimer) >= 1 then
+        FPS = FrameCounter
+        FrameTimer = tick()
+        FrameCounter = 0
+    end
+
+    local Greeting = GetGreeting()
+    local Ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
+    local Username = LocalPlayer and LocalPlayer.Name or "User"
+
+    DraggableLabel:SetText(("%s | %s, %s | %s ms | %s fps"):format(
+        "YT_MT Hub",
+        Greeting,
+        Username,
+        Ping,
+        math.floor(FPS)
+    ))
 end)
-
-Globals.LastBadgeChange = tick()
-Globals.LastElevatorCheck = tick()
-Con.MainConnection = Services.RunService.Heartbeat:Connect(function()
-	if tick() - Globals.LastElevatorCheck > 0.25 then
-    	Functions.CheckElevators()
-		Globals.LastElevatorCheck = tick()
-	end
-
-    if Toggles.CycleAchievements.Value and tick() - Globals.LastBadgeChange > Options.CycleAchievementsDelay.Value then
-        local Badge = Globals.UnlockedBadges[math.random(1, #Globals.UnlockedBadges)]
-        if Badge == PreviousBadge then
-            while task.wait() do
-				local NewBadge = Globals.UnlockedBadges[math.random(1, #Globals.UnlockedBadges)]
-				if NewBadge ~= PreviousBadge then
-					Badge = NewBadge
-					break
-				end
-			end
-		end
-		for Index, Frame in pairs(LocalPlayer.PlayerGui.MainUI.LobbyFrame.Achievements.List:GetChildren()) do
-			if Frame:IsA("ImageButton") and Frame.ImageTransparency == 0 then
-				LocalPlayer.PlayerGui.MainUI.LobbyFrame.Achievements.List:FindFirstChild(Frame.Name).Icons.Star.Visible = false
-			end
-		end
-		RemotesFolder:WaitForChild("FlexAchievement"):FireServer(Badge)
-		PreviousBadge = Badge
-		LocalPlayer.PlayerGui.MainUI.LobbyFrame.Achievements.List:FindFirstChild(Badge).Icons.Star.Visible = true
-
-        Globals.LastBadgeChange = tick()
-	end
-end)
-
-Gb.General_QuickPlay = Tabs.General:AddRightGroupbox("Quick Play")
-Gb.General_QuickPlay:AddSlider("AmountOfPlayers", {
-    Text = "Amount Of Players",
-    Min = 1,
-    Max = 50,
-    Default = 1,
-    Rounding = 0,
-    Compact = true
-})
-Gb.General_QuickPlay:AddButton({
-	Text = "The Hotel",
-	DoubleClick = false,
-	Func = function()
-		RemotesFolder.CreateElevator:FireServer({
-        	Mods = {},
-        	Settings = {},
-        	Destination = "Hotel",
-        	FriendsOnly = false,
-        	MaxPlayers = Options.AmountOfPlayers.Value
-    	})
-	end
-})
-
-Gb.General_QuickPlay:AddButton({
-	Text = "The Mines",
-	DoubleClick = false,
-	Func = function()
-		RemotesFolder.CreateElevator:FireServer({
-        	Mods = {},
-        	Settings = {},
-        	Destination = "Mines",
-        	FriendsOnly = false,
-        	MaxPlayers = Options.AmountOfPlayers.Value
-    	})
-	end
-})
-
-Gb.General_QuickPlay:AddButton({
-	Text = "The Backdoor",
-	DoubleClick = false,
-	Func = function()
-		RemotesFolder.CreateElevator:FireServer({
-        	Mods = {},
-        	Settings = {},
-        	Destination = "Backdoor",
-        	FriendsOnly = false,
-        	MaxPlayers = Options.AmountOfPlayers.Value
-    	})
-	end
-})
-
-Gb.General_QuickPlay:AddButton({
-	Text = "The Rooms",
-	DoubleClick = false,
-	Func = function()
-		RemotesFolder.CreateElevator:FireServer({
-        	Mods = {},
-        	Settings = {},
-        	Destination = "Rooms",
-        	FriendsOnly = false,
-        	MaxPlayers = Options.AmountOfPlayers.Value
-    	})
-	end
-})
-
-Gb.General_QuickPlay:AddButton({
-	Text = "The Outdoors",
-	DoubleClick = false,
-	Func = function()
-		RemotesFolder.CreateElevator:FireServer({
-        	Mods = {},
-        	Settings = {},
-        	Destination = "Garden",
-        	FriendsOnly = false,
-        	MaxPlayers = Options.AmountOfPlayers.Value
-    	})
-	end
-})
-
-Gb.General_QuickPlay:AddDivider()
-
-Gb.General_QuickPlay:AddButton({
-	Text = "Battle Mode",
-	DoubleClick = false,
-	Func = function()
-		RemotesFolder.CreateElevator:FireServer({
-        	Mods = {},
-        	Settings = {},
-        	Destination = "Party",
-        	FriendsOnly = false,
-        	MaxPlayers = Options.AmountOfPlayers.Value
-    	})
-	end
-})
-
-Gb.General_QuickPlay:AddButton({
-	Text = "Retro Mode",
-	DoubleClick = false,
-	Func = function()
-		RemotesFolder.CreateElevator:FireServer({
-        	Mods = {},
-        	Settings = {},
-        	Destination = "Retro",
-        	FriendsOnly = false,
-        	MaxPlayers = Options.AmountOfPlayers.Value
-    	})
-	end
-})
-
-Gb.General_QuickPlay:AddButton({
-	Text = "Rush Mode",
-	DoubleClick = false,
-	Func = function()
-		RemotesFolder.CreateElevator:FireServer({
-        	Mods = {},
-        	Settings = {},
-        	Destination = "Fools26",
-        	FriendsOnly = false,
-        	MaxPlayers = Options.AmountOfPlayers.Value
-    	})
-	end
-})
-
-Gb.General_QuickPlay:AddDivider()
-
-Gb.General_QuickPlay:AddButton({
-	Text = "Halloween",
-	DoubleClick = false,
-	Func = function()
-		RemotesFolder.CreateElevator:FireServer({
-        	Mods = {},
-        	Settings = {},
-        	Destination = "Halloween25",
-        	FriendsOnly = false,
-        	MaxPlayers = Options.AmountOfPlayers.Value
-    	})
-	end
-})
-
-Gb.General_QuickPlay:AddButton({
-	Text = "Hotel-",
-	DoubleClick = false,
-	Func = function()
-		RemotesFolder.CreateElevator:FireServer({
-        	Mods = {},
-        	Settings = {},
-        	Destination = "BeforePlus",
-        	FriendsOnly = false,
-        	MaxPlayers = Options.AmountOfPlayers.Value
-    	})
-	end
-})
-
-Gb.General_QuickPlay:AddButton({
-	Text = "Super Hard Mode",
-	DoubleClick = false,
-	Func = function()
-		RemotesFolder.CreateElevator:FireServer({
-        	Mods = {},
-        	Settings = {},
-        	Destination = "SuperHardMode",
-        	FriendsOnly = false,
-        	MaxPlayers = Options.AmountOfPlayers.Value
-    	})
-	end
-})
-
-Gb.General_QuickPlay:AddDivider()
-
-Gb.General_QuickPlay:AddButton({
-	Text = "The Rooms [Free, No Progress]",
-	DoubleClick = false,
-	Func = function()
-		RemotesFolder.CreateElevator:FireServer({
-        	Mods = {
-				"AdminPanel"
-			},
-        	Settings = {},
-        	Destination = "Rooms",
-        	FriendsOnly = false,
-        	MaxPlayers = Options.AmountOfPlayers.Value
-    	})
-	end
-})
-
-Gb.General_QuickPlay:AddButton({
-	Text = "The Outdoors [Free, No Progress]",
-	DoubleClick = false,
-	Func = function()
-		RemotesFolder.CreateElevator:FireServer({
-        	Mods = {
-				"AdminPanel"
-			},
-        	Settings = {},
-        	Destination = "Garden",
-        	FriendsOnly = false,
-        	MaxPlayers = Options.AmountOfPlayers.Value
-    	})
-	end
-})
-
-Gb.General_Challenges = Tabs.General:AddRightGroupbox("Challenges")
-Gb.General_Challenges:AddButton({
-	Text = "Hotel Hell",
-	DoubleClick = false,
-	Func = function()
-		RemotesFolder.CreateElevator:FireServer({
-        Mods = {
-            "PlayerHealthLess",
-            "Gloombat",
-            "RoomsA90",
-            "EntitiesMost",
-            "EyesLevel2",
-            "DupeMost",
-            "BackdoorVacuum",
-            "BackdoorLookman",
-            "NoKeySound",
-            "BackdoorRush",
-            "EyesMore",
-            "Dread",
-            "FigureFaster",
-            "RushMore",
-            "LockMost",
-            "FiredampMost"
-        },
-        	Settings = {},
-        	Destination = "Hotel",
-        	FriendsOnly = false,
-        	MaxPlayers = Options.AmountOfPlayers.Value
-    	})
-	end
-})
-Gb.General_Challenges:AddButton({
-	Text = "Not Five Stars",
-	DoubleClick = false,
-	Func = function()
-		RemotesFolder.CreateElevator:FireServer({
-        Mods = {
-            "PlayerHealthLess",
-            "Gloombat",
-            "NoKeySound",
-            "PlayerLessSlots",
-            "GoldSpawnNone",
-            "LockMost"
-        },
-        	Settings = {},
-        	Destination = "Hotel",
-        	FriendsOnly = false,
-        	MaxPlayers = Options.AmountOfPlayers.Value
-    	})
-	end
-})
-Gb.General_Challenges:AddButton({
-	Text = "A hard Place",
-	DoubleClick = false,
-	Func = function()
-		RemotesFolder.CreateElevator:FireServer({
-        	Mods = {
-            "PlayerHealthLess",
-            "PlayerLeastSlots",
-            "RoomsA90",
-            "EntitiesMost",
-            "DupeMost",
-            "BackdoorVacuum",
-            "BackdoorLookman",
-            "NoKeySound",
-            "Dread",
-            "GoldSpawnNone",
-            "FigureFaster",
-            "RushQuiet",
-            "RushMore",
-            "FiredampMost"
-			},
-        	Settings = {},
-        	Destination = "Mines",
-        	FriendsOnly = false,
-        	MaxPlayers = Options.AmountOfPlayers.Value
-    	})
-	end
-})
-Gb.General_Challenges:AddButton({
-	Text = "Rocky Road",
-	DoubleClick = false,
-	Func = function()
-		RemotesFolder.CreateElevator:FireServer({
-        	Mods = {
-			"PlayerHealthLess",
-            "PlayerLessSlots",
-            "GoldSpawnNone",
-            "RushQuiet",
-            "FiredampMost"
-			},
-        	Settings = {},
-        	Destination = "Mines",
-        	FriendsOnly = false,
-        	MaxPlayers = Options.AmountOfPlayers.Value
-    	})
-	end
-})
-Library:OnUnload(function()
-    Con.MainConnection:Disconnect()
-	getgenv().YT_MT = nil
-end)
-
-YT_MT.Interface.ApplySettingsTab(Window)
-local success, AddonsTab = pcall(function()
-    return loadstring(game:HttpGet("https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/AddonsTab.luau"))()
-end)
-
-if success and type(AddonsTab) == "function" then
-    pcall(function()
-        AddonsTab(Window)
-    end)
-end
-Functions.Notify({ Title = "YT_MT", Body = "BlackKing Susscesfully loaded, orignal script by Geroge (Blackking Owner).", Time = 5})
