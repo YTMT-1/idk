@@ -22,6 +22,8 @@ return function(Window)
 	
 	local SettingsTab = Window:AddTab("Settings", "settings")
 	local MenuGroup = SettingsTab:AddLeftGroupbox("Menu")
+	SettingsTab:SetName("Settings")
+	SettingsTab:AddDescription("UI, Config, Animations, Theme Settings")
 	
 	MenuGroup:AddToggle("KeybindMenuOpen", {
 		Default = Library.KeybindFrame.Visible,
