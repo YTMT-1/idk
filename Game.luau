@@ -1067,6 +1067,15 @@ local Tabs = {
 	Floors   = Window:AddTab("Floors", "sparkles"),
 }
 
+Tabs.General:SetName("General")
+Tabs.General:SetDescription("Main features this game have.")
+Tabs.Exploits:SetName("Exploits")
+Tabs.Exploits:SetDescription("Exploits thing make playing that game more easily.")
+Tabs.Visuals:SetName("Visuals")
+Tabs.Visuals:SetDescription("Visual & ESP to know what's thing normal player can't see.")
+Tabs.Floors:SetName("Floors")
+Tabs.Floors:SetDescription("Floor specific features to make playing that floor more easily.")
+
 Gb.General_Character = Tabs.General:AddLeftGroupbox("Character")
 Gb.General_Character:AddSlider("SpeedBoostSlider", {
 	Text = "Speed Boost", Min = 0, Max = 100, Default = 0, Rounding = 0, Compact = true
