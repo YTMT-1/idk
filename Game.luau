@@ -2076,7 +2076,7 @@ local function SyncEntityRemoval()
 
 	local function processRansom(Value)
 		if Value then
-			ClientRemote:FindFirstChild("RansomInfect"):Destory()
+			ClientRemote.RansomInfect:Destroy()
 		end
 	end
 
@@ -2086,7 +2086,7 @@ local function SyncEntityRemoval()
 
 	ClientRemote.ChildAdded:Connect(function(child)
 		if Toggles.RemoveA90.Value and child.Name == "RansomInfect" then
-			ClientRemote:FindFirstChild("RansomInfect"):Destory()
+			ClientRemote.RansomInfect:Destroy()
 		end
 	end)
 	if Toggles.RemoveDread.Value then
