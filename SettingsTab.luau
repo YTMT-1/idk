@@ -130,7 +130,7 @@ return function(Window)
 	MenuGroup:AddButton("Unload", function()
 		Library:Unload()
 	end)
-	local AnimationsGroup = SettingsTab:AddLeftGroupbox("Animations", "sparkles")
+	local AnimationsGroup = SettingsTab:AddRightGroupbox("Animations", "sparkles")
 	
 	local function updateAnimations()
 	    local anims = Options.Animations.Value
