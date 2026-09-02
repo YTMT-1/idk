@@ -130,6 +130,68 @@ return function(Window)
 	MenuGroup:AddButton("Unload", function()
 		Library:Unload()
 	end)
+local AnimationsGroup = SettingsTab:AddLeftGroupbox("Animations", "sparkles")
+
+local function updateAnimations()
+    local anims = Options.Animations.Value
+    local direction = Options.TabSwitchDirection.Value:lower()
+    local transTime = Options.TabTrans.Value
+    local swipeOffset = Options.TabSwipe.Value
+    
+    Window:SetAnimations({ 
+        ToggleWindow = anims.ToggleWindow, 
+        TabSwitch = anims.TabSwitch, 
+        Groupbox = anims.Groupbox, 
+        Dropdown = anims.Dropdown, 
+        KeyPicker = anims.KeyPicker 
+    }, transTime, swipeOffset, direction)
+end
+
+AnimationsGroup:AddDropdown("TabSwitchDirection", {
+    Values = { "Left", "Right", "Top", "Bottom" },
+    Default = "Bottom",
+    Multi = false,
+    Text = "Tab Swipe Direction",
+    Callback = function(Value)
+        updateAnimations()
+    end
+})
+
+AnimationsGroup:AddDropdown("Animations", {
+    Values = { "ToggleWindow", "TabSwitch", "Groupbox", "Dropdown", "KeyPicker" },
+    Default = { "Groupbox", "Dropdown", "KeyPicker" },
+    Multi = true,
+    Text = "Enabled Animations",
+    Callback = function(Value)
+        updateAnimations()
+    end
+})
+
+AnimationsGroup:AddSlider("TabTrans", {
+    Text = "Tab Transition Time",
+    Default = 0.22,
+    Min = 0,
+    Max = 2,
+    Rounding = 2,
+    Suffix = "s",
+    Compact = true,
+    Callback = function(Value)
+        updateAnimations()
+    end
+})
+
+AnimationsGroup:AddSlider("TabSwipe", {
+    Text = "Tab Swipe Offset",
+    Default = 26,
+    Min = 0,
+    Max = 100,
+    Rounding = 0,
+    Suffix = "px",
+    Compact = true,
+    Callback = function(Value)
+        updateAnimations()
+    end
+})
 	
 	Library.ToggleKeybind = Options.MenuKeybind
 	
