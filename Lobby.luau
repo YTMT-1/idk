@@ -53,6 +53,8 @@ YT_MT.Interface.ApplyInfoTab(Window)
 local Tabs = {
     General = Window:AddTab("General", "house"),
 }
+Tabs.General:SetName("General")
+Tabs.General:SetDescription("Main features this game have.")
 
 Functions.CheckCompatability = function(Array)
     local Valid = true
