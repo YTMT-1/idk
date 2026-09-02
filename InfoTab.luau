@@ -38,6 +38,8 @@ return function(Window)
 
 	local LocalPlayer = Services.Players.LocalPlayer
 	local InfoTab = Window:AddTab("Info", "door-closed")
+	InfoTab:AddName("Info")
+	InfoTab:AddDescription("This tab check your username, executions and new changelogs")
 
 	local User = InfoTab:AddLeftGroupbox("User Info")
 
