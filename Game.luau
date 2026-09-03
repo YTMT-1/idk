@@ -1366,7 +1366,6 @@ Gb.Exploits_Bypass:AddToggle("AntiPuddle", {
 local DefaultHipHeight = Humanoid and Humanoid.HipHeight or 2.396
 Con.AntiPuddle = Services.RunService.Heartbeat:Connect(function()
 	if Toggles.AntiPuddle.Value and not Toggles.PositionSpoof.Value then
-		Functions.Notify({Title = "Anti Puddle",Body = "This will not work when you turn on Position Spoof!"})
 		if Humanoid.FloorMaterial == Enum.Material.Glass then
 			if Humanoid.HipHeight ~= 3 then Humanoid.HipHeight = 3 end
 		else
@@ -1870,12 +1869,13 @@ local Auto_Position_Spoof_Entity = {
     ["FrozenAmbush"] = true,
 }
 
-Gb.Exploits_BypassRight:AddToggle("PositionSpoof", {
+Gb.Exploits_BypassRight:AddToggle("AutoPositionSpoof", {
     Text = "Auto Position Spoof", Default = false,
     Tooltip = "Make Position Spoof Turn On When Entity Spawned."
 })
 
 local function checkActiveEntities()
+    if not Toggles.AutoPositionSpoof or not Toggles.AutoPositionSpoof.Value then return end
     local active = false
     for tag in pairs(Auto_Position_Spoof_Entity) do
         if workspace:FindFirstChild(tag, true) then
@@ -1889,13 +1889,15 @@ local function checkActiveEntities()
 end
 
 workspace.DescendantAdded:Connect(function(child)
-    if Auto_Position_Spoof_Entity[child.Name] and Toggles.PositionSpoof then
-        Toggles.PositionSpoof:SetValue(true)
+    if Toggles.AutoPositionSpoof and Toggles.AutoPositionSpoof.Value and Auto_Position_Spoof_Entity[child.Name] then
+        if Toggles.PositionSpoof then
+            Toggles.PositionSpoof:SetValue(true)
+        end
     end
 end)
 
 workspace.DescendantRemoving:Connect(function(child)
-    if Auto_Position_Spoof_Entity[child.Name] then
+    if Toggles.AutoPositionSpoof and Toggles.AutoPositionSpoof.Value and Auto_Position_Spoof_Entity[child.Name] then
         task.defer(checkActiveEntities)
     end
 end)
