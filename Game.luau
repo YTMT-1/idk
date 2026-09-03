@@ -32,6 +32,10 @@ local FakePrompts = {}
 local Functions = {}
 local PP = {}
 
+local AntiScribbles_OldNamecall
+local ScribblesHook = nil
+local AntiScribbles_IsHooked = false
+
 local Objects = {
 	Prompts = {},
 	Objectives = {},
@@ -1362,6 +1366,7 @@ Gb.Exploits_Bypass:AddToggle("AntiPuddle", {
 local DefaultHipHeight = Humanoid and Humanoid.HipHeight or 2.396
 Con.AntiPuddle = Services.RunService.Heartbeat:Connect(function()
 	if Toggles.AntiPuddle.Value and not Toggles.PositionSpoof.Value then
+		Functions.Notify({Title = "Anti Puddle",Body = "This will not work when you turn on Position Spoof!"})
 		if Humanoid.FloorMaterial == Enum.Material.Glass then
 			if Humanoid.HipHeight ~= 3 then Humanoid.HipHeight = 3 end
 		else
@@ -1404,6 +1409,26 @@ workspace.ChildAdded:Connect(function(child)
 end)
 
 Gb.Exploits_Bypass:AddToggle("BypassScribbles",         { Text = "Anti Scribbles",        Default = false, Tooltip = "Blocks 'Scribbles' damage and position updates." })
+
+Toggles.BypassScribbles:OnChanged(function(Value)
+	if AntiScribbles_Connection then
+		AntiScribbles_Connection:Disconnect()
+		AntiScribbles_Connection = nil
+	end
+
+	if not Value then
+		return
+	end
+
+	AntiScribbles_Connection = workspace.ChildAdded:Connect(function(Child)
+		if Child.Name == "Scribbles" and Toggles.BypassScribbles.Value then
+			local ExploitSribbleWarning = Child:FindFirstChild("IfYoureExploitingDeleteThis")
+			if ExploitSribbleWarning then
+				ExploitSribbleWarning:Destroy()
+			end
+		end
+	end)
+end)
 
 Toggles.BypassMandrake:OnChanged(function(Value)
 	for _, Object in Objects.Entities do
@@ -1834,6 +1859,46 @@ Gb.Exploits_BypassRight:AddToggle("PositionSpoof", {
 	Text = "Position Spoof", Default = false,
 	Tooltip = "Makes your character appear underground on the server, protecting you from rush-like entities."
 })
+local Auto_Position_Spoof_Entity = {
+    ["RushMoving"] = true,
+    ["AmbushMoving"] = true,
+    ["BackdoorRush"] = true,
+    ["BashMoving"] = true,
+    ["GlitchRush"] = true,
+    ["GlitchAmbush"] = true,
+    ["CustomEntity"] = true,
+    ["FrozenAmbush"] = true,
+}
+
+Gb.Exploits_BypassRight:AddToggle("PositionSpoof", {
+    Text = "Auto Position Spoof", Default = false,
+    Tooltip = "Make Position Spoof Turn On When Entity Spawned."
+})
+
+local function checkActiveEntities()
+    local active = false
+    for tag in pairs(Auto_Position_Spoof_Entity) do
+        if workspace:FindFirstChild(tag, true) then
+            active = true
+            break
+        end
+    end
+    if Toggles.PositionSpoof then
+        Toggles.PositionSpoof:SetValue(active)
+    end
+end
+
+workspace.DescendantAdded:Connect(function(child)
+    if Auto_Position_Spoof_Entity[child.Name] and Toggles.PositionSpoof then
+        Toggles.PositionSpoof:SetValue(true)
+    end
+end)
+
+workspace.DescendantRemoving:Connect(function(child)
+    if Auto_Position_Spoof_Entity[child.Name] then
+        task.defer(checkActiveEntities)
+    end
+end)
 
 Gb.Exploits_BypassRight:AddToggle("AntiFH", {
     Text = "Anti Figure Hearing",
@@ -5157,84 +5222,100 @@ Connections.AutoInteract = Services.RunService.Heartbeat:Connect(function()
 end)
 
 InfCrucifixRange = {
-	["RushMoving"] = 49,
-	["AmbushMoving"] = 50,
-	["A60"] = 49
+    ["RushMoving"] = 49,
+    ["AmbushMoving"] = 50,
+    ["A60"] = 49
 }
 
 local function DrawBeamBetween(A, B)
-	local dist = (A - B).Magnitude
-	if dist <= 0 then return end
-	local bar = Instance.new("Part")
-	bar.Anchored = true
-	bar.CanCollide = false bar.CanQuery = false
-	bar.Material = Enum.Material.Neon
-	bar.Color = Color3.fromRGB(255, 0, 0)
-	bar.Size = Vector3.new(0.2, 0.2, dist)
-	bar.CFrame = CFrame.lookAt(A, B) * CFrame.new(0, 0, -dist / 2)
-	bar.Parent = workspace
-	local tw = TweenService:Create(bar, TweenInfo.new(1.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Transparency = 1 })
-	tw:Play()
-	tw.Completed:Once(function() bar:Destroy() end)
+    local dist = (A - B).Magnitude
+    if dist <= 0 then return end
+    local bar = Instance.new("Part")
+    bar.Anchored = true
+    bar.CanCollide = false bar.CanQuery = false
+    bar.Material = Enum.Material.Neon
+    bar.Color = Color3.fromRGB(255, 0, 0)
+    bar.Size = Vector3.new(0.2, 0.2, dist)
+    bar.CFrame = CFrame.lookAt(A, B) * CFrame.new(0, 0, -dist / 2)
+    bar.Parent = workspace
+    local tw = TweenService:Create(bar, TweenInfo.new(1.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Transparency = 1 })
+    tw:Play()
+    tw.Completed:Once(function() bar:Destroy() end)
 end
 
 local function ScanForTargetEntity()
-	for tag in pairs(InfCrucifixRange) do
-		local obj = workspace:FindFirstChild(tag) or workspace:FindFirstChild(tag, true)
-		if obj and (obj:IsA("BasePart") or obj:IsA("Model")) then
-			return obj, tag
-		end
-	end
+    for tag in pairs(InfCrucifixRange) do
+        local obj = workspace:FindFirstChild(tag) or workspace:FindFirstChild(tag, true)
+        if obj and (obj:IsA("BasePart") or obj:IsA("Model")) then
+            return obj, tag
+        end
+    end
+end
+
+local function IsVisible(ent)
+    local camera = workspace.CurrentCamera
+    if not camera then return false end
+    local pos = ent:GetPivot().Position
+    local _, onScreen = camera:WorldToViewportPoint(pos)
+    if not onScreen then return false end
+    local rayParams = RaycastParams.new()
+    rayParams.FilterType = Enum.RaycastFilterType.Blacklist
+    rayParams.FilterDescendantsInstances = {Character, ent}
+    rayParams.IgnoreWater = true
+    local result = workspace:Raycast(camera.CFrame.Position, pos - camera.CFrame.Position, rayParams)
+    return result == nil
 end
 
 local function IsTargetInRange()
-	local ent, tag = ScanForTargetEntity()
-	local hrp = Character and Character:FindFirstChild("HumanoidRootPart")
-	if not ent or not hrp then return false end
-	return (ent:GetPivot().Position - hrp.Position).Magnitude < InfCrucifixRange[tag]
+    local ent, tag = ScanForTargetEntity()
+    local hrp = Character and Character:FindFirstChild("HumanoidRootPart")
+    if not ent or not hrp then return false end
+    local inDistance = (ent:GetPivot().Position - hrp.Position).Magnitude < InfCrucifixRange[tag]
+    local isVisible = IsVisible(ent)
+    return inDistance and isVisible
 end
 
 local function LocateDroppedCrucifix(hrp)
-	for _, obj in Drops:GetChildren() do
-		if obj.Name == "Crucifix" then return obj end
-	end
-	for _, obj in workspace:GetDescendants() do
-		if obj:IsA("Model") and obj.Name == "Crucifix" and not obj:IsDescendantOf(Character) then
-			if (obj:GetPivot().Position - hrp.Position).Magnitude < 25 then return obj end
-		end
-	end
+    for _, obj in Drops:GetChildren() do
+        if obj.Name == "Crucifix" then return obj end
+    end
+    for _, obj in workspace:GetDescendants() do
+        if obj:IsA("Model") and obj.Name == "Crucifix" and not obj:IsDescendantOf(Character) then
+            if (obj:GetPivot().Position - hrp.Position).Magnitude < 25 then return obj end
+        end
+    end
 end
 
 spawn(function()
-	while task.wait(0.1) do
-		local AnyTool = Character and Character:FindFirstChildOfClass("Tool")
-		if AnyTool and AnyTool.Name == "Crucifix"
-			and Toggles.InfiniteItemsToggle.Value
-			and Options.InfiniteItemsList.Value["Crucifix"]
-			and IsTargetInRange() then
-			local HRP = Character:FindFirstChild("HumanoidRootPart")
-			local Entity = ScanForTargetEntity()
-			if HRP and Entity and Floor ~= "Rooms" then
-				DrawBeamBetween(HRP.Position, Entity:GetPivot().Position)
-				Functions.Notify({ Title = "Infinite Items", Body = "Dropping Crucifix on the floor."})
-				RemotesFolder.DropItem:FireServer(AnyTool)
-				task.wait(0.1)
-				local Dropped = nil
-				for _ = 1, 40 do
-					Dropped = LocateDroppedCrucifix(HRP)
-					if Dropped then break end
-					task.wait(0.1)
-				end
-				if Dropped then
-					task.wait(0.4)
-					local Prompt = Dropped:FindFirstChildOfClass("ProximityPrompt", true)
-						or Dropped:FindFirstChild("ModulePrompt", true)
-					if Prompt then Functions.FirePrompt(Prompt) end
-				end
-			end
-			task.wait(2)
-		end
-	end
+    while task.wait(0.1) do
+        local AnyTool = Character and Character:FindFirstChildOfClass("Tool")
+        if AnyTool and AnyTool.Name == "Crucifix"
+            and Toggles.InfiniteItemsToggle.Value
+            and Options.InfiniteItemsList.Value["Crucifix"]
+            and IsTargetInRange() then
+            local HRP = Character:FindFirstChild("HumanoidRootPart")
+            local Entity = ScanForTargetEntity()
+            if HRP and Entity and Floor ~= "Rooms" then
+                DrawBeamBetween(HRP.Position, Entity:GetPivot().Position)
+                Functions.Notify({ Title = "Infinite Items", Body = "Dropping Crucifix on the floor."})
+                RemotesFolder.DropItem:FireServer(AnyTool)
+                task.wait(0.1)
+                local Dropped = nil
+                for _ = 1, 40 do
+                    Dropped = LocateDroppedCrucifix(HRP)
+                    if Dropped then break end
+                    task.wait(0.1)
+                end
+                if Dropped then
+                    task.wait(0.4)
+                    local Prompt = Dropped:FindFirstChildOfClass("ProximityPrompt", true)
+                        or Dropped:FindFirstChild("ModulePrompt", true)
+                    if Prompt then Functions.FirePrompt(Prompt) end
+                end
+            end
+            task.wait(2)
+        end
+    end
 end)
 
 Con.InfiniteItemsHandler = Services.ProximityPromptService.PromptTriggered:Connect(function(Object)
