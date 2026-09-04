@@ -1,15 +1,22 @@
-local Library = (YT_MT.UILibrary == "Linoria" and "LinoriaLib" or "Obsidian")
---local BaseUrl = "https://raw.githubusercontent.com/mstudio45/" .. Library .. "/refs/heads/main/"
-local BaseUrl = "https://raw.githubusercontent.com/deividcomsono/" .. Library .. "/refs/heads/main/"
+local UILibrary = YT_MT.UILibrary
+local Library = (UILibrary == "Linoria" and "LinoriaLib" or "Obsidian")
+local BaseUrl = nil
+
+if Library == "LinoriaLib" or Library == "Linoria" then
+    BaseUrl = "https://raw.githubusercontent.com/mstudio45/LinoriaLib/refs/heads/main/"
+else
+    BaseUrl = "https://raw.githubusercontent.com/deividcomsono/Obsidian/refs/heads/main/"
+end
+
 local YTMTUrl = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/"
 
 local Interface = {
-  Library = loadstring(game:HttpGet(BaseUrl .. "Library.lua"))(),
-  SaveManager = loadstring(game:HttpGet(BaseUrl .. "addons/SaveManager.lua"))(),
-  ThemeManager = loadstring(game:HttpGet(BaseUrl .. "addons/ThemeManager.lua"))(),
+	Library = loadstring(game:HttpGet(BaseUrl .. "Library.lua"))(),
+	SaveManager = loadstring(game:HttpGet(BaseUrl .. "addons/SaveManager.lua"))(),
+	ThemeManager = loadstring(game:HttpGet(BaseUrl .. "addons/ThemeManager.lua"))(),
 
-  ApplyInfoTab = loadstring(game:HttpGet(YTMTUrl .. "InfoTab.luau"))(),
-  ApplySettingsTab = loadstring(game:HttpGet(YTMTUrl .. "SettingsTab.luau"))()
+	ApplyInfoTab = loadstring(game:HttpGet(YTMTUrl .. "InfoTab.luau"))(),
+	ApplySettingsTab = loadstring(game:HttpGet(YTMTUrl .. "SettingsTab.luau"))()
 }
 
 Interface.ThemeManager.BuiltInThemes = {
