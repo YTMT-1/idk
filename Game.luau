@@ -1883,14 +1883,14 @@ local function checkActiveEntities()
             break
         end
     end
-    if Toggles.PositionSpoof then
+    if Toggles.PositionSpoof and Toggles.PositionSpoof.Value ~= active then
         Toggles.PositionSpoof:SetValue(active)
     end
 end
 
 workspace.DescendantAdded:Connect(function(child)
     if Toggles.AutoPositionSpoof and Toggles.AutoPositionSpoof.Value and Auto_Position_Spoof_Entity[child.Name] then
-        if Toggles.PositionSpoof then
+        if Toggles.PositionSpoof and not Toggles.PositionSpoof.Value then
             Toggles.PositionSpoof:SetValue(true)
         end
     end
@@ -1901,6 +1901,8 @@ workspace.DescendantRemoving:Connect(function(child)
         task.defer(checkActiveEntities)
     end
 end)
+
+Gb.Exploits_BypassRight:AddDivider()
 
 Gb.Exploits_BypassRight:AddToggle("AntiFH", {
     Text = "Anti Figure Hearing",
@@ -4883,12 +4885,12 @@ Functions.HandleObject = function(Object)
 				if Toggles.AutoUnlockPadlockToggle.Value then
 					local Code = Functions.GetLibraryCode()
 					if Code and tonumber(Code) and Distance < Options.AutoUnlockPadlockSlider.Value then
-						RemotesFolder.PL:FireServer(Code)
+						RemotesFolder.PadLockHint:FireServer(Code)
 					end
 				end
 				if Toggles.AutoLibraryGuessCode.Value and LatestRoom.Value == 50 then
 					local Code = Functions.GetRandomCode()
-					if Code then RemotesFolder.PL:FireServer(Code) end
+					if Code then RemotesFolder.PadLockHint:FireServer(Code) end
 				end
 			end
 		end)
