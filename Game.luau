@@ -2507,7 +2507,7 @@ local HidingSpotLabels = {
 	RetroWardrobe = "Closet", ["Wardrobe-FOOLS26"] = "Closet",
 	Locker_Large = "Locker", Rooms_Locker = "Locker", Rooms_Locker_Fridge = "Locker",
 	Bed = "Bed", Double_Bed = "Double Bed", CircularVent = "Vent", Dumpster = "Dumpster", HidingSpot3 = "Closet",
-	HidingSpot1 = "Closet", HidingSpot2 = "Closet", 
+	HidingSpot1 = "Closet", HidingSpot2 = "Closet", HidingSpot4 = "Closet",
 }
 local ChestLabels = {
 	ChestBox = true, ChestBoxLocked = true, Toolbox = true, Toolbox_Locked = true,
