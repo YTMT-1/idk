@@ -1,5 +1,9 @@
 return function(Window)
 	local LatestChangelog = {
+		"5/9/2026",
+		"<font color='rgb(0, 255, 0)'>+ Add Honcho Box Esp.</font>",
+		"3/9/2026",
+		"<font color='rgb(0, 255, 0)'>+ Add Auto Position Spoof</font>",
 		"1/9/2026",
 		"<font color='rgb(0, 255, 0)'>+ Add Clock Notify.</font>",
 		"29/8/2026",
