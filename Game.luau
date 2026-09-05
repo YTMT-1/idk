@@ -174,8 +174,10 @@ local EntityIcons = {
 }
 
 local ItemNames = {
+	["Leftovers"]         = "Lunch Box",
 	["Lighter"]           = "Lighter",
 	["PaperPlane"]        = "Paper Plane",
+	["SecretCD"]          = "CD Disc",
 	["HoneyPot"]          = "Honey Pot",
 	["PaperPlanePickup"]  = "Paper Plane",
 	["FihFlakes"]         = "Fih Flakes",
@@ -4289,6 +4291,46 @@ Functions.HandleObject = function(Object)
 					Functions.BlacklistESP(Object)
 				end)
 				table.insert(Objects.Objectives, Object)
+			end
+		end)
+	elseif Name == "ArchivesPackageDeposit" then
+		task.spawn(function()
+			task.wait(0.75)
+			if Object.Parent then
+				local boxID = Object:GetAttribute("BoxID") or "?"
+				local espText = string.format("Deposit [%s]", tostring(boxID))
+
+				if Toggles.ObjectiveESPToggle.Value then 
+					Functions.AddESP({ Object = Object, Text = espText, Color = Options.ObjectiveESPColor.Value }, true) 
+				end
+
+				table.insert(Objects.Objectives, Object)
+			end
+		end)
+	elseif Name == "ArchivesStorageBox" then
+		task.spawn(function()
+			task.wait(0.75)
+			if Object.Parent then
+				local boxID = Object:GetAttribute("BoxID")
+				if not boxID then return end
+
+				local matchesDeposit = false
+				for _, obj in pairs(Objects.Objectives) do
+					if obj.Name == "ArchivesPackageDeposit" and obj:GetAttribute("BoxID") == boxID then
+						matchesDeposit = true
+						break
+					end
+				end
+
+				if matchesDeposit then
+					local espText = string.format("Box [%s]", tostring(boxID))
+
+					if Toggles.ObjectiveESPToggle.Value then 
+						Functions.AddESP({ Object = Object, Text = espText, Color = Options.ObjectiveESPColor.Value }, true) 
+					end
+
+					table.insert(Objects.Objectives, Object)
+				end
 			end
 		end)
 	elseif Name == "FuseObtain" then
