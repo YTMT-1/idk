@@ -1369,7 +1369,7 @@ local DefaultHipHeight = Humanoid and Humanoid.HipHeight or 2.396
 Con.AntiPuddle = Services.RunService.Heartbeat:Connect(function()
 	if Toggles.AntiPuddle.Value and not Toggles.PositionSpoof.Value then
 		if Humanoid.FloorMaterial == Enum.Material.Glass then
-			if Humanoid.HipHeight ~= 3 then Humanoid.HipHeight = 3 end
+			if Humanoid.HipHeight ~= 4 then Humanoid.HipHeight = 4 end
 		else
 			if Humanoid.HipHeight ~= 2.396 then Humanoid.HipHeight = 2.396 end
 		end
@@ -4295,26 +4295,46 @@ Functions.HandleObject = function(Object)
 		end)
 	elseif Name == "ArchivesPackageDeposit" then
 		task.spawn(function()
-			task.wait(0.75)
+			local boxID = Object:GetAttribute("BoxID")
+			local tries = 0
+			while not boxID and tries < 10 and Object.Parent do
+				tries = tries + 1
+				task.wait(0.1)
+				boxID = Object:GetAttribute("BoxID")
+			end
+
 			if Object.Parent then
-				local boxID = Object:GetAttribute("BoxID") or "?"
-				local espText = string.format("Deposit [%s]", tostring(boxID))
+				local espText = string.format("Deposit [%s]", tostring(boxID or "?"))
 
 				if Toggles.ObjectiveESPToggle.Value then 
 					Functions.AddESP({ Object = Object, Text = espText, Color = Options.ObjectiveESPColor.Value }, true) 
 				end
 
 				table.insert(Objects.Objectives, Object)
+
+				Object.AncestryChanged:Once(function(_, parent)
+					if not parent then
+						Functions.RemoveESP(Object)
+						local idx = table.find(Objects.Objectives, Object)
+						if idx then table.remove(Objects.Objectives, idx) end
+					end
+				end)
 			end
 		end)
 	elseif Name == "ArchivesStorageBox" then
 		task.spawn(function()
-			task.wait(0.75)
-			if Object.Parent then
-				local boxID = Object:GetAttribute("BoxID")
-				if not boxID then return end
+			local boxID = Object:GetAttribute("BoxID")
+			local tries = 0
+			while not boxID and tries < 10 and Object.Parent do
+				tries = tries + 1
+				task.wait(0.1)
+				boxID = Object:GetAttribute("BoxID")
+			end
 
-				local matchesDeposit = false
+			if not boxID or not Object.Parent then return end
+
+			local matchesDeposit = false
+			for attempt = 1, 15 do
 				for _, obj in pairs(Objects.Objectives) do
 					if obj.Name == "ArchivesPackageDeposit" and obj:GetAttribute("BoxID") == boxID then
 						matchesDeposit = true
@@ -4322,15 +4342,26 @@ Functions.HandleObject = function(Object)
 					end
 				end
 
-				if matchesDeposit then
-					local espText = string.format("Box [%s]", tostring(boxID))
+				if matchesDeposit or not Object.Parent then break end
+				task.wait(0.2)
+			end
 
-					if Toggles.ObjectiveESPToggle.Value then 
-						Functions.AddESP({ Object = Object, Text = espText, Color = Options.ObjectiveESPColor.Value }, true) 
-					end
+			if matchesDeposit and Object.Parent then
+				local espText = string.format("Box [%s]", tostring(boxID))
 
-					table.insert(Objects.Objectives, Object)
+				if Toggles.ObjectiveESPToggle.Value then 
+					Functions.AddESP({ Object = Object, Text = espText, Color = Options.ObjectiveESPColor.Value }, true) 
 				end
+
+				table.insert(Objects.Objectives, Object)
+
+				Object.AncestryChanged:Once(function(_, parent)
+					if not parent then
+						Functions.RemoveESP(Object)
+						local idx = table.find(Objects.Objectives, Object)
+						if idx then table.remove(Objects.Objectives, idx) end
+					end
+				end)
 			end
 		end)
 	elseif Name == "FuseObtain" then
