@@ -4294,76 +4294,76 @@ Functions.HandleObject = function(Object)
 			end
 		end)
 	elseif Name == "ArchivesPackageDeposit" then
-		task.spawn(function()
-			local boxID = Object:GetAttribute("BoxID")
-			local tries = 0
-			while not boxID and tries < 10 and Object.Parent do
-				tries = tries + 1
-				task.wait(0.1)
-				boxID = Object:GetAttribute("BoxID")
-			end
+        task.spawn(function()
+            local boxID = Object:GetAttribute("BoxID")
+            local tries = 0
+            while not boxID and tries < 10 and Object.Parent do
+                tries = tries + 1
+                task.wait(0.1)
+                boxID = Object:GetAttribute("BoxID")
+            end
 
-			if Object.Parent then
-				local espText = string.format("Deposit [%s]", tostring(boxID or "?"))
+            if Object.Parent then
+                local espText = string.format("Deposit [%s]", tostring(boxID or "?"))
 
-				if Toggles.ObjectiveESPToggle.Value then 
-					Functions.AddESP({ Object = Object, Text = espText, Color = Options.ObjectiveESPColor.Value }, true) 
-				end
+                if Toggles.ObjectiveESPToggle.Value then 
+                    Functions.AddESP({ Object = Object, Text = espText, Color = Options.ObjectiveESPColor.Value }, true) 
+                end
 
-				table.insert(Objects.Objectives, Object)
+                table.insert(Objects.Objectives, Object)
 
-				Object.AncestryChanged:Once(function(_, parent)
-					if not parent then
-						Functions.RemoveESP(Object)
-						local idx = table.find(Objects.Objectives, Object)
-						if idx then table.remove(Objects.Objectives, idx) end
-					end
-				end)
-			end
-		end)
-	elseif Name == "ArchivesStorageBox" then
-		task.spawn(function()
-			local boxID = Object:GetAttribute("BoxID")
-			local tries = 0
-			while not boxID and tries < 10 and Object.Parent do
-				tries = tries + 1
-				task.wait(0.1)
-				boxID = Object:GetAttribute("BoxID")
-			end
+                Object.AncestryChanged:Once(function(_, parent)
+                    if not parent then
+                        Functions.RemoveESP(Object)
+                        local idx = table.find(Objects.Objectives, Object)
+                        if idx then table.remove(Objects.Objectives, idx) end
+                    end
+                end)
+            end
+        end)
+    elseif Name == "ArchivesStorageBox" then
+        task.spawn(function()
+            local boxID = Object:GetAttribute("Tool_BoxID")
+            local tries = 0
+            while not boxID and tries < 10 and Object.Parent do
+                tries = tries + 1
+                task.wait(0.1)
+                boxID = Object:GetAttribute("Tool_BoxID")
+            end
 
-			if not boxID or not Object.Parent then return end
+            if not boxID or not Object.Parent then return end
 
-			local matchesDeposit = false
-			for attempt = 1, 15 do
-				for _, obj in pairs(Objects.Objectives) do
-					if obj.Name == "ArchivesPackageDeposit" and obj:GetAttribute("BoxID") == boxID then
-						matchesDeposit = true
-						break
-					end
-				end
+            local matchesDeposit = false
+            for attempt = 1, 15 do
+                for _, obj in pairs(Objects.Objectives) do
+                    if obj.Name == "ArchivesPackageDeposit" and obj:GetAttribute("BoxID") == boxID then
+                        matchesDeposit = true
+                        break
+                    end
+                end
 
-				if matchesDeposit or not Object.Parent then break end
-				task.wait(0.2)
-			end
+                if matchesDeposit or not Object.Parent then break end
+                task.wait(0.2)
+            end
 
-			if matchesDeposit and Object.Parent then
-				local espText = string.format("Box [%s]", tostring(boxID))
+            if matchesDeposit and Object.Parent then
+                local espText = string.format("Box [%s]", tostring(boxID))
 
-				if Toggles.ObjectiveESPToggle.Value then 
-					Functions.AddESP({ Object = Object, Text = espText, Color = Options.ObjectiveESPColor.Value }, true) 
-				end
+                if Toggles.ObjectiveESPToggle.Value then 
+                    Functions.AddESP({ Object = Object, Text = espText, Color = Options.ObjectiveESPColor.Value }, true) 
+                end
 
-				table.insert(Objects.Objectives, Object)
+                table.insert(Objects.Objectives, Object)
 
-				Object.AncestryChanged:Once(function(_, parent)
-					if not parent then
-						Functions.RemoveESP(Object)
-						local idx = table.find(Objects.Objectives, Object)
-						if idx then table.remove(Objects.Objectives, idx) end
-					end
-				end)
-			end
-		end)
+                Object.AncestryChanged:Once(function(_, parent)
+                    if not parent then
+                        Functions.RemoveESP(Object)
+                        local idx = table.find(Objects.Objectives, Object)
+                        if idx then table.remove(Objects.Objectives, idx) end
+                    end
+                end)
+            end
+        end)
 	elseif Name == "FuseObtain" then
 		if Toggles.ObjectiveESPToggle.Value then Functions.AddESP({ Object = Object, Text = "Generator Fuse", Color = Options.ObjectiveESPColor.Value }, true) end
 		Object:WaitForChild("Hitbox").FuseModel:GetPropertyChangedSignal("LocalTransparencyModifier"):Once(function()
