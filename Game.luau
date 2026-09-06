@@ -1067,7 +1067,7 @@ local Window = Library:CreateWindow({
 YT_MT.Interface.ApplyInfoTab(Window)
 
 local Tabs = {
-	General  = Window:AddTab("General", "house"),
+	General  = Window:AddTab("General", "house", "Just a General"),
 	Exploits = Window:AddTab("Exploits", "bug"),
 	Visuals  = Window:AddTab("Visuals", "view"),
 	Floors   = Window:AddTab("Floors", "sparkles"),
