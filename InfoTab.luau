@@ -41,7 +41,7 @@ return function(Window)
 	local Options = Library.Options
 
 	local LocalPlayer = Services.Players.LocalPlayer
-	local InfoTab = Window:AddTab("Info", "door-closed")
+	local InfoTab = Window:AddTab("Info", "door-closed", "Script information, new changes, user stats.")
 
 	local User = InfoTab:AddLeftGroupbox("User Info")
 
