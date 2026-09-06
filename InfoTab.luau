@@ -72,7 +72,7 @@ return function(Window)
 	User:AddDivider()
 
 	InfoTab:UpdateWarningBox({
-		Title = "Changelogs",
+		Title = "<font size='22'>Changelogs</font>",
 		Text = table.concat(LatestChangelog, "\n"),
 		IsNormal = true,
 		Visible = true,
