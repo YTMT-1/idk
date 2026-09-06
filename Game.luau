@@ -1067,10 +1067,10 @@ local Window = Library:CreateWindow({
 YT_MT.Interface.ApplyInfoTab(Window)
 
 local Tabs = {
-	General  = Window:AddTab("General", "house", "Just a General"),
-	Exploits = Window:AddTab("Exploits", "bug"),
-	Visuals  = Window:AddTab("Visuals", "view"),
-	Floors   = Window:AddTab("Floors", "sparkles"),
+    General  = Window:AddTab("General", "house", "Core options and general settings."),
+    Exploits = Window:AddTab("Exploits", "bug", "Main exploits and game automation."),
+    Visuals  = Window:AddTab("Visuals", "view", "ESP and visual enhancements."),
+    Floors   = Window:AddTab("Floors", "sparkles", "Floor-specific tools and mechanics."),
 }
 
 Gb.General_Character = Tabs.General:AddLeftGroupbox("Character")
@@ -4958,12 +4958,13 @@ Functions.HandleObject = function(Object)
 				if Toggles.AutoUnlockPadlockToggle.Value then
 					local Code = Functions.GetLibraryCode()
 					if Code and tonumber(Code) and Distance < Options.AutoUnlockPadlockSlider.Value then
-						RemotesFolder.PadLockHint:FireServer(Code)
+						RemotesFolder.PadlockHint:FireServer(Code)
+						RemotesFolder.PL:FireServer(Code)
 					end
 				end
 				if Toggles.AutoLibraryGuessCode.Value and LatestRoom.Value == 50 then
 					local Code = Functions.GetRandomCode()
-					if Code then RemotesFolder.PadLockHint:FireServer(Code) end
+					if Code then RemotesFolder.PadlockHint:FireServer(Code) RemotesFolder.PL:FireServer(Code) end
 				end
 			end
 		end)
