@@ -1560,7 +1560,7 @@ Toggles.BypassJeff:OnChanged(function(Value)
 	end
 end)
 
-Gb.Exploits_Troll = Tabs.Exploits:AddRightGroupbox("Troll/Others")
+Gb.Exploits_Troll = Tabs.Exploits:AddRightGroupbox("Troll/Others", "rbxassetid://135666356081915")
 local TriggerFigureLooping = false
 local TriggerFigureThread
 local PlayersService = game:GetService("Players")
