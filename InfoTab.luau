@@ -68,7 +68,7 @@ return function(Window)
 		Greeting = "Good Night"
 	end
 	
-	User:AddLabel(Greeting .. ", " .. LocalPlayer.Name .. ", Thanks For Using This Script Also You Executed This Script: " .. (YT_MT.TotalExecutions and tostring(YT_MT.TotalExecutions) or "N/A") .. " times.", true)
+	User:AddLabel(Greeting .. ", " .. LocalPlayer.Name .. ", Yo Thanks Using This Script And You Executed This Script: " .. (YT_MT.TotalExecutions and tostring(YT_MT.TotalExecutions) or "N/A") .. " Times.", true)
 	User:AddDivider()
 
 	InfoTab:UpdateWarningBox({
