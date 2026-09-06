@@ -51,7 +51,7 @@ local Window = Library:CreateWindow({
 
 YT_MT.Interface.ApplyInfoTab(Window)
 local Tabs = {
-    General = Window:AddTab("General", "house"),
+    General  = Window:AddTab("General", "house", "Core options and general settings."),
 }
 
 Functions.CheckCompatability = function(Array)
