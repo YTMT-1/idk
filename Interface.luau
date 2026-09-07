@@ -1,12 +1,6 @@
 local UILibrary = YT_MT.UILibrary
 local Library = (UILibrary == "Linoria" and "LinoriaLib" or "Obsidian")
-local BaseUrl = nil
-
-if Library == "LinoriaLib" or Library == "Linoria" then
-    BaseUrl = "https://raw.githubusercontent.com/mstudio45/LinoriaLib/refs/heads/main/"
-else
-    BaseUrl = "https://raw.githubusercontent.com/deividcomsono/Obsidian/refs/heads/main/"
-end
+local BaseUrl = "https://raw.githubusercontent.com/deividcomsono/".. Library .."/refs/heads/main/"
 
 local YTMTUrl = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/"
 
