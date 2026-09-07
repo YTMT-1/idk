@@ -1,6 +1,6 @@
 local UILibrary = YT_MT.UILibrary
 local Library = (UILibrary == "Linoria" and "LinoriaLib" or "Obsidian")
-local BaseUrl = "https://raw.githubusercontent.com/deividcomsono/".. Library .."/refs/heads/main/"
+local BaseUrl = "https://raw.githubusercontent.com/deividcomsono/Obsidian/refs/heads/main/"
 
 local YTMTUrl = "https://raw.githubusercontent.com/YTMT-1/idk/refs/heads/main/"
 
