@@ -145,11 +145,11 @@ local Entities = {
 	},
 	["SallyMoving"] = {
 		Name = "Sally",
-		NotifyMessage = { Title = "Entity 'Sally' has spawned.", Body = "Drop an item for her." }
+		NotifyMessage = { Title = "Entity 'Sally' has spawned.", Body = "Give the sally toy now." }
 	},
 	["DronesStampede"] = {
 		Name = "Stampede",
-		NotifyMessage = { Title = "Event 'Stampede' has been spawned.", Body = "Avoid the Drones way."}
+		NotifyMessage = { Title = "Event 'Stampede' has been spawned.", Body = "Avoid the Drones path."}
 	}
 }
 
@@ -174,6 +174,7 @@ local EntityIcons = {
 }
 
 local ItemNames = {
+	["SallyToyObtain"]	  = "Sally Toy",
 	["Leftovers"]         = "Lunch Box",
 	["Lighter"]           = "Lighter",
 	["PaperPlane"]        = "Paper Plane",
@@ -2184,13 +2185,8 @@ local function SyncEntityRemoval()
 			local alma = ClientRemote:FindFirstChild("AlmaClient_Disabled")
 			if alma then
 				alma.Parent = Workspace.My_Folder
+				alma:Destroy()
 			end
-		else
-			local alma = Workspace.My_Folder:FindFirstChild("AlmaClient_Disabled")
-			if alma then
-				alma.Parent = ClientRemote
-			end
-			RenameModule(ClientRemote, "AlmaClient_Disabled", "AlmaClient")
 		end
 	end
 
@@ -5505,6 +5501,7 @@ Functions.Notify({ Title = "YT_MT", Body = "YT_MT Hub Susscesfully loaded, orign
 local Stats = game:GetService("Stats")
 local RunService = game:GetService("RunService")
 
+local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local DraggableLabel = Library:AddDraggableLabel("Status")
 DraggableLabel:SetVisible(true)
