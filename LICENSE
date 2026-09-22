@@ -1,21 +1,73 @@
-MIT License
+===================================================================
+                   IDK SOFTWARE LICENSE AGREEMENT
+===================================================================
 
-Copyright (c) 2026 YTMT-1
+Project Repository: idk (GitHub: YTMT-1/idk)
+Author & Owner: YTMT-1 (Discord: manhtien_yt.)
+Copyright (c) 2026 YTMT-1. All Rights Reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+-------------------------------------------------------------------
+1. CREDIT & AUTHORSHIP REQUIREMENTS
+-------------------------------------------------------------------
+- Ownership: The "idk" script system is created, owned, and maintained 
+  exclusively by YTMT-1 (manhtien_yt.).
+- Mandatory Attribution: All distribution copies, forks, or customized 
+  versions MUST preserve full credits to YTMT-1 (manhtien_yt.).
+- No False Claims: You are strictly forbidden from claiming original 
+  authorship or sole ownership of this project or its codebase.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+-------------------------------------------------------------------
+2. FORKING & CODE ACCESS PERMISSIONS
+-------------------------------------------------------------------
+- Right to Fork: You are allowed to fork the "idk" repository for 
+  personal use, learning, and custom edits.
+- Source Code Editing: You have full access to view, inspect, and modify 
+  the main logic files, including Game.luau, Lobby.luau, Universal.luau, 
+  and associated .luau libraries.
+- Attribution in Forks: Any public fork or derivative release must 
+  clearly state the original credits as outlined in Section 1.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+-------------------------------------------------------------------
+3. LOADER TELEMETRY & WEBHOOK DISCLOSURE
+-------------------------------------------------------------------
+- Telemetry Logging: The primary loader script (Loader.lua) contains 
+  an active Discord Webhook for security and usage tracking.
+- Transmitted Data: Executing Loader.lua will log:
+    * Roblox Username
+    * Total Executions
+    * Executor Name / Environment
+    * Place ID & Job ID
+    * Game Title
+- Verification & Proof: If you require evidence or have questions 
+  regarding telemetry data, contact manhtien_yt. on Discord.
+
+-------------------------------------------------------------------
+4. CLEAN LOADER REQUESTS (NO WEBHOOK)
+-------------------------------------------------------------------
+- Unmonitored Loader: If you want a version of Loader.lua that operates 
+  without Discord Webhook logging, you must request permission directly 
+  from manhtien_yt. on Discord.
+- No Unauthorized Tampering: Removing or disabling the Webhook in 
+  public releases without prior authorization is strictly prohibited.
+
+-------------------------------------------------------------------
+5. COMMERCIAL USE & REDISTRIBUTION
+-------------------------------------------------------------------
+- Non-Commercial Only: Selling, monetizing, sublicensing, or renting 
+  this software or any modified versions is strictly prohibited.
+- Free Distribution: Public sharing is allowed only under a non-commercial 
+  model with proper credits retained.
+
+-------------------------------------------------------------------
+6. DISCLAIMER OF LIABILITY
+-------------------------------------------------------------------
+THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND. 
+THE AUTHOR AND OWNER (YTMT-1) IS NOT RESPONSIBLE FOR ANY ACCOUNT BANS, 
+IN-GAME PENALTIES, OR LOSSES ARISING FROM THE USE OF THIS SCRIPT.
+
+-------------------------------------------------------------------
+OFFICIAL CONTACT
+-------------------------------------------------------------------
+- Discord Contact: manhtien_yt.
+- GitHub Repository: https://github.com/YTMT-1/idk
+===================================================================
