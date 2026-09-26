@@ -2758,14 +2758,14 @@ end
 
 local promptConnection = nil
 
-Gb.Floors_Automation:AddToggle("AutoCleanCloset", {
+local AutoCleanClosetToggle = Gb.Floors_Automation:AddToggle("AutoCleanCloset", {
     Text = "Auto Clean Closet", 
     Default = false, 
     Tooltip = "Automatic clean closet in archives if you go near and look at it.",
     Risky = Floor ~= "Archives",
 })
 
-AutoCleanCloset:OnChanged(function(Value)
+AutoCleanClosetToggle:OnChanged(function(Value)
     if Value then
         promptConnection = ProximityPromptService.PromptShown:Connect(function(prompt)
             local spot = getValidSpot(prompt)
