@@ -2781,10 +2781,11 @@ AutoCleanToggle:OnChanged(function(Value)
     if Value then
         table.clear(blacklist)
 
-        if ProximityPromptService.GetProximityPrompts then
-            for _, prompt in ipairs(ProximityPromptService:GetProximityPrompts()) do
-                if prompt.Enabled then
-                    interactPrompt(prompt)
+        local currentRooms = workspace:FindFirstChild("CurrentRooms")
+        if currentRooms then
+            for _, obj in ipairs(currentRooms:GetDescendants()) do
+                if obj:IsA("ProximityPrompt") and obj.Enabled then
+                    interactPrompt(obj)
                 end
             end
         end
