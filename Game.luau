@@ -280,7 +280,6 @@ local Floor           = GameData:WaitForChild("Floor").Value
 local LatestRoom      = GameData:WaitForChild("LatestRoom")
 local FinishedLoadingRoom = GameData:FindFirstChild("FinishedLoadingRoom")
 local Workspace = game.Workspace
-local ProximityPromptService = game:GetService("ProximityPromptService")
 local TweenService = game:GetService("TweenService")
 if FinishedLoadingRoom then
 	FinishedLoadingRoom:Destroy()
@@ -2735,6 +2734,8 @@ Tabs.Floors:UpdateWarningBox({
 	Text = "Features highlighted in red do not work in the current floor.",
 })
 Gb.Floors_Automation = Tabs.Floors:AddRightGroupbox("Automation")
+local ProximityPromptService = game:GetService("ProximityPromptService")
+
 local blacklist = {}
 local validSpots = {
     ["HidingSpot1"] = true,
