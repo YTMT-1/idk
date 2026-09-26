@@ -2735,8 +2735,6 @@ Tabs.Floors:UpdateWarningBox({
 	Text = "Features highlighted in red do not work in the current floor.",
 })
 Gb.Floors_Automation = Tabs.Floors:AddRightGroupbox("Automation")
-
-
 local blacklist = {}
 local validSpots = {
     ["HidingSpot1"] = true,
@@ -2758,14 +2756,14 @@ end
 
 local promptConnection = nil
 
-local AutoCleanClosetToggle = Gb.Floors_Automation:AddToggle("AutoCleanCloset", {
+local AutoCleanToggle = Gb.Floors_Automation:AddToggle("AutoCleanCloset", {
     Text = "Auto Clean Closet", 
     Default = false, 
     Tooltip = "Automatic clean closet in archives if you go near and look at it.",
     Risky = Floor ~= "Archives",
 })
 
-AutoCleanClosetToggle:OnChanged(function(Value)
+AutoCleanToggle:OnChanged(function(Value)
     if Value then
         promptConnection = ProximityPromptService.PromptShown:Connect(function(prompt)
             local spot = getValidSpot(prompt)
