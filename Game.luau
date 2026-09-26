@@ -280,6 +280,7 @@ local Floor           = GameData:WaitForChild("Floor").Value
 local LatestRoom      = GameData:WaitForChild("LatestRoom")
 local FinishedLoadingRoom = GameData:FindFirstChild("FinishedLoadingRoom")
 local Workspace = game.Workspace
+local ProximityPromptService = game:GetService("ProximityPromptService")
 local TweenService = game:GetService("TweenService")
 if FinishedLoadingRoom then
 	FinishedLoadingRoom:Destroy()
@@ -2734,6 +2735,54 @@ Tabs.Floors:UpdateWarningBox({
 	Text = "Features highlighted in red do not work in the current floor.",
 })
 Gb.Floors_Automation = Tabs.Floors:AddRightGroupbox("Automation")
+
+
+local blacklist = {}
+local validSpots = {
+    ["HidingSpot1"] = true,
+    ["HidingSpot2"] = true,
+    ["HidingSpot3"] = true,
+    ["HidingSpot4"] = true,
+}
+
+local function getValidSpot(prompt)
+    local current = prompt.Parent
+    while current and current ~= Workspace do
+        if validSpots[current.Name] then
+            return current
+        end
+        current = current.Parent
+    end
+    return nil
+end
+
+local promptConnection = nil
+
+Gb.Floors_Automation:AddToggle("AutoCleanCloset", {
+    Text = "Auto Clean Closet", 
+    Default = false, 
+    Tooltip = "Automatic clean closet in archives if you go near and look at it.",
+    Risky = Floor ~= "Archives",
+})
+
+AutoCleanCloset:OnChanged(function(Value)
+    if Value then
+        promptConnection = ProximityPromptService.PromptShown:Connect(function(prompt)
+            local spot = getValidSpot(prompt)
+            
+            if spot and not blacklist[spot] then
+                blacklist[spot] = true
+                fireproximityprompt(prompt)
+            end
+        end)
+    else
+        if promptConnection then
+            promptConnection:Disconnect()
+            promptConnection = nil
+        end
+    end
+end)
+
 Gb.Floors_Automation:AddToggle("AutoSteerMinecart", {
 	Text = "Auto Minecart", Default = false, Tooltip = "Automatically completes the minecart chase.",
 	Disabled = not Functions.CC({"require"}), DisabledTooltip = Globals.IncompatibleMessage
