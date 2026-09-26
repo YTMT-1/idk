@@ -2746,13 +2746,26 @@ local validSpots = {
 
 local function getValidSpot(prompt)
     local current = prompt.Parent
-    while current and current ~= Workspace do
-        if validSpots[current.Name] then
+    while current and current ~= workspace do
+        if validSpots[current.Name] or string.find(current.Name, "HidingSpot") then
             return current
         end
         current = current.Parent
     end
     return nil
+end
+
+local function interactPrompt(prompt)
+    local spot = getValidSpot(prompt)
+    if spot and not blacklist[spot] and prompt.Enabled then
+        blacklist[spot] = true
+        
+        task.spawn(function()
+            if fireproximityprompt then
+                fireproximityprompt(prompt)
+            end
+        end)
+    end
 end
 
 local promptConnection = nil
@@ -2766,19 +2779,23 @@ local AutoCleanToggle = Gb.Floors_Automation:AddToggle("AutoCleanCloset", {
 
 AutoCleanToggle:OnChanged(function(Value)
     if Value then
-        promptConnection = ProximityPromptService.PromptShown:Connect(function(prompt)
-            local spot = getValidSpot(prompt)
-            
-            if spot and not blacklist[spot] then
-                blacklist[spot] = true
-                fireproximityprompt(prompt)
+        table.clear(blacklist)
+
+        if ProximityPromptService.GetProximityPrompts then
+            for _, prompt in ipairs(ProximityPromptService:GetProximityPrompts()) do
+                if prompt.Enabled then
+                    interactPrompt(prompt)
+                end
             end
-        end)
+        end
+
+        promptConnection = ProximityPromptService.PromptShown:Connect(interactPrompt)
     else
         if promptConnection then
             promptConnection:Disconnect()
             promptConnection = nil
         end
+        table.clear(blacklist)
     end
 end)
 
