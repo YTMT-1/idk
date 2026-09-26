@@ -2734,8 +2734,6 @@ Tabs.Floors:UpdateWarningBox({
 	Text = "Features highlighted in red do not work in the current floor.",
 })
 Gb.Floors_Automation = Tabs.Floors:AddRightGroupbox("Automation")
-local ProximityPromptService = game:GetService("ProximityPromptService")
-
 local blacklist = {}
 local validSpots = {
     ["HidingSpot1"] = true,
@@ -2755,20 +2753,7 @@ local function getValidSpot(prompt)
     return nil
 end
 
-local function interactPrompt(prompt)
-    local spot = getValidSpot(prompt)
-    if spot and not blacklist[spot] and prompt.Enabled then
-        blacklist[spot] = true
-        
-        task.spawn(function()
-            if fireproximityprompt then
-                fireproximityprompt(prompt)
-            end
-        end)
-    end
-end
-
-local promptConnection = nil
+local autoCleanThread = nil
 
 local AutoCleanToggle = Gb.Floors_Automation:AddToggle("AutoCleanCloset", {
     Text = "Auto Clean Closet", 
@@ -2781,20 +2766,40 @@ AutoCleanToggle:OnChanged(function(Value)
     if Value then
         table.clear(blacklist)
 
-        local currentRooms = workspace:FindFirstChild("CurrentRooms")
-        if currentRooms then
-            for _, obj in ipairs(currentRooms:GetDescendants()) do
-                if obj:IsA("ProximityPrompt") and obj.Enabled then
-                    interactPrompt(obj)
-                end
-            end
-        end
+        autoCleanThread = task.spawn(function()
+            while true do
+                local char = LocalPlayer.Character
+                local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                local currentRooms = workspace:FindFirstChild("CurrentRooms")
 
-        promptConnection = ProximityPromptService.PromptShown:Connect(interactPrompt)
+                if hrp and currentRooms then
+                    for _, obj in ipairs(currentRooms:GetDescendants()) do
+                        if obj:IsA("ProximityPrompt") and obj.Enabled then
+                            local spot = getValidSpot(obj)
+                            
+                            if spot and not blacklist[spot] then
+                                local part = obj.Parent:IsA("BasePart") and obj.Parent or spot:FindFirstChildWhichIsA("BasePart", true)
+                                if part and (hrp.Position - part.Position).Magnitude <= (obj.MaxActivationDistance + 3) then
+                                    blacklist[spot] = true
+                                    
+                                    task.spawn(function()
+                                        if fireproximityprompt then
+                                            fireproximityprompt(obj)
+                                        end
+                                    end)
+                                end
+                            end
+                        end
+                    end
+                end
+                
+                task.wait(0.15)
+            end
+        end)
     else
-        if promptConnection then
-            promptConnection:Disconnect()
-            promptConnection = nil
+        if autoCleanThread then
+            task.cancel(autoCleanThread)
+            autoCleanThread = nil
         end
         table.clear(blacklist)
     end
