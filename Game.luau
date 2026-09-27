@@ -2778,6 +2778,7 @@ AutoCleanToggle:OnChanged(function(Value)
 
         autoCleanThread = task.spawn(function()
             while true do
+			pcall(function()
                 local currentRooms = workspace:FindFirstChild("CurrentRooms")
                 if currentRooms then
                     for _, obj in ipairs(currentRooms:GetDescendants()) do
@@ -2792,7 +2793,7 @@ AutoCleanToggle:OnChanged(function(Value)
                         end
                     end
                 end
-                
+			end)   
                 task.wait(0.1)
             end
         end)
