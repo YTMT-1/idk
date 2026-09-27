@@ -35,6 +35,9 @@ local PP = {}
 local AntiScribbles_OldNamecall
 local ScribblesHook = nil
 local AntiScribbles_IsHooked = false
+local HonchoCorrectBoxConnection = nil
+local HonchoProcessedRooms = {}
+local HonchoESPObjects = {}
 
 local Objects = {
 	Prompts = {},
@@ -3984,6 +3987,116 @@ Functions.HandleHidingTransparency = function(Model)
 	end
 end
 
+Toggles.ObjectiveESPToggle:OnChanged(function(Value)
+    if HonchoCorrectBoxConnection then
+        HonchoCorrectBoxConnection:Disconnect()
+        HonchoCorrectBoxConnection = nil
+    end
+
+    for _, Object in pairs(HonchoESPObjects) do
+        if Object and Object.Parent then
+            Functions.RemoveESP(Object)
+        end
+    end
+    table.clear(HonchoESPObjects)
+    table.clear(HonchoProcessedRooms)
+
+    if not Value then
+        return
+    end
+
+    local function ProcessHonchoRoom(Room)
+        if not tonumber(Room.Name) then
+            return
+        end
+
+        if HonchoProcessedRooms[Room] then
+            return
+        end
+
+        HonchoProcessedRooms[Room] = true
+
+        task.wait(3)
+
+        if not Toggles.HonchoCorrectBoxESP.Value or not Room.Parent then
+            HonchoProcessedRooms[Room] = nil
+            return
+        end
+
+        local HonchoRoom = Room:FindFirstChild("ArchivesHonchoRoom", true)
+        if not HonchoRoom then
+            HonchoProcessedRooms[Room] = nil
+            return
+        end
+
+        local BoxIDs = {}
+        local depositCount = 0
+        for _, Desc in ipairs(Room:GetDescendants()) do
+            if Desc.Name == "ArchivesPackageDeposit" then
+                depositCount += 1
+                local BoxID = Desc:GetAttribute("BoxID")
+                if BoxID ~= nil then
+                    BoxIDs[BoxID] = true
+                end
+            end
+        end
+
+        if next(BoxIDs) == nil then
+            HonchoProcessedRooms[Room] = nil
+            return
+        end
+
+        local RoomNumber = tonumber(Room.Name)
+
+        for _, Child in ipairs(HonchoRoom:GetDescendants()) do
+            if Child.Name == "ArchivesStorageBox" then
+                local ToolBoxID = Child:GetAttribute("Tool_BoxID")
+
+                if ToolBoxID ~= nil and BoxIDs[ToolBoxID] then
+                    if Toggles.HonchoCorrectBoxESP.Value then
+                        if not Child:GetAttribute("ParentRoom") then
+                            Child:SetAttribute("ParentRoom", RoomNumber)
+                        end
+
+                        local Color = (Options.ObjectiveESPColor and Options.ObjectiveESPColor.Value) or Color3.fromRGB(0, 255, 0)
+                        
+                        local espText = string.format("Box [%s]", tostring(ToolBoxID))
+
+                        Functions.AddESP({
+                            Object = Child,
+                            Text = espText,
+                            Color = Color
+                        }, true)
+
+                        table.insert(HonchoESPObjects, Child)
+
+                        Child.Destroying:Once(function()
+                            Functions.RemoveESP(Child)
+                            local pos = table.find(HonchoESPObjects, Child)
+                            if pos then
+                                table.remove(HonchoESPObjects, pos)
+                            end
+                        end)
+                    end
+                end
+            end
+        end
+    end
+
+    local currentRooms = workspace:FindFirstChild("CurrentRooms")
+    if not currentRooms then
+        return
+    end
+
+    for _, Room in ipairs(currentRooms:GetChildren()) do
+        task.spawn(ProcessHonchoRoom, Room)
+    end
+
+    HonchoCorrectBoxConnection = currentRooms.ChildAdded:Connect(function(Room)
+        task.spawn(ProcessHonchoRoom, Room)
+    end)
+end)
+
 Functions.HandleObject = function(Object)
 	for _, Room in CurrentRooms:GetChildren() do
 		if Object:IsDescendantOf(Room) then
@@ -4113,77 +4226,6 @@ Functions.HandleObject = function(Object)
 				table.insert(Objects.Objectives, Object)
 			end
 		end)
-	elseif Name == "ArchivesPackageDeposit" then
-        task.spawn(function()
-            local boxID = Object:GetAttribute("BoxID")
-            local tries = 0
-            while not boxID and tries < 10 and Object.Parent do
-                tries = tries + 1
-                task.wait(0.1)
-                boxID = Object:GetAttribute("BoxID")
-            end
-
-            if Object.Parent then
-                local espText = string.format("Deposit [%s]", tostring(boxID or "?"))
-
-                if Toggles.ObjectiveESPToggle.Value then 
-                    Functions.AddESP({ Object = Object, Text = espText, Color = Options.ObjectiveESPColor.Value }, true) 
-                end
-
-                table.insert(Objects.Objectives, Object)
-
-                --[[Object.AncestryChanged:Once(function(_, parent)
-                    if not parent then
-                        Functions.RemoveESP(Object)
-                        local idx = table.find(Objects.Objectives, Object)
-                        if idx then table.remove(Objects.Objectives, idx) end
-                    end
-                end)]]--
-            end
-        end)
-    elseif Name == "ArchivesStorageBox" then
-        task.spawn(function()
-            local boxID = Object:GetAttribute("Tool_BoxID")
-            local tries = 0
-            while not boxID and tries < 10 and Object.Parent do
-                tries = tries + 1
-                task.wait(0.1)
-                boxID = Object:GetAttribute("Tool_BoxID")
-            end
-
-            if not boxID or not Object.Parent then return end
-
-            local matchesDeposit = false
-            for attempt = 1, 15 do
-                for _, obj in pairs(Objects.Objectives) do
-                    if obj.Name == "ArchivesPackageDeposit" and obj:GetAttribute("BoxID") == boxID then
-                        matchesDeposit = true
-                        break
-                    end
-                end
-
-                if matchesDeposit or not Object.Parent then break end
-                task.wait(0.2)
-            end
-
-            if matchesDeposit and Object.Parent then
-                local espText = string.format("Box [%s]", tostring(boxID))
-
-                if Toggles.ObjectiveESPToggle.Value then 
-                    Functions.AddESP({ Object = Object, Text = espText, Color = Options.ObjectiveESPColor.Value }, true) 
-                end
-
-                table.insert(Objects.Objectives, Object)
-
-                --[[Object.AncestryChanged:Once(function(_, parent)
-                    if not parent then
-                        Functions.RemoveESP(Object)
-                        local idx = table.find(Objects.Objectives, Object)
-                        if idx then table.remove(Objects.Objectives, idx) end
-                    end
-                end)]]--
-            end
-        end)
 	elseif Name == "FuseObtain" then
 		if Toggles.ObjectiveESPToggle.Value then Functions.AddESP({ Object = Object, Text = "Generator Fuse", Color = Options.ObjectiveESPColor.Value }, true) end
 		Object:WaitForChild("Hitbox").FuseModel:GetPropertyChangedSignal("LocalTransparencyModifier"):Once(function()
