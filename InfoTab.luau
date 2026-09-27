@@ -1,5 +1,7 @@
 return function(Window)
 	local LatestChangelog = {
+		"27/9/2026",
+		"<font color='rgb(255, 0, 0)'>+ Temp Delete Auto Clean Closet Due Bug</font>",
 		"26/9/2026",
 		"<font color='rgb(0, 255, 0)'>+ Add Auto Clean Closet.</font>",
 		"5/9/2026",
