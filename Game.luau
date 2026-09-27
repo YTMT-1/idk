@@ -2734,7 +2734,7 @@ Tabs.Floors:UpdateWarningBox({
 	Text = "Features highlighted in red do not work in the current floor.",
 })
 Gb.Floors_Automation = Tabs.Floors:AddRightGroupbox("Automation")
-local ProximityPromptService = game:GetService("ProximityPromptService")
+--[[local ProximityPromptService = game:GetService("ProximityPromptService")
 
 local blacklist = {}
 local validSpots = {
@@ -2809,7 +2809,7 @@ AutoCleanToggle:OnChanged(function(Value)
         table.clear(blacklist)
     end
 end)
-
+]]-- Temp Removed Due Bug
 Gb.Floors_Automation:AddToggle("AutoSteerMinecart", {
 	Text = "Auto Minecart", Default = false, Tooltip = "Automatically completes the minecart chase.",
 	Disabled = not Functions.CC({"require"}), DisabledTooltip = Globals.IncompatibleMessage
