@@ -4018,7 +4018,7 @@ Toggles.ObjectiveESPToggle:OnChanged(function(Value)
 
         task.wait(3)
 
-        if not Toggles.HonchoCorrectBoxESP.Value or not Room.Parent then
+        if not Toggles.ObjectiveESPToggle.Value or not Room.Parent then
             HonchoProcessedRooms[Room] = nil
             return
         end
@@ -4053,7 +4053,7 @@ Toggles.ObjectiveESPToggle:OnChanged(function(Value)
                 local ToolBoxID = Child:GetAttribute("Tool_BoxID")
 
                 if ToolBoxID ~= nil and BoxIDs[ToolBoxID] then
-                    if Toggles.HonchoCorrectBoxESP.Value then
+                    if Toggles.ObjectiveESPToggle.Value then
                         if not Child:GetAttribute("ParentRoom") then
                             Child:SetAttribute("ParentRoom", RoomNumber)
                         end
