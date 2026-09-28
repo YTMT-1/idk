@@ -82,6 +82,22 @@ Functions.CC = function(Array)
 end
 
 local Entities = {
+	["StemsEntity"] = {
+	    Alias = 'Balls',
+		NotifyMessage = { Title = "Balls", Body = "Balls."}
+	},
+	["NoiseModel"] = {
+		Alias = 'Noise',
+		NotifyMessage = { Title = "Entity 'Noise' has spawned.", Body = "Dont let it touch you." }
+	},
+	["Creak"] = {
+		Alias = "Creak",
+		NotifyMessage = { Title = "Entity 'Creak' has spawned.", Body = "Dont touch him." }
+	},
+	["TellerRig"] = {
+		Name = "Teller",
+		NotifyMessage = { Title = "Entity 'Teller' has spawned.", Body = "Dont worry, hes only annoying." }
+	},
 	["RushMoving"] = {
 		Name = "Rush",
 		NotifyMessage = { Title = "Entity 'Rush' has spawned.", Body = "Find a hiding spot." }
@@ -177,6 +193,7 @@ local EntityIcons = {
 }
 
 local ItemNames = {
+	["Briefcase"]		  = "Briefcase",
 	["SallyToyObtain"]	  = "Sally Toy",
 	["Leftovers"]         = "Lunch Box",
 	["Lighter"]           = "Lighter",
@@ -2184,10 +2201,8 @@ local function SyncEntityRemoval()
 	end
 	local function processAlma(Value)
 		if Value then
-			RenameModule(ClientRemote, "AlmaClient", "AlmaClient_Disabled")
-			local alma = ClientRemote:FindFirstChild("AlmaClient_Disabled")
+			local alma = ClientRemote:FindFirstChild("AlmaClient")
 			if alma then
-				alma.Parent = Workspace.My_Folder
 				alma:Destroy()
 			end
 		end
@@ -2199,8 +2214,7 @@ local function SyncEntityRemoval()
 
 	ClientRemote.ChildAdded:Connect(function(child)
 		if Toggles.RemoveAlma.Value and child.Name == "AlmaClient" then
-			RenameModule(ClientRemote, "AlmaClient", "AlmaClient_Disabled")
-			child.Parent = Workspace.My_Folder
+			ClientRemote.AlmaClient:Destroy()
 		end
 	end)
 	if Toggles.DisableVoidJumpscare.Value then
@@ -2372,7 +2386,7 @@ Gb.Visuals_EntitySettings = Gb.Visuals_RightTab:AddTab("Settings")
 
 Gb.Visuals_Entities:AddDropdown("EntityList", {
 	Text = "Entity List",
-	Values = { "Rush","Ambush","Eyes","Halt","Blitz","Lookman","Gloombat Swarm","Bash","Scribble","Sally","Jeff the Killer","Groundskeeper","Monument","AR0xMBUSH","RNIUSHCG==","Stampede"},
+	Values = { "Rush","Ambush","Teller","Eyes","Halt","Blitz","Lookman","Gloombat Swarm","Bash","Scribble","Sally","Jeff the Killer","Groundskeeper","Monument","AR0xMBUSH","RNIUSHCG==","Stampede"},
 	Multi = true, AllowNull = true
 })
 Gb.Visuals_Entities:AddToggle("NotifyEntities",    { Text = "Notify Entities",    Default = false, Tooltip = "Sends a notification when an entity spawns." })
@@ -2485,7 +2499,7 @@ Gb.Visuals_ESP_Toggles:AddToggle("LadderESPToggle",     { Text = "Ladders",     
 Gb.Visuals_ESP_Toggles:AddDivider()
 Gb.Visuals_ESP_Toggles:AddDropdown("EntityESPOptions",     { 
 	Text = "Entity List",
-	Values = { "Rush","Ambush","Drones","Eyes","Dupe","Figure","Blitz","Lookman","Snare","Giggle","Gloombat Eggs","Grumble","Bash","A-120","Sally","Jeff the Killer","Groundskeeper","Mandrake Hole","Monument","Bramble","AR0xMBUSH","RNIUSHCG==","Stampede"},
+	Values = { "Rush","Ambush","Drones","Teller","Eyes","Dupe","Figure","Blitz","Lookman","Snare","Giggle","Gloombat Eggs","Grumble","Bash","A-120","Sally","Jeff the Killer","Groundskeeper","Mandrake Hole","Monument","Bramble","AR0xMBUSH","RNIUSHCG==","Stampede"},
 	Multi = true,
 	AllowNull = true
 })
@@ -5050,9 +5064,46 @@ local AutoInteractBlacklist = {
 
 local TriggerDebounce = false
 
+local function GetHidingSpotModel(Prompt)
+	if not Prompt or not Prompt.Parent then return false end
+	local Model = Prompt.Parent
+	while Model and not Model:IsA("Model") do
+		Model = Model.Parent
+	end
+	if not Model then return nil end
+
+	local Name = string.lower(Model.Name)
+	if not string.find(Name, "hidingspot") and not string.find(Name, "hiding_spot") then
+		return nil
+	end
+	return Model
+end
+
+local function HasHidePrompt(Model)
+	return Model and (Model:FindFirstChild("HidePrompt") or Model:FindFirstChild("HidingPrompt")) ~= nil
+end
+
+local function IsHidingSpotPrompt(Prompt)
+	if not Prompt or not Prompt.Parent then return false end
+	if Prompt.Name ~= "HidePrompt" and Prompt.Name ~= "HidingPrompt" then return false end
+	return HasHidePrompt(GetHidingSpotModel(Prompt))
+end
+
 Functions.TriggerPrompt = function(Prompt)
-	if AutoInteractBlacklist[Prompt.Name] then return end
 	if not Prompt or not Prompt.Parent then return end
+	if Character:GetAttribute("Hiding") == true then return end
+	local HidingSpot = GetHidingSpotModel(Prompt)
+	if HidingSpot and Prompt.Name ~= "InteractPrompt" then return end
+	local IsHidingSpotInteractPrompt = HidingSpot and Prompt.Name == "InteractPrompt"
+	if AutoInteractBlacklist[Prompt.Name] and not IsHidingSpotPrompt(Prompt) and not IsHidingSpotInteractPrompt then return end
+	if (Prompt.Name == "HidePrompt" or Prompt.Name == "HidingPrompt") and not IsHidingSpotPrompt(Prompt) then return end
+	if (Prompt.Name == "HidePrompt" or Prompt.Name == "HidingPrompt" or IsHidingSpotPrompt(Prompt)) then
+		if not Toggles.AutoClosetToggle.Value then return end
+		local Entity = Functions.GetNearestEntity(true, Options.AutoClosetEntityList.Value)
+		if not Entity then return end
+		local EntityDistance = LocalPlayer:DistanceFromCharacter(Entity.PrimaryPart.Position)
+		if EntityDistance > (EntityDistances[Entity.Name] or 150) then return end
+	end
 	if TriggerDebounce then return end
 
 	local ParentItem = Functions.HasItem(Prompt.Parent.Name)
