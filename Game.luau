@@ -38,6 +38,7 @@ local AntiScribbles_IsHooked = false
 local HonchoCorrectBoxConnection = nil
 local HonchoProcessedRooms = {}
 local HonchoESPObjects = {}
+local WaterParts = {}
 
 local Objects = {
 	Prompts = {},
@@ -1383,14 +1384,90 @@ Gb.Exploits_Bypass:AddToggle("BypassJeff",           { Text = "Bypass Jeff",    
 Gb.Exploits_Bypass:AddToggle("AntiPuddle", {
 	Text = "Anti Puddle", Default = false, Tooltip = "Raises your HipHeight over the glass puddle and restores it when you leave."
 })
-local DefaultHipHeight = Humanoid and Humanoid.HipHeight or 2.396
-Con.AntiPuddle = Services.RunService.Heartbeat:Connect(function()
-	if Toggles.AntiPuddle.Value and not Toggles.PositionSpoof.Value then
-		if Humanoid.FloorMaterial == Enum.Material.Glass then
-			if Humanoid.HipHeight ~= 4 then Humanoid.HipHeight = 4 end
-		else
-			if Humanoid.HipHeight ~= 2.396 then Humanoid.HipHeight = 2.396 end
+Toggles.AntiPuddle:OnChanged(function(Value)
+
+	Functions.Notify({Title = "PositionSpoof Will Break This!."})
+
+	if WaterBypassConnection then
+		WaterBypassConnection:Disconnect()
+		WaterBypassConnection = nil
+	end
+
+	if Value then
+		local function ProcessWaterBypassRoom(WaterBypassRoom)
+			if not tonumber(WaterBypassRoom.Name) then
+				return
+			end
+
+			task.wait(3)
+
+			local WaterBypassWater = WaterBypassRoom:FindFirstChild("Water")
+
+			if not WaterBypassWater or WaterParts[WaterBypassWater] then
+				return
+			end
+
+			local WaterBypassPart = Instance.new("Part")
+			WaterBypassPart.Name = "WaterBypass"
+			WaterBypassPart.Anchored = true
+			WaterBypassPart.CanCollide = true
+			WaterBypassPart.CanTouch = false
+			WaterBypassPart.CanQuery = false
+			WaterBypassPart.Transparency = 0.25
+			WaterBypassPart.Color = Color3.fromRGB(0, 150, 255)
+			WaterBypassPart.Material = Enum.Material.ForceField
+
+			if WaterBypassWater:IsA("BasePart") then
+				WaterBypassPart.Size = WaterBypassWater.Size + Vector3.new(0, 0.5, 0)
+				WaterBypassPart.CFrame = WaterBypassWater.CFrame * CFrame.new(0, 0.25, 0)
+
+			elseif WaterBypassWater:IsA("Model") then
+				local WaterBypassCFrame, WaterBypassSize = WaterBypassWater:GetBoundingBox()
+
+				WaterBypassPart.Size = WaterBypassSize + Vector3.new(0, 0.5, 0)
+				WaterBypassPart.CFrame = WaterBypassCFrame * CFrame.new(0, 0.25, 0)
+
+			else
+				WaterBypassPart.Size = Vector3.new(10, 1.5, 10)
+				WaterBypassPart.CFrame = WaterBypassWater:GetPivot() * CFrame.new(0, 0.25, 0)
+			end
+
+
+			if WaterBypassPart.Size.Y > 3 then
+				WaterBypassPart:Destroy()
+
+				Functions.Notify({
+					Title = "Water Bypass removed: Softlock.",
+				})
+
+				return
+			end
+
+			WaterBypassPart.Parent = WaterBypassRoom
+			WaterParts[WaterBypassWater] = WaterBypassPart
 		end
+
+		local WaterBypassLatestRoomNumber = tonumber(LatestRoom.Value) or 0
+
+		for WaterBypassRoomNumber = math.max(0, WaterBypassLatestRoomNumber - 4), WaterBypassLatestRoomNumber do
+			local WaterBypassRoom = workspace.CurrentRooms:FindFirstChild(tostring(WaterBypassRoomNumber))
+
+			if WaterBypassRoom then
+				task.spawn(ProcessWaterBypassRoom, WaterBypassRoom)
+			end
+		end
+
+		WaterBypassConnection = workspace.CurrentRooms.ChildAdded:Connect(function(WaterBypassRoom)
+			task.spawn(ProcessWaterBypassRoom, WaterBypassRoom)
+		end)
+	else
+		for _, WaterBypassPart in pairs(WaterParts) do
+			if WaterBypassPart then
+				WaterBypassPart:Destroy()
+			end
+		end
+
+		table.clear(WaterParts)
 	end
 end)
 Gb.Exploits_Bypass:AddToggle("BypassMandrake", {
@@ -1404,16 +1481,18 @@ local function processDrone(object, shouldBypass)
         if walkedInto then
             walkedInto.Name = shouldBypass and "_WalkedInto" or "WalkedInto"
         end
-	end
+    end
 end
+
 local function processStampede(object, shouldBypass)
-	if object.Name == "DronesStampede" then
-		local walkedInto = object:FindFirstChild(shouldBypass and "Trampled" or "_Trampled")
+    if object.Name == "DronesStampede" then
+        local walkedInto = object:FindFirstChild(shouldBypass and "Trampled" or "_Trampled")
         if walkedInto then
             walkedInto.Name = shouldBypass and "_Trampled" or "Trampled"
         end
     end
 end
+
 Toggles.BypassDrones:OnChanged(function(Value)
     for _, Object in pairs(Objects.Entities) do
         processDrone(Object, Value)
@@ -1422,8 +1501,9 @@ Toggles.BypassDrones:OnChanged(function(Value)
 end)
 
 workspace.ChildAdded:Connect(function(child)
-    if Toggles.BypassDrones.Value and child.Name == "Drones" and child.Name == "DronesStampede" then
+    if Toggles.BypassDrones.Value then
         processDrone(child, true)
+        processStampede(child, true)
     end
 end)
 
@@ -1727,7 +1807,7 @@ Toggles.BreakDoorsAnims:OnChanged(function(Value)
 						BV.Parent = Door
 					end
 					BV.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-					BV.Velocity = Vector3.new(0, 0, 100)
+					BV.Velocity = Vector3.new(100, 0, 0)
 				end
 
 				task.wait(0.2)
@@ -2275,7 +2355,7 @@ Gb.Visuals_Camera:AddDivider()
 Gb.Visuals_Camera:AddToggle("RemoveCameraShake", {
 	Text = "Remove Camera Shake", Default = false, Tooltip = "Prevents the camera from shaking.",
 	Disabled = not Functions.CheckCompatability({"require"}), DisabledTooltip = Globals.IncompatibleMessage
-})
+
 Gb.Visuals_Camera:AddToggle("RemoveCameraBobbing", {
 	Text = "Remove Camera Bobbing", Default = false, Tooltip = "Prevents the camera from bobbing when moving.",
 	Disabled = not Functions.CheckCompatability({"require"}), DisabledTooltip = Globals.IncompatibleMessage
@@ -2347,6 +2427,33 @@ Gb.Visuals_Effects:AddDivider()
 Gb.Visuals_Effects:AddToggle("DisableHideVignette",      { Text = "Disable Hide Vignette",      Default = false, Tooltip = "Disables the hiding screen effect." })
 Gb.Visuals_Effects:AddToggle("DisableFiredampEffect",    { Text = "Disable Firedamp Effect",    Default = false, Tooltip = "Disables the firedamp screen effect." })
 Gb.Visuals_Effects:AddToggle("DisableEntityJumpscares",  { Text = "Disable Entity Jumpscares",  Default = false, Tooltip = "Disables jumpscares from entities like Rush and Ambush." })
+Gb.Visuals_Effects:AddToggle("AntiClosetTrash", { Text = "Anti Closet Trash", Default = false, Tooltip = "Prevents 'Closet Trash' from spawning." })
+Toggles.AntiClosetTrash:OnChanged(function(Value)
+	if AntiClosetTrash_Connection then
+		AntiClosetTrash_Connection:Disconnect()
+		AntiClosetTrash_Connection = nil
+	end
+
+	if not Value then
+		return
+	end
+
+	AntiClosetTrash_Connection = workspace.ChildAdded:Connect(function(Child)
+		if not Toggles.AntiClosetTrash.Value then
+			return
+		end
+
+		local Name = Child.Name
+
+		if (Name:sub(1, 6) == "Binder"
+			or Name:sub(1, 4) == "Shoe"
+			or Name:sub(1, 5) == "Shelf")
+			then
+
+			Child:Destroy()
+		end
+	end)
+end)
 Toggles.DisableGlitchJumpscare:OnChanged(function() SyncEntityRemoval() end)
 Toggles.DisableTimothyJumpscare:OnChanged(function() SyncEntityRemoval() end)
 Toggles.DisableVoidJumpscare:OnChanged(function() SyncEntityRemoval() end)
