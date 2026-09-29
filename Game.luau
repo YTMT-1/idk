@@ -2355,7 +2355,7 @@ Gb.Visuals_Camera:AddDivider()
 Gb.Visuals_Camera:AddToggle("RemoveCameraShake", {
 	Text = "Remove Camera Shake", Default = false, Tooltip = "Prevents the camera from shaking.",
 	Disabled = not Functions.CheckCompatability({"require"}), DisabledTooltip = Globals.IncompatibleMessage
-
+})
 Gb.Visuals_Camera:AddToggle("RemoveCameraBobbing", {
 	Text = "Remove Camera Bobbing", Default = false, Tooltip = "Prevents the camera from bobbing when moving.",
 	Disabled = not Functions.CheckCompatability({"require"}), DisabledTooltip = Globals.IncompatibleMessage
@@ -2428,6 +2428,7 @@ Gb.Visuals_Effects:AddToggle("DisableHideVignette",      { Text = "Disable Hide 
 Gb.Visuals_Effects:AddToggle("DisableFiredampEffect",    { Text = "Disable Firedamp Effect",    Default = false, Tooltip = "Disables the firedamp screen effect." })
 Gb.Visuals_Effects:AddToggle("DisableEntityJumpscares",  { Text = "Disable Entity Jumpscares",  Default = false, Tooltip = "Disables jumpscares from entities like Rush and Ambush." })
 Gb.Visuals_Effects:AddToggle("AntiClosetTrash", { Text = "Anti Closet Trash", Default = false, Tooltip = "Prevents 'Closet Trash' from spawning." })
+
 Toggles.AntiClosetTrash:OnChanged(function(Value)
 	if AntiClosetTrash_Connection then
 		AntiClosetTrash_Connection:Disconnect()
