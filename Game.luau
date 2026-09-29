@@ -4045,12 +4045,34 @@ Toggles.ObjectiveESPToggle:OnChanged(function(Value)
 
         local BoxIDs = {}
         local depositCount = 0
+        local Color = (Options.ObjectiveESPColor and Options.ObjectiveESPColor.Value) or Color3.fromRGB(0, 255, 0)
+
         for _, Desc in ipairs(Room:GetDescendants()) do
             if Desc.Name == "ArchivesPackageDeposit" then
                 depositCount += 1
                 local BoxID = Desc:GetAttribute("BoxID")
                 if BoxID ~= nil then
                     BoxIDs[BoxID] = true
+
+                    if Toggles.ObjectiveESPToggle.Value then
+                        local depositEspText = string.format("Deposit[%s]", tostring(BoxID))
+
+                        Functions.AddESP({
+                            Object = Desc,
+                            Text = depositEspText,
+                            Color = Color
+                        }, true)
+
+                        table.insert(HonchoESPObjects, Desc)
+
+                        Desc.Destroying:Once(function()
+                            Functions.RemoveESP(Desc)
+                            local pos = table.find(HonchoESPObjects, Desc)
+                            if pos then
+                                table.remove(HonchoESPObjects, pos)
+                            end
+                        end)
+                    end
                 end
             end
         end
@@ -4072,13 +4094,11 @@ Toggles.ObjectiveESPToggle:OnChanged(function(Value)
                             Child:SetAttribute("ParentRoom", RoomNumber)
                         end
 
-                        local Color = (Options.ObjectiveESPColor and Options.ObjectiveESPColor.Value) or Color3.fromRGB(0, 255, 0)
-                        
-                        local espText = string.format("Box [%s]", tostring(ToolBoxID))
+                        local boxEspText = string.format("Box [%s]", tostring(ToolBoxID))
 
                         Functions.AddESP({
                             Object = Child,
-                            Text = espText,
+                            Text = boxEspText,
                             Color = Color
                         }, true)
 
